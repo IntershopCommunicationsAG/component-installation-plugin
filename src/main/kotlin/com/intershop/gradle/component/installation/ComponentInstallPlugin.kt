@@ -53,7 +53,8 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
             logger.info("Deploy plugin adds extension {} to {}", DeploymentExtension.DEPLOYMENT_EXTENSION_NAME, name)
 
             val extension = extensions.findByType(DeploymentExtension::class.java)
-                    ?: extensions.create(DeploymentExtension.DEPLOYMENT_EXTENSION_NAME, DeploymentExtension::class.java, this)
+                    ?: extensions.create(DeploymentExtension.DEPLOYMENT_EXTENSION_NAME,
+                            DeploymentExtension::class.java, this)
 
             tasks.maybeCreate("deploy").group = DeploymentExtension.DEPLOYMENT_GROUP_NAME
 
@@ -76,7 +77,12 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
         companion object {
             val LOGGER = LoggerFactory.getLogger(RuleSource::class.java.simpleName)!!
 
-            fun calculateURLForConfFile(defaultHostURL: String, defaultPattern: String, hostURL: String, pattern: String, dependency: Dependency, confDir: File) : File? {
+            fun calculateURLForConfFile(defaultHostURL: String,
+                                        defaultPattern: String,
+                                        hostURL: String,
+                                        pattern: String,
+                                        dependency: Dependency,
+                                        confDir: File) : File? {
                 val urlSB = StringBuilder()
 
                 if(! hostURL.isBlank()) {
@@ -102,14 +108,16 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                     }
                 }
 
-                val file = File(confDir, "${dependency.name}-${dependency.version}.$COMPONENT_DESCRIPTOR_EXTENSION")
+                val file = File(confDir,
+                        "${dependency.name}-${dependency.version}.$COMPONENT_DESCRIPTOR_EXTENSION")
                 FileUtils.copyURLToFile(URL(urlSB.toString()), file)
 
                 return file
             }
 
             private fun getPathForConfFromIvy(pattern: String, dependency: Dependency): String {
-                return IvyPatternHelper.substitute(pattern, dependency.group, dependency.name, dependency.version, dependency.name, COMPONENT_DESCRIPTOR_EXTENSION, COMPONENT_DESCRIPTOR_EXTENSION)
+                return IvyPatternHelper.substitute(pattern, dependency.group, dependency.name, dependency.version,
+                        dependency.name, COMPONENT_DESCRIPTOR_EXTENSION, COMPONENT_DESCRIPTOR_EXTENSION)
             }
 
             private fun getPathForConfFromMaven(dependency: Dependency): String {
@@ -119,7 +127,9 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
         }
 
         @Defaults
-        fun configureDeploymentTasks(tasks: ModelMap<Task>, deploymentConf: DeploymentConfiguration, @Path("buildDir") buildDir: File) {
+        fun configureDeploymentTasks(tasks: ModelMap<Task>,
+                                     deploymentConf: DeploymentConfiguration,
+                                     @Path("buildDir") buildDir: File) {
 
             val defaultRepoPattern = deploymentConf.repositoryPatternProvider.getOrElse("")
             val defaultRepositoryURL = deploymentConf.repositoryURLProvider.getOrElse("")
@@ -132,6 +142,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                         deployComponent.repositoryPattern,
                         deploymentConf.dependencyHandler.create(deployComponent.dependencyObject!!),
                         File(buildDir, "deploymentConf/${deployComponent.commonName}"))
+
 
                 val componentDescr = ComponentUtil.componentFromFile(confFile!!)
 

@@ -19,12 +19,14 @@ import com.intershop.gradle.test.AbstractIntegrationSpec
 import com.intershop.gradle.test.builder.TestIvyRepoBuilder
 import com.intershop.gradle.test.builder.TestMavenRepoBuilder
 import spock.lang.Unroll
+import spock.lang.Ignore
 
 class DeplyomentIntSpec extends AbstractIntegrationSpec {
 
     public final static String ivyPattern = '[organisation]/[module]/[revision]/[type]s/ivy-[revision].xml'
     public final static String artifactPattern = '[organisation]/[module]/[revision]/[ext]s/[artifact]-[type](-[classifier])-[revision].[ext]'
 
+    @Ignore
     @Unroll
     def 'Test plugin happy path'() {
         given:
@@ -33,7 +35,7 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
 
         buildFile << """
         plugins {
-            id 'com.intershop.gradle.component.deploy'
+            id 'com.intershop.gradle.component.installation'
         }
 
         group 'com.intershop.test'

@@ -83,7 +83,10 @@ open class DeployComponent : DefaultTask() {
         }
     }
 
-    private fun getArtifacts(dependency: String, extension: String = "", type: String = "", name: String = "") : Set<ResolvedArtifact> {
+    private fun getArtifacts(dependency: String,
+                             extension: String = "",
+                             type: String = "",
+                             name: String = "") : Set<ResolvedArtifact> {
         val dep = project.dependencies.create(dependency) as ModuleDependency
         dep.isTransitive = false
         if(extension.isNotEmpty() && type.isNotEmpty() && name.isNotEmpty()) {

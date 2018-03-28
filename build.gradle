@@ -60,7 +60,7 @@ version = scm.version.version
 gradlePlugin {
     plugins {
         componentDeployPlugin {
-            id = 'com.intershop.gradle.component.install'
+            id = 'com.intershop.gradle.component.installation'
             implementationClass = 'com.intershop.gradle.component.installation.ComponentInstallPlugin'
         }
     }

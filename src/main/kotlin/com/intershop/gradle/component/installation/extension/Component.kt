@@ -48,6 +48,4 @@ open class Component @Inject constructor(val path: String) : Named {
             }
             return suffix.toString().replace(' ', '_')
         }
-
-
 }
