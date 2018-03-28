@@ -20,7 +20,12 @@ import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.TaskAction
 import java.io.File
 
 open class DeployComponent : DefaultTask() {
@@ -28,7 +33,7 @@ open class DeployComponent : DefaultTask() {
     private val jarSources: ConfigurableFileCollection = project.files()
 
     @get:Input
-    var dependencyProperty: String? = null
+    var dependencyProperty: String = ""
 
     @get:Internal
     var targetPath: String = ""
@@ -60,13 +65,13 @@ open class DeployComponent : DefaultTask() {
     @Suppress("private")
     @get:InputFile
     val ivyFile: File?
-        get() =  getIvyFile(dependencyProperty!!)
+        get() =  getIvyFile(dependencyProperty)
 
     @Suppress("unused")
     @TaskAction
     fun runComponentDepyment(){
         jars.forEach {
-            jarSources.from(getJarFile(dependencyProperty!!, it))
+            jarSources.from(getJarFile(dependencyProperty, it))
         }
 
         project.copy {
