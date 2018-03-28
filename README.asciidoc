@@ -1,0 +1,12 @@
+= Install Plugin for Components to Install Anywhere
+:source-highlighter: prettify
+:blank: pass:[ +]
+:latestRevision: 1.0.0
+:icons: font
+:toc:
+
+NOTE: This library requires Gradle 4 and JDK 8
+
+NOTE: This library is under development and not final released.
+
+== Summary
