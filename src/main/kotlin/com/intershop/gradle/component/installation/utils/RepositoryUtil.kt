@@ -23,6 +23,7 @@ import org.apache.ivy.core.IvyPatternHelper
 import org.jsoup.Jsoup
 import org.slf4j.LoggerFactory
 import org.w3c.dom.Element
+import sun.net.www.protocol.file.FileURLConnection
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -30,6 +31,7 @@ import java.net.HttpURLConnection
 import java.net.InetSocketAddress
 import java.net.Proxy
 import java.net.URL
+import java.net.URLConnection
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import javax.net.ssl.HostnameVerifier
@@ -56,7 +58,7 @@ class RepositoryUtil {
         const val DEFAULT_PROXY_PORT = -1
 
         @JvmStatic
-        protected fun getUrlconnection(urlString: String, credentials: Credentials) : HttpURLConnection {
+        protected fun getUrlconnection(urlString: String, credentials: Credentials) : URLConnection {
             val urlInternal = URL(urlString)
 
             val scheme = urlInternal.protocol
@@ -80,7 +82,7 @@ class RepositoryUtil {
                 HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid)
             }
 
-            val connection = if(proxyPort.isNotBlank() && proxyHost.isNotBlank()) {
+            val connection = if(proxyPort.isNotBlank() && proxyHost.isNotBlank() && scheme.startsWith("http")) {
                 logger.info("Proxy host is used: {}://{}:{}", scheme, proxyHost, proxyPort)
                 val proxy = Proxy(Proxy.Type.HTTP, InetSocketAddress(proxyHost, Integer.parseInt(proxyPort)))
                 urlInternal.openConnection(proxy)
@@ -88,12 +90,12 @@ class RepositoryUtil {
                 urlInternal.openConnection()
             }
 
-            if(credentials.username.isNotBlank() && credentials.password.isNotBlank()) {
+            if(credentials.username.isNotBlank() && credentials.password.isNotBlank() && scheme.startsWith("http") ) {
                 logger.info("User {} is used for access.", credentials.username)
                 connection.setRequestProperty("Authorization", "Basic ${credentials.authString}")
             }
 
-            return connection as HttpURLConnection
+            return connection
         }
 
         @JvmStatic
@@ -127,11 +129,27 @@ class RepositoryUtil {
 
                 var connection = getUrlconnection(urlPath.toString(), repo.credentials)
 
-                if (version == "+" || version == "latest") {
-                    version = getLatestVersionFromIvyIndex(connection.inputStream, "", repo.url)
-                } else if (version.endsWith("+")) {
-                    version = getLatestVersionFromIvyIndex(connection.inputStream,
-                            version.replace(".", "\\.").replace("+", ".*"), repo.url)
+                when(connection) {
+                    is HttpURLConnection -> {
+                        if (version == "+" || version == "latest") {
+                            version = getLatestVersionFromIvyIndex(connection.inputStream, "", repo.url)
+                        } else if (version.endsWith("+")) {
+                            version = getLatestVersionFromIvyIndex(connection.inputStream,
+                                    version.replace(".", "\\.").replace("+", ".*"), repo.url)
+                        }
+                    }
+                    is FileURLConnection -> {
+                        val dir = File(connection.url.toURI())
+                        if (version == "+" || version == "latest") {
+                            version = getLatestVersionFromIvyDir(dir, "")
+                        } else if (version.endsWith("+")) {
+                            version = getLatestVersionFromIvyDir(dir,
+                                    version.replace(".", "\\.").replace("+", ".*"))
+                        }
+                    }
+                    else -> {
+
+                    }
                 }
             }
 
@@ -139,7 +157,7 @@ class RepositoryUtil {
         }
 
         @JvmStatic
-        protected fun addMavenArtifactPath(dependency: com.intershop.gradle.component.installation.utils.data.Dependency, repo: Repository): String {
+        protected fun addMavenArtifactPath(dependency: Dependency, repo: Repository): String {
 
             var version = dependency.version
             var path = getMavenModulePath(dependency, repo.url)
@@ -181,7 +199,7 @@ class RepositoryUtil {
             return version
         }
 
-        private fun getMavenModulePath(dependency: com.intershop.gradle.component.installation.utils.data.Dependency, hostURL: String) : String {
+        private fun getMavenModulePath(dependency: Dependency, hostURL: String) : String {
             val path = StringBuilder(hostURL)
             if(! path.endsWith("/")) {
                 path.append("/")
@@ -216,6 +234,7 @@ class RepositoryUtil {
         }
 
         @JvmStatic
+        @JvmOverloads
         protected fun getLatestVersionFromMaven(metadata: Any, regex:String = "") : String{
             var version = ""
 
@@ -239,19 +258,6 @@ class RepositoryUtil {
                     version = versionList.sortedWith(VersionComparator()).last()
                 }
             }
-            return version
-        }
-
-        @JvmStatic
-        protected fun getLatestVersionFromMaven(metadata: Any) : String {
-            var version = ""
-
-            val versionsElement = getVersioningNodeFromMaven(metadata)
-            val latest = versionsElement?.getElementsByTagName("latest")
-            if(latest != null && latest.length > 0) {
-                version = latest.item(0).textContent
-            }
-
             return version
         }
 
@@ -291,6 +297,31 @@ class RepositoryUtil {
                     versionList.add(it.text().replace("/",""))
                 } else if(pattern.isBlank()) {
                     versionList.add(it.text().replace("/",""))
+                }
+            }
+
+            return if(versionList.size > 0) {
+                versionList.sortedWith(VersionComparator()).last()
+            } else {
+                ""
+            }
+        }
+
+        @JvmStatic
+        @JvmOverloads
+        protected fun getLatestVersionFromIvyDir(dir: File, pattern: String = "") : String {
+            val versionList = mutableListOf<String>()
+
+            if (dir.isDirectory && dir.canRead()) {
+                if (pattern.isNotBlank()) {
+                    val regex = pattern.toRegex()
+                    dir.list { dir, name -> name.matches(regex) }.forEach {
+                        versionList.add(it)
+                    }
+                } else {
+                    dir.list().forEach {
+                        versionList.add(it)
+                    }
                 }
             }
 

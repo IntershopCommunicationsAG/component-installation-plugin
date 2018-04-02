@@ -19,6 +19,7 @@ package com.intershop.gradle.component.installation.utils
 import com.intershop.gradle.component.installation.utils.data.Credentials
 import com.intershop.gradle.component.installation.utils.data.Dependency
 import com.intershop.gradle.component.installation.utils.data.Repository
+import com.intershop.gradle.test.builder.TestIvyRepoBuilder
 import com.intershop.gradle.test.util.TestDir
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -171,6 +172,25 @@ class RepositoryUtilSpec extends Specification {
         version == "1.5.2"
     }
 
+    def 'test ivy version from latest - file url'() {
+        setup:
+        String path = 'com.intershop.test/test'
+        String filePath = createRepo(testProjectDir).absolutePath
+
+        String urlStr =  "file://$filePath"
+
+        when:
+        Repository repo = new Repository(RepoType.IVY_REMOTE, urlStr, new Credentials("",""))
+        repo.pattern = RepositoryUtil.INTERSHOP_PATTERN
+
+        Dependency dep = new Dependency("com.intershop.test", "test", "+")
+
+        String version = RepositoryUtil.getIvyVersion(dep, repo)
+
+        then:
+        version == "2.1.0"
+    }
+
     def 'test ivy version from latest with pattern'() {
         setup:
         String path = 'com.intershop.test/test'
@@ -191,6 +211,25 @@ class RepositoryUtilSpec extends Specification {
 
         then:
         version == "12.0.39"
+    }
+
+    def 'test ivy version from latest with pattern - file url'() {
+        setup:
+        String path = 'com.intershop.test/test'
+        String filePath = createRepo(testProjectDir).absolutePath
+
+        String urlStr =  "file://$filePath"
+
+        when:
+        Repository repo = new Repository(RepoType.IVY_REMOTE, urlStr, new Credentials("",""))
+        repo.pattern = RepositoryUtil.INTERSHOP_PATTERN
+
+        Dependency dep = new Dependency("com.intershop.test", "test", "1.+")
+
+        String version = RepositoryUtil.getIvyVersion(dep, repo)
+
+        then:
+        version == "1.3.0"
     }
 
     def 'test ivy version from latest'() {
@@ -228,7 +267,71 @@ class RepositoryUtilSpec extends Specification {
         version == "15.0.0"
     }
 
-    protected void copyResources(String srcDir, String target = '', File baseDir = testProjectDir) {
+    private File createRepo(File dir) {
+        File repoDir = new File(dir, 'repo')
+
+        new TestIvyRepoBuilder().repository( ivyPattern: RepositoryUtil.INTERSHOP_IVY_PATTERN, artifactPattern: RepositoryUtil.INTERSHOP_PATTERN ) {
+            module(org: 'com.intershop.test', name: 'test', rev: '1.0.0') {
+                artifact name: 'testmodule1', type: 'cartridge', ext: 'zip', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'testmodule/testfiles/test1.file', content: 'test1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'testmodule/testconf/test2.conf', content: 'test2.conf'),
+                        TestIvyRepoBuilder.ArchiveDirectoryEntry.newInstance(path: 'testmodule/empttestdir')
+                ]
+                artifact name: 'testmodule1', type: 'jar', ext: 'jar', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/intern/test1.file', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/intern/test2.file', content: 'interntest2.file')
+                ]
+            }
+            module(org: 'com.intershop.test', name: 'test', rev: '1.1.0') {
+                artifact name: 'testmodule1', type: 'cartridge', ext: 'zip', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'testmodule/testfiles/test1.file', content: 'test1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'testmodule/testconf/test2.conf', content: 'test2.conf'),
+                        TestIvyRepoBuilder.ArchiveDirectoryEntry.newInstance(path: 'testmodule/empttestdir')
+                ]
+                artifact name: 'testmodule1', type: 'jar', ext: 'jar', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/intern/test1.file', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/intern/test2.file', content: 'interntest2.file')
+                ]
+            }
+            module(org: 'com.intershop.test', name: 'test', rev: '2.0.0') {
+                artifact name: 'testmodule1', type: 'cartridge', ext: 'zip', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'testmodule/testfiles/test1.file', content: 'test1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'testmodule/testconf/test2.conf', content: 'test2.conf'),
+                        TestIvyRepoBuilder.ArchiveDirectoryEntry.newInstance(path: 'testmodule/empttestdir')
+                ]
+                artifact name: 'testmodule1', type: 'jar', ext: 'jar', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/intern/test1.file', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/intern/test2.file', content: 'interntest2.file')
+                ]
+            }
+            module(org: 'com.intershop.test', name: 'test', rev: '2.1.0') {
+                artifact name: 'testmodule1', type: 'cartridge', ext: 'zip', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'testmodule/testfiles/test1.file', content: 'test1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'testmodule/testconf/test2.conf', content: 'test2.conf'),
+                        TestIvyRepoBuilder.ArchiveDirectoryEntry.newInstance(path: 'testmodule/empttestdir')
+                ]
+                artifact name: 'testmodule1', type: 'jar', ext: 'jar', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/intern/test1.file', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/intern/test2.file', content: 'interntest2.file')
+                ]
+            }
+            module(org: 'com.intershop.test', name: 'test', rev: '1.3.0') {
+                artifact name: 'testmodule1', type: 'cartridge', ext: 'zip', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'testmodule/testfiles/test1.file', content: 'test1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'testmodule/testconf/test2.conf', content: 'test2.conf'),
+                        TestIvyRepoBuilder.ArchiveDirectoryEntry.newInstance(path: 'testmodule/empttestdir')
+                ]
+                artifact name: 'testmodule1', type: 'jar', ext: 'jar', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/intern/test1.file', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/intern/test2.file', content: 'interntest2.file')
+                ]
+            }
+        }.writeTo(repoDir)
+
+        return repoDir
+    }
+
+    private void copyResources(String srcDir, String target = '', File baseDir = testProjectDir) {
         ClassLoader classLoader = getClass().getClassLoader();
         URL resource = classLoader.getResource(srcDir);
         if (resource == null) {

@@ -75,4 +75,15 @@ class VersionComparatorSpec extends Specification {
         then:
         versionList.last() == "2.0"
     }
+
+    def 'Test latest from snapshots'() {
+        given:
+        def versionList = ["1.0.0-SNAPSHOT", "2.0.0-SNAPSHOT", "1.3.0-SNAPSHOT", "2.1-SNAPSHOT", "1.1.0-SNAPSHOT"]
+
+        when:
+        versionList.sort(new VersionComparator())
+
+        then:
+        versionList.last() == "2.1-SNAPSHOT"
+    }
 }
