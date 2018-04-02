@@ -1,7 +1,7 @@
 /*
  * Copyright 2018 Intershop Communications AG.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, VersionComparator 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -18,6 +18,7 @@ package com.intershop.gradle.component.installation.utils
 import com.intershop.gradle.component.installation.extension.Component
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.file.Directory
 import org.gradle.api.provider.Provider
 
@@ -29,5 +30,7 @@ data class DeploymentConfiguration(
 
     val componentContainer: NamedDomainObjectContainer<Component>,
 
-    val dependencyHandler: DependencyHandler
+    val dependencyHandler: DependencyHandler,
+
+    val repositories: RepositoryHandler
 )

@@ -1,7 +1,7 @@
 /*
  * Copyright 2018 Intershop Communications AG.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, VersionComparator 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -19,14 +19,13 @@ import com.intershop.gradle.test.AbstractIntegrationSpec
 import com.intershop.gradle.test.builder.TestIvyRepoBuilder
 import com.intershop.gradle.test.builder.TestMavenRepoBuilder
 import spock.lang.Unroll
-import spock.lang.Ignore
 
 class DeplyomentIntSpec extends AbstractIntegrationSpec {
 
     public final static String ivyPattern = '[organisation]/[module]/[revision]/[type]s/ivy-[revision].xml'
     public final static String artifactPattern = '[organisation]/[module]/[revision]/[ext]s/[artifact]-[type](-[classifier])-[revision].[ext]'
 
-    @Ignore
+
     @Unroll
     def 'Test plugin happy path'() {
         given:
@@ -56,7 +55,7 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        List<String> args = ['deploy', '-s', '-i']
+        List<String> args = ['tasks', '-s', '-i']
 
         def result1 = getPreparedGradleRunner()
                 .withArguments(args)
@@ -65,7 +64,7 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
 
         then:
         true
-
+/**
         when:
         def result2 = getPreparedGradleRunner()
                 .withArguments(args)
@@ -74,11 +73,14 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
 
         then:
         true
-
+**/
         where:
         gradleVersion << supportedGradleVersions
 
     }
+
+
+
 
     File createSettingsGradle(String projectName) {
         File settingsFile = new File(testProjectDir, 'settings.gradle')
@@ -216,9 +218,17 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
                         artifact "${artifactPattern}"
                         artifact "${ivyPattern}"
                     }
+                    credentials {
+                        username = 'joe'
+                        password = 'secret'
+                    }
                 }
                 maven {
                     url "file://${repoDir.absolutePath.replace('\\\\', '/')}"
+credentials {
+            username = 'joe'
+            password = 'secret'
+        }
                 }
                 jcenter()
             }""".stripIndent()

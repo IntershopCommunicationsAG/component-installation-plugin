@@ -1,7 +1,7 @@
 /*
  * Copyright 2018 Intershop Communications AG.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, VersionComparator 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -26,6 +26,9 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+import org.gradle.api.internal.artifacts.repositories.DefaultIvyArtifactRepository
 import org.gradle.model.Defaults
 import org.gradle.model.ModelMap
 import org.gradle.model.Path
@@ -66,7 +69,8 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                                 extension.repositoryPatternProvider,
                                 extension.deploymentTargetProvider,
                                 extension.deploymentComponents,
-                                dependencyHandler))
+                                dependencyHandler,
+                                project.repositories))
                         .descriptor("Deployment configuration").build())
             }
         }
@@ -130,6 +134,24 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
         fun configureDeploymentTasks(tasks: ModelMap<Task>,
                                      deploymentConf: DeploymentConfiguration,
                                      @Path("buildDir") buildDir: File) {
+
+            deploymentConf.repositories.forEach {
+                    when(it) {
+                        is IvyArtifactRepository -> {
+                            println(it.url)
+                            println(it.credentials.password)
+                            println(it.credentials.username)
+                        }
+                        is MavenArtifactRepository -> {
+                            println(it.url)
+                            println(it.credentials.password)
+                            println(it.credentials.username)
+                        }
+                        is DefaultIvyArtifactRepository -> {
+
+                        }
+                    }
+            }
 
             val defaultRepoPattern = deploymentConf.repositoryPatternProvider.getOrElse("")
             val defaultRepositoryURL = deploymentConf.repositoryURLProvider.getOrElse("")

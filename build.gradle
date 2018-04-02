@@ -260,10 +260,17 @@ task sendCoverageToCodacy(type: JavaExec, dependsOn: jacocoTestReport) {
 
 dependencies {
     compile 'com.intershop.gradle.component:component-descriptor:1.0.0-dev.9'
+
     compile 'org.apache.ivy:ivy:2.4.0'
+    compile 'org.apache.maven:maven-model-builder:3.5.3'
+    compile 'org.jsoup:jsoup:1.11.2'
     compile 'commons-io:commons-io:2.2'
 
     compileOnly 'org.jetbrains:annotations:15.0'
+
+    // mock webserver
+    testCompile 'com.squareup.okhttp3:okhttp:3.10.0'
+    testCompile 'com.squareup.okhttp3:mockwebserver:3.10.0'
 
     testCompile 'com.intershop.gradle.test:test-gradle-plugin:3.0.0'
     testCompile gradleTestKit()
