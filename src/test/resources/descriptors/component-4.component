@@ -1,0 +1,68 @@
+{
+  "displayName" : "testComponent4",
+  "componentDescription" : "Test component 4",
+  "types" : [ ],
+  "classifiers" : [ ],
+  "modulesTarget" : "",
+  "libsTarget" : "lib/release/libs",
+  "fileTarget" : "",
+  "containerTarget" : "",
+  "target" : "",
+  "modules" : {
+    "project1a" : {
+      "name" : "project1a",
+      "targetPath" : "project1a",
+      "dependency" : {
+        "group" : "com.intershop.test",
+        "module" : "project1a",
+        "version" : "1.0.0"
+      },
+      "itemType" : "",
+      "pkgs" : [ "project1a-bin", "project1a-sites" ],
+      "jars" : [ "project1a" ],
+      "targetIncluded" : false,
+      "contentType" : "IMMUTABLE",
+      "excludesFromUpdate" : [ ],
+      "excludeFromUpdate" : false,
+      "types" : [ ],
+      "classifiers" : [ ]
+    },
+    "project2b" : {
+      "name" : "project2b",
+      "targetPath" : "project2b",
+      "dependency" : {
+        "group" : "com.intershop.test",
+        "module" : "project2b",
+        "version" : "1.0.0"
+      },
+      "itemType" : "",
+      "pkgs" : [ "project2b-bin", "project2b-sites" ],
+      "jars" : [ "project2b" ],
+      "targetIncluded" : false,
+      "contentType" : "IMMUTABLE",
+      "excludesFromUpdate" : [ ],
+      "excludeFromUpdate" : false,
+      "types" : [ ],
+      "classifiers" : [ ]
+    }
+  },
+  "libs" : {
+    "com.intershop:library1:1.0.0" : {
+      "dependency" : {
+        "group" : "com.intershop",
+        "module" : "library1",
+        "version" : "1.0.0"
+      },
+      "targetName" : "com.intershop_library1_1.0.0",
+      "types" : [ ]
+    }
+  },
+  "fileContainers" : [ ],
+  "fileItems" : [ ],
+  "properties" : [ ],
+  "excludesFromUpdate" : [ ],
+  "metadata" : {
+    "creation" : 1522163301583,
+    "version" : "v1"
+  }
+}

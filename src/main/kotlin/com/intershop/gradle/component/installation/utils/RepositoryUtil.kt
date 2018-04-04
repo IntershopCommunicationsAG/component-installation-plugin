@@ -15,11 +15,11 @@
  */
 package com.intershop.gradle.component.installation.utils
 
-import com.intershop.gradle.component.installation.utils.data.Artifact
 import com.intershop.gradle.component.installation.utils.data.Credentials
 import com.intershop.gradle.component.installation.utils.data.Dependency
 import com.intershop.gradle.component.installation.utils.data.Repository
 import org.apache.ivy.core.IvyPatternHelper
+import org.gradle.api.GradleException
 import org.jsoup.Jsoup
 import org.slf4j.LoggerFactory
 import org.w3c.dom.Element
@@ -48,8 +48,6 @@ class RepositoryUtil {
 
         internal val logger = LoggerFactory.getLogger(RepositoryUtil::class.java.simpleName)
 
-        const val DESCRIPTOR_EXTENSION = "component"
-
         const val BASE_PATTERN = "[organisation]/[module]/[revision]"
         const val MAVEN_PATTERN = "$BASE_PATTERN/[module]-[revision].[ext]"
         const val INTERSHOP_PATTERN = "$BASE_PATTERN/[ext]s/[artifact]-[type](-[classifier])-[revision].[ext]"
@@ -58,7 +56,7 @@ class RepositoryUtil {
         const val DEFAULT_PROXY_PORT = -1
 
         @JvmStatic
-        protected fun getUrlconnection(urlString: String, credentials: Credentials) : URLConnection {
+        fun getUrlconnection(urlString: String, credentials: Credentials) : URLConnection {
             val urlInternal = URL(urlString)
 
             val scheme = urlInternal.protocol
@@ -98,95 +96,88 @@ class RepositoryUtil {
             return connection
         }
 
+        @Throws(IOException::class)
         @JvmStatic
-        protected fun getPathFromIvy(dependency: Dependency, repo: Repository,
-                                     version: String, artifact: Artifact) : String {
-
-            return if(version.isNotBlank()) {
-                 IvyPatternHelper.substitute(repo.pattern, dependency.group, dependency.module, version,
-                        artifact.artifcat, artifact.type, artifact.ext)
-            } else {
-                ""
-            }
-        }
-
-        @JvmStatic
-        protected fun getIvyVersion(dependency: Dependency, repo: Repository) : String {
+        fun addIvyVersion(dependency: Dependency, repo: Repository) : String {
             var version = dependency.version
 
-            if(version.endsWith("+") || version == "latest") {
+            val revPos = repo.pattern.indexOf("[revision]")
+            val verPattern = repo.pattern.substring(0, revPos - 1)
 
-                val revPos = repo.pattern.indexOf("[revision]")
-                val verPattern = repo.pattern.substring(0, revPos - 1)
+            val urlPath = StringBuilder(repo.url)
+            if(! urlPath.endsWith("/")) {
+                urlPath.append("/")
+            }
+            urlPath.append(IvyPatternHelper.substitute(verPattern,
+                    dependency.group, dependency.module, dependency.version,
+                    dependency.module, "", ""))
 
-                val urlPath = StringBuilder(repo.url)
-                if(! urlPath.endsWith("/")) {
-                    urlPath.append("/")
+            val connection = getUrlconnection(urlPath.toString(), repo.credentials)
+
+            when(connection) {
+                is HttpURLConnection -> {
+                    if (version == "+" || version == "latest") {
+                        version = getLatestVersionFromIvyIndex(connection.inputStream, "", repo.url)
+                    } else if (version.endsWith("+")) {
+                        version = getLatestVersionFromIvyIndex(connection.inputStream,
+                                version.replace(".", "\\.").replace("+", ".*"), repo.url)
+                    } else {
+                        version = getLatestVersionFromIvyIndex(connection.inputStream,
+                                version.replace(".", "\\."))
+                    }
                 }
-                urlPath.append(IvyPatternHelper.substitute(verPattern,
-                        dependency.group, dependency.module, dependency.version,
-                        dependency.module, "", ""))
-
-                var connection = getUrlconnection(urlPath.toString(), repo.credentials)
-
-                when(connection) {
-                    is HttpURLConnection -> {
-                        if (version == "+" || version == "latest") {
-                            version = getLatestVersionFromIvyIndex(connection.inputStream, "", repo.url)
-                        } else if (version.endsWith("+")) {
-                            version = getLatestVersionFromIvyIndex(connection.inputStream,
-                                    version.replace(".", "\\.").replace("+", ".*"), repo.url)
-                        }
+                is FileURLConnection -> {
+                    val dir = File(connection.url.toURI())
+                    if (version == "+" || version == "latest") {
+                        version = getLatestVersionFromIvyDir(dir, "")
+                    } else if (version.endsWith("+")) {
+                        version = getLatestVersionFromIvyDir(dir,
+                                version.replace(".", "\\.").replace("+", ".*"))
+                    } else {
+                        version = getLatestVersionFromIvyDir(dir,
+                                version.replace(".", "\\."))
                     }
-                    is FileURLConnection -> {
-                        val dir = File(connection.url.toURI())
-                        if (version == "+" || version == "latest") {
-                            version = getLatestVersionFromIvyDir(dir, "")
-                        } else if (version.endsWith("+")) {
-                            version = getLatestVersionFromIvyDir(dir,
-                                    version.replace(".", "\\.").replace("+", ".*"))
-                        }
-                    }
-                    else -> {
-
-                    }
+                }
+                else -> {
+                    throw GradleException("This kind of repository configuration for '${repo.url}'" +
+                            " is not supported by the 'component-install-plugin' - wrong connection.")
                 }
             }
 
+            repo.version = version
             return version
         }
 
+        @Throws(IOException::class)
         @JvmStatic
-        protected fun addMavenArtifactPath(dependency: Dependency, repo: Repository): String {
+        fun addMavenArtifactPath(dependency: Dependency, repo: Repository): String {
 
             var version = dependency.version
-            var path = getMavenModulePath(dependency, repo.url)
+            val path = getMavenModulePath(dependency, repo.url)
 
             if(version == "+" || version == "latest") {
-                var connection = getUrlconnection("$path/maven-metadata.xml", repo.credentials)
-
+                val connection = getUrlconnection("$path/maven-metadata.xml", repo.credentials)
                 version = getLatestVersionFromMaven(connection.inputStream)
             } else if(version.endsWith("+")) {
-                var connection = getUrlconnection("$path/maven-metadata.xml", repo.credentials)
-
+                val connection = getUrlconnection("$path/maven-metadata.xml", repo.credentials)
                 version = getLatestVersionFromMaven(connection.inputStream,
                             version.replace(".", "\\.").replace("+", ".*"))
+            } else {
+                val connection = getUrlconnection("$path/maven-metadata.xml", repo.credentials)
+                version = getLatestVersionFromMaven(connection.inputStream,
+                        version.replace(".", "\\."))
             }
 
             var updateStr = ""
 
             if(version.endsWith("-SNAPSHOT")) {
                 val connection = getUrlconnection("$path/${version}/maven-metadata.xml", repo.credentials)
-                try {
-                    updateStr = getSnapshotVersionFromMaven(connection.inputStream, dependency.version)
-                }catch (ioException: IOException) {
-                    logger.debug("No metadata for SNAPSHOTS available")
-                }
+                updateStr = getSnapshotVersionFromMaven(connection.inputStream, dependency.version)
             }
 
             val resultBuilder = StringBuilder(path)
             if(version.isNotBlank()) {
-                resultBuilder.append(version).append("/").append(dependency.module).append("-")
+                resultBuilder.append("/").append(version).append("/").append(dependency.module).append("-")
                 if(updateStr.isNotBlank()) {
                     resultBuilder.append(updateStr)
                 } else {
@@ -195,6 +186,7 @@ class RepositoryUtil {
             }
 
             repo.artifactPath = resultBuilder.toString()
+            repo.version = version
 
             return version
         }
@@ -208,7 +200,7 @@ class RepositoryUtil {
             if(! path.endsWith("/")) {
                 path.append("/")
             }
-            path.append(dependency.module).append("/")
+            path.append(dependency.module)
             return path.toString()
         }
 
@@ -255,7 +247,9 @@ class RepositoryUtil {
                         }
                     }
 
-                    version = versionList.sortedWith(VersionComparator()).last()
+                    if (! versionList.isEmpty()) {
+                        version = versionList.sortedWith(VersionComparator()).last()
+                    }
                 }
             }
             return version
@@ -293,10 +287,12 @@ class RepositoryUtil {
             val patterRegex = pattern.toRegex()
             links.filter { ! it.attr("href").startsWith("..") &&
                     it.attr("href").endsWith("/")}.forEach {
-                if(pattern.isNotBlank() && it.text().matches(patterRegex)) {
-                    versionList.add(it.text().replace("/",""))
+
+                val versionTxt = it.text().replace("/","")
+                if(pattern.isNotBlank() && versionTxt.matches(patterRegex)) {
+                    versionList.add(versionTxt)
                 } else if(pattern.isBlank()) {
-                    versionList.add(it.text().replace("/",""))
+                    versionList.add(versionTxt)
                 }
             }
 
@@ -309,17 +305,17 @@ class RepositoryUtil {
 
         @JvmStatic
         @JvmOverloads
-        protected fun getLatestVersionFromIvyDir(dir: File, pattern: String = "") : String {
+        protected fun getLatestVersionFromIvyDir(moduleDir: File, pattern: String = "") : String {
             val versionList = mutableListOf<String>()
 
-            if (dir.isDirectory && dir.canRead()) {
+            if (moduleDir.isDirectory && moduleDir.canRead()) {
                 if (pattern.isNotBlank()) {
                     val regex = pattern.toRegex()
-                    dir.list { dir, name -> name.matches(regex) }.forEach {
+                    moduleDir.list { _, name -> name.matches(regex) }.forEach {
                         versionList.add(it)
                     }
                 } else {
-                    dir.list().forEach {
+                    moduleDir.list().forEach {
                         versionList.add(it)
                     }
                 }

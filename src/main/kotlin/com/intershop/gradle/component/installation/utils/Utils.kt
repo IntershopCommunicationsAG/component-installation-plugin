@@ -18,6 +18,8 @@ package com.intershop.gradle.component.installation.utils
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
+import java.io.File
+import java.io.InputStream
 import kotlin.reflect.KProperty
 
 operator fun <T> Property<T>.setValue(receiver: Any?, property: KProperty<*>, value: T) = set(value)
@@ -27,3 +29,11 @@ operator fun <T> SetProperty<T>.setValue(receiver: Any?, property: KProperty<*>,
 operator fun <T> SetProperty<T>.getValue(receiver: Any?, property: KProperty<*>): Set<T> = get()
 
 inline fun <reified T> ObjectFactory.property(): Property<T> = property(T::class.java)
+
+fun File.copyInputStreamToFile(inputStream: InputStream) {
+    inputStream.use { input ->
+        this.outputStream().use { fileOut ->
+            input.copyTo(fileOut)
+        }
+    }
+}

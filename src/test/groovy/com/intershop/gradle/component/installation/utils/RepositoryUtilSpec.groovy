@@ -19,6 +19,7 @@ package com.intershop.gradle.component.installation.utils
 import com.intershop.gradle.component.installation.utils.data.Credentials
 import com.intershop.gradle.component.installation.utils.data.Dependency
 import com.intershop.gradle.component.installation.utils.data.Repository
+import com.intershop.gradle.component.installation.utils.data.RepositoryType
 import com.intershop.gradle.test.builder.TestIvyRepoBuilder
 import com.intershop.gradle.test.util.TestDir
 import okhttp3.mockwebserver.MockResponse
@@ -97,16 +98,24 @@ class RepositoryUtilSpec extends Specification {
     }
 
     def 'test artifact simple path from maven'() {
-        when:
+        setup:
+        String path = 'com/intershop/test/test/maven-metadata.xml'
+        String urlStr = server.url("mvnrepo/${path}").toString()
+        String hostURL = urlStr - path
+        copyResources("maven-metadata/versions.xml", "maven-metadata.xml")
+        File metadata = new File(testProjectDir, "maven-metadata.xml")
 
-        Repository repo = new Repository(RepoType.MAVEN_REMOTE, "http://repohost.test.com/repo", new Credentials("",""))
-        Dependency dep = new Dependency("com.intershop.test", "test", "1.6.0")
+        when:
+        server.enqueue(new MockResponse().setBody(metadata.text))
+
+        Repository repo = new Repository(RepositoryType.MAVEN, hostURL, new Credentials("",""))
+        Dependency dep = new Dependency("com.intershop.test", "test", "1.3.0")
 
         String version = RepositoryUtil.addMavenArtifactPath(dep, repo)
 
         then:
-        repo.artifactPath == "http://repohost.test.com/repo/com/intershop/test/test/1.6.0/test-1.6.0"
-        version == "1.6.0"
+        repo.artifactPath == "${hostURL}com/intershop/test/test/1.3.0/test-1.3.0"
+        version == "1.3.0"
     }
 
     def 'test artifact snapshot path from maven'() {
@@ -114,13 +123,16 @@ class RepositoryUtilSpec extends Specification {
         String path = 'com/intershop/test/test/1.6.0-SNAPSHOT/maven-metadata.xml'
         String urlStr = server.url("mvnrepo/${path}").toString()
         String hostURL = urlStr - path
-        copyResources("maven-metadata/snapshot.xml", "maven-metadata.xml")
-        File metadata = new File(testProjectDir, "maven-metadata.xml")
+        copyResources("maven-metadata/snapshot.xml", "2-maven-metadata.xml")
+        copyResources("maven-metadata/versions-snapshots.xml", "1-maven-metadata.xml")
+        File metadata1 = new File(testProjectDir, "1-maven-metadata.xml")
+        File metadata2 = new File(testProjectDir, "2-maven-metadata.xml")
 
         when:
-        server.enqueue(new MockResponse().setBody(metadata.text))
+        server.enqueue(new MockResponse().setBody(metadata1.text))
+        server.enqueue(new MockResponse().setBody(metadata2.text))
 
-        Repository repo = new Repository(RepoType.MAVEN_REMOTE, hostURL, new Credentials("",""))
+        Repository repo = new Repository(RepositoryType.MAVEN, hostURL, new Credentials("",""))
         Dependency dep = new Dependency("com.intershop.test", "test", "1.6.0-SNAPSHOT")
 
         String version = RepositoryUtil.addMavenArtifactPath(dep, repo)
@@ -141,7 +153,7 @@ class RepositoryUtilSpec extends Specification {
         when:
         server.enqueue(new MockResponse().setBody(metadata.text))
 
-        Repository repo = new Repository(RepoType.MAVEN_REMOTE, hostURL, new Credentials("",""))
+        Repository repo = new Repository(RepositoryType.MAVEN, hostURL, new Credentials("",""))
         Dependency dep = new Dependency("com.intershop.test", "test", "1.3.+")
 
         String version = RepositoryUtil.addMavenArtifactPath(dep, repo)
@@ -162,7 +174,7 @@ class RepositoryUtilSpec extends Specification {
         when:
         server.enqueue(new MockResponse().setBody(metadata.text))
 
-        Repository repo = new Repository(RepoType.MAVEN_REMOTE, hostURL, new Credentials("",""))
+        Repository repo = new Repository(RepositoryType.MAVEN, hostURL, new Credentials("",""))
         Dependency dep = new Dependency("com.intershop.test", "test", "+")
 
         String version = RepositoryUtil.addMavenArtifactPath(dep, repo)
@@ -180,12 +192,10 @@ class RepositoryUtilSpec extends Specification {
         String urlStr =  "file://$filePath"
 
         when:
-        Repository repo = new Repository(RepoType.IVY_REMOTE, urlStr, new Credentials("",""))
-        repo.pattern = RepositoryUtil.INTERSHOP_PATTERN
-
+        Repository repo = new Repository(RepositoryType.IVY, urlStr, new Credentials("",""), RepositoryUtil.INTERSHOP_PATTERN)
         Dependency dep = new Dependency("com.intershop.test", "test", "+")
 
-        String version = RepositoryUtil.getIvyVersion(dep, repo)
+        String version = RepositoryUtil.addIvyVersion(dep, repo)
 
         then:
         version == "2.1.0"
@@ -202,12 +212,10 @@ class RepositoryUtilSpec extends Specification {
         when:
         server.enqueue(new MockResponse().setBody(index.text))
 
-        Repository repo = new Repository(RepoType.IVY_REMOTE, hostURL, new Credentials("",""))
-        repo.pattern = RepositoryUtil.INTERSHOP_PATTERN
-
+        Repository repo = new Repository(RepositoryType.IVY, hostURL, new Credentials("",""), RepositoryUtil.INTERSHOP_PATTERN)
         Dependency dep = new Dependency("com.intershop.test", "test", "12.0.+")
 
-        String version = RepositoryUtil.getIvyVersion(dep, repo)
+        String version = RepositoryUtil.addIvyVersion(dep, repo)
 
         then:
         version == "12.0.39"
@@ -221,12 +229,10 @@ class RepositoryUtilSpec extends Specification {
         String urlStr =  "file://$filePath"
 
         when:
-        Repository repo = new Repository(RepoType.IVY_REMOTE, urlStr, new Credentials("",""))
-        repo.pattern = RepositoryUtil.INTERSHOP_PATTERN
-
+        Repository repo = new Repository(RepositoryType.IVY, urlStr, new Credentials("",""), RepositoryUtil.INTERSHOP_PATTERN)
         Dependency dep = new Dependency("com.intershop.test", "test", "1.+")
 
-        String version = RepositoryUtil.getIvyVersion(dep, repo)
+        String version = RepositoryUtil.addIvyVersion(dep, repo)
 
         then:
         version == "1.3.0"
@@ -243,28 +249,33 @@ class RepositoryUtilSpec extends Specification {
         when:
         server.enqueue(new MockResponse().setBody(index.text))
 
-        Repository repo = new Repository(RepoType.IVY_REMOTE, hostURL, new Credentials("",""))
-        repo.pattern = RepositoryUtil.INTERSHOP_PATTERN
-
+        Repository repo = new Repository(RepositoryType.IVY, hostURL, new Credentials("",""), RepositoryUtil.INTERSHOP_PATTERN)
         Dependency dep = new Dependency("com.intershop.test", "test", "+")
 
-        String version = RepositoryUtil.getIvyVersion(dep, repo)
+        String version = RepositoryUtil.addIvyVersion(dep, repo)
 
         then:
         version == "14.0.11"
     }
 
     def 'test ivy version'() {
+        setup:
+        String path = 'com.intershop.test/test'
+        String urlStr = server.url("ivyrepo/${path}").toString()
+        String hostURL = urlStr - path
+        copyResources("ivy-listing/listing.html", "index.html")
+        File index = new File(testProjectDir, "index.html")
+
         when:
-        Repository repo = new Repository(RepoType.IVY_REMOTE, "http://test.com/ivy", new Credentials("",""))
-        repo.pattern = RepositoryUtil.INTERSHOP_PATTERN
+        server.enqueue(new MockResponse().setBody(index.text))
 
-        Dependency dep = new Dependency("com.intershop.test", "test", "15.0.0")
+        Repository repo = new Repository(RepositoryType.IVY, hostURL, new Credentials("",""), RepositoryUtil.INTERSHOP_PATTERN)
+        Dependency dep = new Dependency("com.intershop.test", "test", "11.1.11")
 
-        String version = RepositoryUtil.getIvyVersion(dep, repo)
+        String version = RepositoryUtil.addIvyVersion(dep, repo)
 
         then:
-        version == "15.0.0"
+        version == "11.1.11"
     }
 
     private File createRepo(File dir) {

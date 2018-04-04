@@ -271,7 +271,7 @@ dependencies {
     // mock webserver
     testCompile 'com.squareup.okhttp3:okhttp:3.10.0'
     testCompile 'com.squareup.okhttp3:mockwebserver:3.10.0'
-
+    
     testCompile 'com.intershop.gradle.test:test-gradle-plugin:3.0.0'
     testCompile gradleTestKit()
 

@@ -15,8 +15,6 @@
  */
 package com.intershop.gradle.component.installation.utils.data
 
-import com.intershop.gradle.component.installation.utils.RepoType
-
 /**
  * Data class of a repository.
  *
@@ -24,17 +22,17 @@ import com.intershop.gradle.component.installation.utils.RepoType
  * @property url  URL string of the repository
  * @property credentials credentials for basic authentication
  */
-data class Repository(val type: RepoType,
-                      val url: String,
-                      val credentials: Credentials) {
-
-    /**
-     * Ivy pattern if available
-     */
-    var pattern = ""
-
+data class Repository @JvmOverloads constructor(val type: RepositoryType,
+                                                val url: String,
+                                                val credentials: Credentials,
+                                                val pattern: String = "") {
     /**
      * Maven basic artifact path if available
      */
     var artifactPath = ""
+
+    /**
+     * Necessary for Ivy path handling.
+     */
+    var version = ""
 }
