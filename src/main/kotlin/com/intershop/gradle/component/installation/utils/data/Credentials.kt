@@ -16,6 +16,7 @@
 
 package com.intershop.gradle.component.installation.utils.data
 
+import org.gradle.api.artifacts.repositories.AuthenticationSupported
 import java.util.*
 
 /**
@@ -26,6 +27,12 @@ import java.util.*
  * @property password password of the user
  */
 data class Credentials(val username: String, val password: String) {
+
+    companion object {
+        fun initFrom(repo: AuthenticationSupported) : Credentials {
+            return Credentials(repo.credentials.username ?: "", repo.credentials.password ?: "")
+        }
+    }
 
     /**
      * Read only variable for authentication string

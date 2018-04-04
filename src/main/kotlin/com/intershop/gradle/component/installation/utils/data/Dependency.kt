@@ -21,4 +21,16 @@ data class Dependency(val group: String, val module: String, val version: String
     fun getDependencyString(): String {
         return "$group:$module:$version"
     }
+
+    val versionPattern: String
+        get() = version.replace(".", "\\.").replace("+", ".*")
+
+    val hasLatestVersion: Boolean
+        get() = version == "+" || version == "latest"
+
+    val hasVersionPattern: Boolean
+        get() = version.endsWith("+") && version != "+"
+
+    val hasLatestPattern: Boolean
+        get() = version.endsWith("+") || version == "latest"
 }

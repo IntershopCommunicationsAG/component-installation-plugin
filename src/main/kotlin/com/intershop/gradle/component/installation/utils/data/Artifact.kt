@@ -22,6 +22,6 @@ package com.intershop.gradle.component.installation.utils.data
  * @property type       type of artifact
  * @property ext        extensions of artifact
  */
-data class Artifact(val artifcat: String,
+data class Artifact(val artifact: String,
                     val type: String,
                     val ext: String)

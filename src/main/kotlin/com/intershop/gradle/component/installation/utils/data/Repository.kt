@@ -15,6 +15,10 @@
  */
 package com.intershop.gradle.component.installation.utils.data
 
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+import java.net.URI
+
 /**
  * Data class of a repository.
  *
@@ -23,9 +27,25 @@ package com.intershop.gradle.component.installation.utils.data
  * @property credentials credentials for basic authentication
  */
 data class Repository @JvmOverloads constructor(val type: RepositoryType,
-                                                val url: String,
+                                                val url: URI,
                                                 val credentials: Credentials,
                                                 val pattern: String = "") {
+
+    companion object {
+        @JvmStatic
+        fun initIvyRepoFrom(repo: IvyArtifactRepository, pattern: String) : Repository {
+            return Repository(RepositoryType.IVY, repo.url, Credentials.initFrom(repo), pattern)
+        }
+
+        @JvmStatic
+        fun initMavenRepoFrom(repo: MavenArtifactRepository) : Repository {
+            return Repository(RepositoryType.MAVEN, repo.url, Credentials.initFrom(repo))
+        }
+    }
+
+    val urlStr: String
+        get() = url.toURL().toString()
+
     /**
      * Maven basic artifact path if available
      */
