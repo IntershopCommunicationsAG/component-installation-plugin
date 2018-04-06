@@ -63,11 +63,11 @@ open class InstallationExtension @Inject constructor(val project: Project) {
 
     val detectedOS: OSType
         get() {
-            val OS = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH)
+            val systemOS = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH)
             val type = when {
-                (OS.indexOf("mac") >= 0 || OS.indexOf("darwin") >= 0) -> OSType.MACOS
-                (OS.indexOf("win") >= 0) -> OSType.WINDOWS
-                (OS.indexOf("nux") >= 0) -> OSType.LINUX
+                (systemOS.indexOf("mac") >= 0 || systemOS.indexOf("darwin") >= 0) -> OSType.MACOS
+                (systemOS.indexOf("win") >= 0) -> OSType.WINDOWS
+                (systemOS.indexOf("nux") >= 0) -> OSType.LINUX
                 else -> OSType.OTHER
             }
             return type

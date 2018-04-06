@@ -39,7 +39,8 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
     override fun apply(project: Project) {
         with(project) {
-            logger.info("Install plugin adds extension {} to {}", InstallationExtension.INSTALLATION_EXTENSION_NAME, name)
+            logger.info("Install plugin adds extension {} to {}",
+                    InstallationExtension.INSTALLATION_EXTENSION_NAME, name)
 
             val extension = extensions.findByType(InstallationExtension::class.java)
                     ?: extensions.create(InstallationExtension.INSTALLATION_EXTENSION_NAME,
@@ -57,8 +58,9 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
     @Suppress("unused")
     class InstallRule : RuleSource() {
+
         companion object {
-            val LOGGER = LoggerFactory.getLogger(InstallRule::class.java)!!
+            val LOGGER = LoggerFactory.getLogger(InstallRule::class.java)
         }
 
         @Defaults
@@ -71,7 +73,8 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                 }
 
                 components.forEach {
-                    val descriptorMgr = DescriptorManager(project.repositories, it.dependency, installConfig.ivyPatterns)
+                    val descriptorMgr =
+                            DescriptorManager(project.repositories, it.dependency, installConfig.ivyPatterns)
 
                     val descriptorRepo = descriptorMgr.getDescriptorRepository()
                     if(descriptorRepo != null) {
