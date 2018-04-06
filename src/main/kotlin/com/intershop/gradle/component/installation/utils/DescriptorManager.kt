@@ -16,6 +16,7 @@
 
 package com.intershop.gradle.component.installation.utils
 
+import com.intershop.gradle.component.descriptor.util.ComponentUtil
 import com.intershop.gradle.component.installation.utils.data.Artifact
 import com.intershop.gradle.component.installation.utils.data.Credentials
 import com.intershop.gradle.component.installation.utils.data.Dependency
@@ -422,5 +423,15 @@ class DescriptorManager(val repositories: RepositoryHandler, val descriptor: Dep
         repo.version = version
 
         return version
+    }
+
+    @Throws(GradleException::class)
+    fun validateDescriptor(targetFile: File) {
+        val metadata = ComponentUtil.metadataFromFile(targetFile)
+        if(metadata.version != ComponentUtil.version) {
+            throw GradleException("The component desriptor '${descriptor.getDependencyString()}'" +
+                    "was created by an other version (Descriptor version is '${metadata.version}', " +
+                    "but the used framework has '${ComponentUtil.version}').")
+        }
     }
 }

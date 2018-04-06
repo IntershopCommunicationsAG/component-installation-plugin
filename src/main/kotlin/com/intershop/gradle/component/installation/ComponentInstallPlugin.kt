@@ -16,22 +16,15 @@
 package com.intershop.gradle.component.installation
 
 import com.intershop.gradle.component.descriptor.util.ComponentUtil
-import com.intershop.gradle.component.installation.extension.DeploymentExtension
-import com.intershop.gradle.component.installation.tasks.DeployComponent
-import com.intershop.gradle.component.installation.utils.DeploymentConfiguration
-import org.apache.commons.io.FileUtils
-import org.apache.ivy.core.IvyPatternHelper
+import com.intershop.gradle.component.installation.extension.InstallationExtension
+import com.intershop.gradle.component.installation.extension.OSType
+import com.intershop.gradle.component.installation.utils.DescriptorManager
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.artifacts.repositories.IvyArtifactRepository
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository
-import org.gradle.api.internal.artifacts.repositories.DefaultIvyArtifactRepository
 import org.gradle.model.Defaults
 import org.gradle.model.ModelMap
-import org.gradle.model.Path
 import org.gradle.model.RuleSource
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
@@ -39,155 +32,70 @@ import org.gradle.model.internal.core.ModelRegistrations
 import org.gradle.model.internal.registry.ModelRegistry
 import org.slf4j.LoggerFactory
 import java.io.File
-import java.net.URL
 import javax.inject.Inject
 
 @Suppress("unused")
-class ComponentInstallPlugin @Inject constructor(private val modelRegistry: ModelRegistry,
-                                                 private val dependencyHandler: DependencyHandler) : Plugin<Project> {
-
-    companion object {
-        const val COMPONENT_DESCRIPTOR_EXTENSION = "component"
-        const val MAVEN_IVY_PATTERN = "[organisation]/[module]/[revision]/[module]-[revision].[ext]"
-    }
+class ComponentInstallPlugin @Inject constructor(private val modelRegistry: ModelRegistry) : Plugin<Project> {
 
     override fun apply(project: Project) {
         with(project) {
-            logger.info("Deploy plugin adds extension {} to {}", DeploymentExtension.DEPLOYMENT_EXTENSION_NAME, name)
+            logger.info("Install plugin adds extension {} to {}", InstallationExtension.INSTALLATION_EXTENSION_NAME, name)
 
-            val extension = extensions.findByType(DeploymentExtension::class.java)
-                    ?: extensions.create(DeploymentExtension.DEPLOYMENT_EXTENSION_NAME,
-                            DeploymentExtension::class.java, this)
+            val extension = extensions.findByType(InstallationExtension::class.java)
+                    ?: extensions.create(InstallationExtension.INSTALLATION_EXTENSION_NAME,
+                            InstallationExtension::class.java, project)
 
-            tasks.maybeCreate("deploy").group = DeploymentExtension.DEPLOYMENT_GROUP_NAME
+            tasks.maybeCreate("install").group = InstallationExtension.INSTALLATION_GROUP_NAME
 
-            if(modelRegistry.state(ModelPath.nonNullValidatedPath("componentDeploymentConf")) == null) {
+            if(modelRegistry.state(ModelPath.nonNullValidatedPath("installExtension")) == null) {
                 modelRegistry.register(ModelRegistrations.bridgedInstance(
-                        ModelReference.of("componentDeploymentConf", DeploymentConfiguration::class.java),
-                        DeploymentConfiguration(
-                                extension.repositoryURLProvider,
-                                extension.repositoryPatternProvider,
-                                extension.deploymentTargetProvider,
-                                extension.deploymentComponents,
-                                dependencyHandler,
-                                project.repositories))
-                        .descriptor("Deployment configuration").build())
+                        ModelReference.of("installExtension", InstallationExtension::class.java), extension)
+                        .descriptor("component install configuration").build())
             }
         }
     }
 
     @Suppress("unused")
-    class DeployRule : RuleSource() {
+    class InstallRule : RuleSource() {
         companion object {
-            val LOGGER = LoggerFactory.getLogger(RuleSource::class.java.simpleName)!!
-
-            fun calculateURLForConfFile(defaultHostURL: String,
-                                        defaultPattern: String,
-                                        hostURL: String,
-                                        pattern: String,
-                                        dependency: Dependency,
-                                        confDir: File) : File? {
-                val urlSB = StringBuilder()
-
-                if(! hostURL.isBlank()) {
-                    urlSB.append(hostURL)
-                } else {
-                    urlSB.append(defaultHostURL)
-                }
-
-                if(! urlSB.endsWith('/')) {
-                    urlSB.append('/')
-                }
-
-                if((pattern.isBlank() || pattern == "maven") && defaultPattern.isBlank()) {
-                    // use maven pattern
-                    // TODO: Snapshots will be not handeld!
-                    urlSB.append(getPathForConfFromMaven(dependency))
-                } else {
-                    // use ivy pattern
-                    if(!pattern.isBlank() && pattern != "maven") {
-                        urlSB.append(getPathForConfFromIvy(pattern, dependency))
-                    } else {
-                        urlSB.append(getPathForConfFromIvy(defaultPattern, dependency))
-                    }
-                }
-
-                val file = File(confDir,
-                        "${dependency.name}-${dependency.version}.$COMPONENT_DESCRIPTOR_EXTENSION")
-                FileUtils.copyURLToFile(URL(urlSB.toString()), file)
-
-                return file
-            }
-
-            private fun getPathForConfFromIvy(pattern: String, dependency: Dependency): String {
-                return IvyPatternHelper.substitute(pattern, dependency.group, dependency.name, dependency.version,
-                        dependency.name, COMPONENT_DESCRIPTOR_EXTENSION, COMPONENT_DESCRIPTOR_EXTENSION)
-            }
-
-            private fun getPathForConfFromMaven(dependency: Dependency): String {
-                //TODO: this will not handle snaphots!
-                return getPathForConfFromIvy(MAVEN_IVY_PATTERN, dependency)
-            }
+            val LOGGER = LoggerFactory.getLogger(InstallRule::class.java)!!
         }
 
         @Defaults
         fun configureDeploymentTasks(tasks: ModelMap<Task>,
-                                     deploymentConf: DeploymentConfiguration,
-                                     @Path("buildDir") buildDir: File) {
+                                     installExtension: InstallationExtension) {
 
-            deploymentConf.repositories.forEach {
-                    when(it) {
-                        is IvyArtifactRepository -> {
-                            println(it.url)
-                            println(it.credentials.password)
-                            println(it.credentials.username)
-                        }
-                        is MavenArtifactRepository -> {
-                            println(it.url)
-                            println(it.credentials.password)
-                            println(it.credentials.username)
-                        }
-                        is DefaultIvyArtifactRepository -> {
+            with(installExtension) {
+                if(this.detectedOS == OSType.OTHER) {
+                    throw GradleException("The operating system is not suppported by the component install plugin!")
+                }
 
-                        }
+                components.forEach {
+                    val descriptorMgr = DescriptorManager(project.repositories, it.dependency, installConfig.ivyPatterns)
+
+                    val descriptorRepo = descriptorMgr.getDescriptorRepository()
+                    if(descriptorRepo != null) {
+                        val targetFile = File(installConfig.installAdminDir,
+                                "descriptors/${it.commonName}/component.component")
+
+                        descriptorMgr.loadDescriptorFile(descriptorRepo, targetFile)
+                        descriptorMgr.validateDescriptor(targetFile)
+
+                        val component = ComponentUtil.componentFromFile(targetFile)
+
+                        println(component.fileContainers.size)
+
+                        println(component.fileItems.size)
+
+                        println(component.modules.size)
+
+                        println(component.libs.size)
+
+                        println(component.properties.size)
+                    } else {
+                        throw GradleException("Component '${it.dependency.getDependencyString()}' is " +
+                                "not found in configured repositories. See log files for more information.")
                     }
-            }
-
-            val defaultRepoPattern = deploymentConf.repositoryPatternProvider.getOrElse("")
-            val defaultRepositoryURL = deploymentConf.repositoryURLProvider.getOrElse("")
-
-            deploymentConf.componentContainer.forEach { deployComponent ->
-                val confFile = calculateURLForConfFile(
-                        defaultRepositoryURL,
-                        defaultRepoPattern,
-                        deployComponent.repositoryURL,
-                        deployComponent.repositoryPattern,
-                        deploymentConf.dependencyHandler.create(deployComponent.dependencyObject!!),
-                        File(buildDir, "deploymentConf/${deployComponent.commonName}"))
-
-
-                val componentDescr = ComponentUtil.componentFromFile(confFile!!)
-
-                componentDescr.modules.forEach { moduleEntry ->
-                    val taskName = "deploy${moduleEntry.value.name.capitalize()}${deployComponent.commonName}"
-
-                    if(! tasks.containsKey(taskName)) {
-                        LOGGER.info("Create Deployment Task {} from {}", taskName, moduleEntry.value.name)
-
-                        tasks.create(taskName, DeployComponent::class.java, {
-                            it.dependencyProperty = moduleEntry.value.dependency.toString()
-
-                            it.installTarget = deploymentConf.deploymentTargetProvider.get().dir(deployComponent.path).asFile
-
-                            it.targetPath = moduleEntry.key
-                            it.targetPathInternal = moduleEntry.value.targetPath
-
-                            it.jars = moduleEntry.value.jars
-
-                        })
-                    }
-
-                    tasks.get("deploy")?.dependsOn(taskName)
                 }
             }
         }

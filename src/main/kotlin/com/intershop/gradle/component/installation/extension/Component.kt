@@ -17,35 +17,27 @@
 package com.intershop.gradle.component.installation.extension
 
 
-import org.gradle.api.Named
+import com.intershop.gradle.component.installation.utils.data.Dependency
 import javax.inject.Inject
 
-open class Component @Inject constructor(val path: String) : Named {
-
-    override fun getName(): String {
-        return path
-    }
-
-    var repositoryURL = ""
-
-    var repositoryPattern = ""
-
-    var dependencyObject: Any? = null
-
-    @Suppress("unused")
-    fun from(dependency: Any) {
-        dependencyObject = dependency
-    }
+open class Component @Inject constructor(val group: String,
+                                         val module: String,
+                                         val version: String,
+                                         val path: String = "") {
 
     val commonName: String
         get() {
-            val suffix = StringBuilder()
-            val pathParts = path.split("/")
-            pathParts.forEach { part ->
-                part.split("\\").forEach {
-                    suffix.append(it.toLowerCase().capitalize())
+            val sb = StringBuilder(module)
+            if(path.isNotBlank()) {
+                path.split("/").forEach {
+                    sb.append(it.capitalize())
                 }
             }
-            return suffix.toString().replace(' ', '_')
+            return sb.toString()
+        }
+
+    val dependency: Dependency
+        get() {
+            return Dependency(group, module, version)
         }
 }

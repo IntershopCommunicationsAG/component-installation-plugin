@@ -15,18 +15,18 @@
  */
 package com.intershop.gradle.component.installation
 
+import com.intershop.gradle.component.installation.utils.DescriptorManager
 import com.intershop.gradle.test.AbstractIntegrationSpec
 import com.intershop.gradle.test.builder.TestIvyRepoBuilder
 import com.intershop.gradle.test.builder.TestMavenRepoBuilder
-import spock.lang.Ignore
+import com.intershop.gradle.test.util.TestDir
 import spock.lang.Unroll
 
 class DeplyomentIntSpec extends AbstractIntegrationSpec {
 
-    public final static String ivyPattern = '[organisation]/[module]/[revision]/[type]s/ivy-[revision].xml'
-    public final static String artifactPattern = '[organisation]/[module]/[revision]/[ext]s/[artifact]-[type](-[classifier])-[revision].[ext]'
+    @TestDir
+    File tempProjectDir
 
-    @Ignore
     @Unroll
     def 'Test plugin happy path'() {
         given:
@@ -41,14 +41,9 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
         group 'com.intershop.test'
         version = '1.0.0'
    
-        deploy {
-            component("test/test/test", {
-                from('com.intershop.test:testcomponent:1.0.0')
-            })
-
-            deploymentTarget = new File(project.buildDir, 'install')
-            repositoryURL = "file://${testProjectDir.absolutePath.replace('\\\\\\\\', '/')}/repo"
-            repositoryPattern = "${artifactPattern}"
+        installation {
+            add('com.intershop.test:testcomponent:1.0.0')
+            installDir = file('installation')
         }
        
         ${createRepo(testProjectDir)}
@@ -65,23 +60,11 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
 
         then:
         true
-/**
-        when:
-        def result2 = getPreparedGradleRunner()
-                .withArguments(args)
-                .withGradleVersion(gradleVersion)
-                .build()
 
-        then:
-        true
-**/
         where:
         gradleVersion << supportedGradleVersions
 
     }
-
-
-
 
     File createSettingsGradle(String projectName) {
         File settingsFile = new File(testProjectDir, 'settings.gradle')
@@ -93,60 +76,12 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
     }
 
     String createRepo(File dir) {
-
         File repoDir = new File(dir, 'repo')
 
-        String simpleDescriptor = """
-        {
-          "displayName" : "testcomponent",
-          "componentDescription" : "",
-          "modules" : {
-            "testmodule1" : {
-              "name" : "testmodule1",
-              "targetPath" : "testmodule1",
-              "dependency" : {
-                "group" : "com.intershop",
-                "module" : "testmodule1",
-                "version" : "1.0.0"
-              },
-              "pkgs" : [ "testmodule1" ],
-              "jars" : [ "extlib", "testmodule1" ],
-              "types" : [ "" ],
-              "targetIncluded" : true,
-              "classifiers" : [ ]
-            },
-            "testmodule2" : {
-              "name" : "testmodule2",
-              "targetPath" : "testmodule2",
-              "dependency" : {
-                "group" : "com.intershop",
-                "module" : "testmodule2",
-                "version" : "1.0.0"
-              },
-              "pkgs" : [ "testmodule2" ],
-              "jars" : [ "testmodule1" ],
-              "types" : [ "" ],
-              "targetIncluded" : true,
-              "classifiers" : [ ]
-            }
-          },
-          "libs" : {
-            "com.intershop:library1:1.0.0" : {
-              "dependency" : {
-                "group" : "com.intershop",
-                "module" : "library1",
-                "version" : "1.0.0"
-              },
-              "targetName" : "com.intershop_library1_1.0.0",
-              "types" : [ ]
-            }
-          },
-          "packages" : { }
-        }
-        """.stripIndent()
+        copyResources("descriptors/component-1.component", "component-1.component", tempProjectDir)
 
-        new TestIvyRepoBuilder().repository( ivyPattern: ivyPattern, artifactPattern: artifactPattern ) {
-            module(org: 'com.intershop', name: 'testmodule1', rev: '1.0.0') {
+        new TestIvyRepoBuilder().repository( ivyPattern: DescriptorManager.INTERSHOP_IVY_PATTERN, artifactPattern: DescriptorManager.INTERSHOP_PATTERN ) {
+        module(org: 'com.intershop', name: 'testmodule1', rev: '1.0.0') {
                 artifact name: 'testmodule1', type: 'cartridge', ext: 'zip', entries: [
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'testmodule/testfiles/test1.file', content: 'test1.file'),
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'testmodule/testconf/test2.conf', content: 'test2.conf'),
@@ -176,7 +111,7 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
                 dependency org: 'com.intershop', name: 'library3', rev: '1.0.0'
             }
             module(org: 'com.intershop.test', name: 'testcomponent', rev: '1.0.0') {
-                artifact name: 'testcomponent', type: 'component', ext: 'component', content: simpleDescriptor
+                artifact name: 'testcomponent', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME, content: new File(tempProjectDir, "component-1.component")
             }
         }.writeTo(repoDir)
 
@@ -211,27 +146,19 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
 
         String repostr = """
             repositories {
+                jcenter()
                 ivy {
                     name 'ivyLocal'
                     url "file://${repoDir.absolutePath.replace('\\', '/')}"
                     layout('pattern') {
-                        ivy "${ivyPattern}"
-                        artifact "${artifactPattern}"
-                        artifact "${ivyPattern}"
-                    }
-                    credentials {
-                        username = 'joe'
-                        password = 'secret'
+                        ivy "${DescriptorManager.INTERSHOP_IVY_PATTERN}"
+                        artifact "${DescriptorManager.INTERSHOP_PATTERN}"
+                        artifact "${DescriptorManager.INTERSHOP_IVY_PATTERN}"
                     }
                 }
                 maven {
-                    url "file://${repoDir.absolutePath.replace('\\\\', '/')}"
-credentials {
-            username = 'joe'
-            password = 'secret'
-        }
+                    url "file://${repoDir.absolutePath.replace('\\', '/')}"
                 }
-                jcenter()
             }""".stripIndent()
     }
 }
