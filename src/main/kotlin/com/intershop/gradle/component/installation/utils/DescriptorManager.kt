@@ -65,8 +65,13 @@ class DescriptorManager(val repositories: RepositoryHandler, val descriptor: Dep
             if(!pathBuilder.endsWith("/")) {
                 pathBuilder.append("/")
             }
+            val extraAttributes = mutableMapOf<String, String>()
+            if(artifact.classifier.isNotBlank()) {
+                extraAttributes["classifier"] = artifact.classifier
+            }
             pathBuilder.append(IvyPatternHelper.substitute(repo.pattern, dependency.group, dependency.module,
-                    repo.version, artifact.artifact, artifact.type, artifact.ext))
+                    repo.version, artifact.artifact, artifact.type, artifact.ext, "", extraAttributes,
+                    mutableMapOf<String,String>()))
 
             return pathBuilder.toString()
         }
@@ -255,6 +260,11 @@ class DescriptorManager(val repositories: RepositoryHandler, val descriptor: Dep
     @Throws(IOException::class, GradleException::class)
     fun loadDescriptorFile(repoData: Repository, target: File) {
         val artifact = Artifact(descriptor.module, DESCRIPTOR_NAME, DESCRIPTOR_NAME)
+        loadArtifactFile(repoData, artifact, target)
+    }
+
+    @Throws(IOException::class, GradleException::class)
+    fun loadArtifactFile(repoData: Repository, artifact: Artifact, target: File) {
         var path = ""
 
         when(repoData.type) {
@@ -264,14 +274,16 @@ class DescriptorManager(val repositories: RepositoryHandler, val descriptor: Dep
             RepositoryType.MAVEN -> {
                 val pathBuilder = StringBuilder(repoData.artifactPath)
                 pathBuilder.append("-")
-                pathBuilder.append(DESCRIPTOR_NAME).append(".")
-                pathBuilder.append(DESCRIPTOR_NAME)
+                pathBuilder.append(artifact.type).append(".")
+                pathBuilder.append(artifact.ext)
                 path = pathBuilder.toString()
             }
         }
+
         if(path.isNotBlank()) {
-            if(! target.parentFile.mkdirs()) {
-                throw GradleException("It is not possible to create directory '${target.parent}'." )
+            target.parentFile.mkdirs()
+            if(! target.parentFile.exists()) {
+                throw GradleException("It was not possible to create directory '${target.parent}'." )
             }
             if(target.exists() && ! (target.isFile && target.canWrite())) {
                 throw GradleException("The file '${target.absolutePath} can not be created.")
@@ -284,6 +296,7 @@ class DescriptorManager(val repositories: RepositoryHandler, val descriptor: Dep
             target.copyInputStreamToFile(conn.getInputStream())
         }
     }
+
 
     fun getDescriptorRepository(): Repository? {
         val versionRepoMap = mutableMapOf<String, Repository>()

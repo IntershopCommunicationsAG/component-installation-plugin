@@ -1,49 +1,67 @@
 {
-  "displayName" : "testComponent4",
+  "displayName" : "test",
   "componentDescription" : "Test component 4",
-  "types" : [ ],
-  "classifiers" : [ ],
+  "types" : [ "test", "production", "perfTest" ],
+  "classifiers" : [ "linux", "win", "" ],
   "modulesTarget" : "",
   "libsTarget" : "lib/release/libs",
   "fileTarget" : "",
   "containerTarget" : "",
   "target" : "",
   "modules" : {
-    "project1a" : {
-      "name" : "project1a",
-      "targetPath" : "project1a",
+    "testmodule1" : {
+      "name" : "testmodule1",
+      "targetPath" : "testmodule1",
       "dependency" : {
-        "group" : "com.intershop.test",
-        "module" : "project1a",
+        "group" : "com.intershop",
+        "module" : "testmodule1",
         "version" : "1.0.0"
       },
       "itemType" : "",
-      "pkgs" : [ "project1a-bin", "project1a-sites" ],
-      "jars" : [ "project1a" ],
+      "pkgs" : [ "testmodule1-cartridge" ],
+      "jars" : [ "extlib", "testmodule1" ],
       "targetIncluded" : false,
       "contentType" : "IMMUTABLE",
       "excludesFromUpdate" : [ ],
       "excludeFromUpdate" : false,
-      "types" : [ ],
+      "types" : [ "test" ],
       "classifiers" : [ ]
     },
-    "project2b" : {
-      "name" : "project2b",
-      "targetPath" : "project2b",
+    "testmodule2" : {
+      "name" : "testmodule2",
+      "targetPath" : "testmodule2",
       "dependency" : {
-        "group" : "com.intershop.test",
-        "module" : "project2b",
+        "group" : "com.intershop",
+        "module" : "testmodule2",
         "version" : "1.0.0"
       },
       "itemType" : "",
-      "pkgs" : [ "project2b-bin", "project2b-sites" ],
-      "jars" : [ "project2b" ],
+      "pkgs" : [ "testmodule2-cartridge" ],
+      "jars" : [ "testmodule1" ],
       "targetIncluded" : false,
       "contentType" : "IMMUTABLE",
       "excludesFromUpdate" : [ ],
       "excludeFromUpdate" : false,
-      "types" : [ ],
+      "types" : [ "test" ],
       "classifiers" : [ ]
+    },
+    "testmodule3" : {
+      "name" : "testmodule3",
+      "targetPath" : "testmodule3",
+      "dependency" : {
+        "group" : "com.intershop",
+        "module" : "testmodule3",
+        "version" : "1.0.0"
+      },
+      "itemType" : "",
+      "pkgs" : [ "testmodule3-local-linux", "testmodule3-local-win" ],
+      "jars" : [ ],
+      "targetIncluded" : false,
+      "contentType" : "IMMUTABLE",
+      "excludesFromUpdate" : [ ],
+      "excludeFromUpdate" : false,
+      "types" : [ "test" ],
+      "classifiers" : [ "linux", "win" ]
     }
   },
   "libs" : {
@@ -54,15 +72,93 @@
         "version" : "1.0.0"
       },
       "targetName" : "com.intershop_library1_1.0.0",
-      "types" : [ ]
+      "types" : [ "test" ]
+    },
+    "com.intershop:library2:1.0.0" : {
+      "dependency" : {
+        "group" : "com.intershop",
+        "module" : "library2",
+        "version" : "1.0.0"
+      },
+      "targetName" : "com.intershop_library2_1.0.0",
+      "types" : [ "test" ]
+    },
+    "com.intershop:library3:1.0.0" : {
+      "dependency" : {
+        "group" : "com.intershop",
+        "module" : "library3",
+        "version" : "1.0.0"
+      },
+      "targetName" : "com.intershop_library3_1.0.0",
+      "types" : [ "test" ]
     }
   },
-  "fileContainers" : [ ],
-  "fileItems" : [ ],
-  "properties" : [ ],
+  "fileContainers" : [ {
+    "name" : "startscripts",
+    "targetPath" : "bin",
+    "itemType" : "bin",
+    "classifier" : "linux",
+    "targetIncluded" : false,
+    "contentType" : "IMMUTABLE",
+    "excludesFromUpdate" : [ ],
+    "excludeFromUpdate" : false,
+    "types" : [ "production", "test" ]
+  }, {
+    "name" : "startscripts",
+    "targetPath" : "bin",
+    "itemType" : "bin",
+    "classifier" : "win",
+    "targetIncluded" : false,
+    "contentType" : "IMMUTABLE",
+    "excludesFromUpdate" : [ ],
+    "excludeFromUpdate" : false,
+    "types" : [ "production", "test" ]
+  }, {
+    "name" : "share",
+    "targetPath" : "share",
+    "itemType" : "sites",
+    "classifier" : "",
+    "targetIncluded" : false,
+    "contentType" : "IMMUTABLE",
+    "excludesFromUpdate" : [ ],
+    "excludeFromUpdate" : false,
+    "types" : [ "test" ]
+  } ],
+  "fileItems" : [ {
+    "name" : "test1",
+    "extension" : "properties",
+    "targetPath" : "share/system/config",
+    "classifier" : "win",
+    "contentType" : "IMMUTABLE",
+    "excludeFromUpdate" : false,
+    "types" : [ ]
+  }, {
+    "name" : "test2",
+    "extension" : "properties",
+    "targetPath" : "share/system/config",
+    "classifier" : "linux",
+    "contentType" : "IMMUTABLE",
+    "excludeFromUpdate" : false,
+    "types" : [ ]
+  } ],
+  "properties" : [ {
+    "key" : "pkey1",
+    "value" : "pvalues1",
+    "classifier" : "win",
+    "contentType" : "IMMUTABLE",
+    "excludeFromUpdate" : false,
+    "types" : [ "perfTest" ]
+  }, {
+    "key" : "pkey2",
+    "value" : "pvalue2",
+    "classifier" : "",
+    "contentType" : "IMMUTABLE",
+    "excludeFromUpdate" : false,
+    "types" : [ "perfTest" ]
+  } ],
   "excludesFromUpdate" : [ ],
   "metadata" : {
-    "creation" : 1522163301583,
+    "creation" : 1523179434565,
     "version" : "v1"
   }
 }

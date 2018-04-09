@@ -15,48 +15,23 @@
  */
 package com.intershop.gradle.component.installation.tasks
 
-import org.gradle.api.DefaultTask
-import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.artifacts.ResolvedArtifact
+import com.intershop.gradle.component.installation.utils.data.Artifact
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 
-open class DeployComponent : DefaultTask() {
+open class DeployComponent : AModuleInstallTask() {
 
     private val jarSources: ConfigurableFileCollection = project.files()
 
     @get:Input
     var dependencyProperty: String = ""
 
-    @get:Internal
-    var targetPath: String = ""
 
-    @get:Internal
-    var targetPathInternal: String = ""
-
-    @get:Internal
-    var installTarget: File? = null
-
-    @get:Internal
-    var jars: Set<String> = mutableSetOf()
-
-    @Suppress("private")
-    @get:OutputDirectory
-    val outputDirectory: File
-        get() {
-            var tp = targetPath
-            if(targetPathInternal.isNotBlank()) {
-                tp = targetPathInternal
-            }
-            return File(installTarget, tp)
-        }
 
     @get:InputFiles
     val jarFiles: FileCollection
@@ -79,44 +54,17 @@ open class DeployComponent : DefaultTask() {
             it.from(jarSources) {
                 it.into("release/libs")
             }
-            it.into(outputDirectory)
+            it.into(outputDir)
         }
-    }
-
-    private fun getArtifacts(dependency: String,
-                             extension: String = "",
-                             type: String = "",
-                             name: String = "") : Set<ResolvedArtifact> {
-        val dep = project.dependencies.create(dependency) as ModuleDependency
-        dep.isTransitive = false
-        if(extension.isNotEmpty() && type.isNotEmpty() && name.isNotEmpty()) {
-            dep.artifact({
-                if(extension.isNotEmpty()) {
-                    it.extension = extension
-                }
-                if(type.isNotEmpty()) {
-                    it.type = type
-                }
-                if(name.isNotEmpty()) {
-                    it.name = name
-                }
-            })
-        }
-
-        val conf = project.configurations.detachedConfiguration(dep)
-        conf.description = "Configuration for ${this.name}"
-        conf.isTransitive = false
-        conf.isVisible = false
-        return conf.resolvedConfiguration.firstLevelModuleDependencies.first().allModuleArtifacts
     }
 
     fun getJarFile(dependency: String, name: String): File? {
-        val artifacts = getArtifacts(dependency, "jar", "jar", name)
+        val artifacts = getArtifacts(dependency, Artifact(name, "jar", "jar"))
         return if (! artifacts.isEmpty()) artifacts.first().file else null
     }
 
     fun getIvyFile(dependency: String): File? {
-        val artifacts = getArtifacts(dependency, "xml", "ivy", "ivy")
+        val artifacts = getArtifacts(dependency, Artifact("ivy", "ivy", "xml"))
         return if (! artifacts.isEmpty()) artifacts.first().file else null
     }
 }

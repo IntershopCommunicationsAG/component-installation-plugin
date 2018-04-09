@@ -15,9 +15,28 @@
  */
 package com.intershop.gradle.component.installation.extension
 
+import java.util.*
+
 enum class OSType {
     WINDOWS,
     LINUX,
     MACOS,
-    OTHER
+    OTHER;
+
+    companion object {
+        fun from(osKey: String): OSType {
+            val internalOSKey = osKey.toLowerCase(Locale.ENGLISH)
+            val type = when {
+                (internalOSKey.indexOf("mac") >= 0 || internalOSKey.indexOf("darwin") >= 0) -> OSType.MACOS
+                (internalOSKey.indexOf("win") >= 0) -> OSType.WINDOWS
+                (internalOSKey.indexOf("nux") >= 0) -> OSType.LINUX
+                else -> OSType.OTHER
+            }
+            return type
+        }
+
+        fun detectedOS(): OSType {
+            return from(System.getProperty("os.name", "generic"))
+        }
+    }
 }

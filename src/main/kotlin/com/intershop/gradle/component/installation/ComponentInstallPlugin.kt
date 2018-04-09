@@ -18,7 +18,11 @@ package com.intershop.gradle.component.installation
 import com.intershop.gradle.component.descriptor.util.ComponentUtil
 import com.intershop.gradle.component.installation.extension.InstallationExtension
 import com.intershop.gradle.component.installation.extension.OSType
+import com.intershop.gradle.component.installation.tasks.PackageTask
+import com.intershop.gradle.component.installation.utils.ContentType
 import com.intershop.gradle.component.installation.utils.DescriptorManager
+import com.intershop.gradle.component.installation.utils.data.Artifact
+import com.intershop.gradle.component.installation.utils.data.FileItem
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -47,6 +51,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                             InstallationExtension::class.java, project)
 
             tasks.maybeCreate("install").group = InstallationExtension.INSTALLATION_GROUP_NAME
+            tasks.maybeCreate("update").group = InstallationExtension.INSTALLATION_GROUP_NAME
 
             if(modelRegistry.state(ModelPath.nonNullValidatedPath("installExtension")) == null) {
                 modelRegistry.register(ModelRegistrations.bridgedInstance(
@@ -61,6 +66,32 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
         companion object {
             val LOGGER = LoggerFactory.getLogger(InstallRule::class.java)
+
+            fun checkForOSandTyp(detectedOS: OSType,
+                                 classifier: String,
+                                 environment: Set<String>,
+                                 types: Set<String>): Boolean {
+                var rv = (classifier.isNotBlank() && OSType.from(classifier) == detectedOS) || classifier.isBlank()
+                if(! types.isEmpty() && ! environment.isEmpty()) {
+                    rv = rv && types.intersect(environment).size > 0
+                }
+                return rv
+            }
+
+            fun calculatFilePath(fileTarget: String, fileName: String, fileExtension: String): String{
+                val path = StringBuilder(fileTarget)
+                if(! path.endsWith("/")) {
+                    path.append("/")
+                }
+                path.append(fileName)
+                if(fileExtension.isNotBlank()) {
+                    if(! path.endsWith(".")) {
+                        path.append(".")
+                    }
+                    path.append(fileExtension)
+                }
+                return path.toString()
+            }
         }
 
         @Defaults
@@ -68,7 +99,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                                      installExtension: InstallationExtension) {
 
             with(installExtension) {
-                if(this.detectedOS == OSType.OTHER) {
+                if(detectedOS == OSType.OTHER) {
                     throw GradleException("The operating system is not suppported by the component install plugin!")
                 }
 
@@ -79,19 +110,90 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                     val descriptorRepo = descriptorMgr.getDescriptorRepository()
                     if(descriptorRepo != null) {
                         val targetFile = File(installConfig.installAdminDir,
-                                "descriptors/${it.commonName}/component.component")
+                                "${it.commonName}/components/component.component")
 
                         descriptorMgr.loadDescriptorFile(descriptorRepo, targetFile)
                         descriptorMgr.validateDescriptor(targetFile)
 
                         val component = ComponentUtil.componentFromFile(targetFile)
 
-                        println(component.fileContainers.size)
+                        val fileItemSet = mutableSetOf<FileItem>()
 
-                        println(component.fileItems.size)
+                        component.fileItems.forEach { file ->
+                            val localFile = File(installConfig.installAdminDir,
+                                    "${it.commonName}/files/${file.name}.${file.extension}")
+
+                            val classifier = file.classifier
+
+                            if(checkForOSandTyp(detectedOS, classifier, this.environment, file.types)) {
+                                val artifact = if (classifier.isNotBlank() && OSType.from(classifier) == detectedOS) {
+                                    Artifact(file.name, file.extension, file.extension, classifier)
+                                } else {
+                                    Artifact(file.name, file.extension, file.extension)
+                                }
+
+                                descriptorMgr.loadArtifactFile(descriptorRepo, artifact, localFile)
+
+                                fileItemSet.add(FileItem(targetFile,
+                                        calculatFilePath(file.targetPath, file.name, file.extension),
+                                        ContentType.valueOf(file.contentType.toString()), file.excludeFromUpdate))
+                            }
+                        }
+
+                        val installTask = tasks.get("install")
+                        val updateTask = tasks.get("update")
+
+                        component.fileContainers.forEach { pkg ->
+
+                            val pkgFile = File(installConfig.installAdminDir,
+                                    "${it.commonName}/pkgs/${pkg.name}.zip")
+
+                            val classifier = pkg.classifier
+
+                            if(checkForOSandTyp(detectedOS, classifier, this.environment, pkg.types)) {
+                                val artifact = if (classifier.isNotBlank() && OSType.from(classifier) == detectedOS) {
+                                    Artifact(pkg.name, pkg.itemType, "zip", classifier)
+                                } else {
+                                    Artifact(pkg.name, pkg.itemType, "zip")
+                                }
+
+                                descriptorMgr.loadArtifactFile(descriptorRepo, artifact, pkgFile)
+
+                                val taskNameSuffix = "Pkg${pkg.name.capitalize()}${pkg.itemType.capitalize()}"
+
+                                tasks.create("install${taskNameSuffix}", PackageTask::class.java) {
+                                    it.runUpdate = false
+                                    it.fileContainer = pkgFile
+
+                                    it.installDir = this.installDir
+                                    it.installPath = pkg.targetPath
+                                    it.targetIncluded = pkg.targetIncluded
+                                    it.excludesFromUpdate = pkg.excludesFromUpdate
+                                    it.fileItems = fileItemSet
+                                }
+
+                                installTask?.dependsOn("install${taskNameSuffix}")
+
+                                if(! pkg.excludeFromUpdate) {
+                                    tasks.create("update${taskNameSuffix}", PackageTask::class.java) {
+                                        it.runUpdate = true
+                                        it.fileContainer = pkgFile
+
+                                        it.installDir = this.installDir
+                                        it.installPath = pkg.targetPath
+                                        it.targetIncluded = pkg.targetIncluded
+                                        it.excludesFromUpdate = pkg.excludesFromUpdate
+                                        it.fileItems = fileItemSet
+                                    }
+
+                                    updateTask?.dependsOn("update${taskNameSuffix}")
+                                }
+                            }
+                        }
+
+
 
                         println(component.modules.size)
-
                         println(component.libs.size)
 
                         println(component.properties.size)

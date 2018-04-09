@@ -33,6 +33,11 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
         String projectName = "testdeployment"
         createSettingsGradle(projectName)
 
+        File dir = new File(testProjectDir,"installation/bin")
+        dir.mkdirs()
+        File test = new File(dir, "startscript1.sh")
+        test << "wrong file"
+
         buildFile << """
         plugins {
             id 'com.intershop.gradle.component.installation'
@@ -42,6 +47,8 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
         version = '1.0.0'
    
         installation {
+            environment('production')
+
             add('com.intershop.test:testcomponent:1.0.0')
             installDir = file('installation')
         }
@@ -51,10 +58,32 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        List<String> args = ['tasks', '-s', '-i']
+        List<String> args1 = ['install', '-s', '-i']
 
         def result1 = getPreparedGradleRunner()
-                .withArguments(args)
+                .withArguments(args1)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        true
+
+        when:
+        List<String> args2 = ['update', '-s', '-i']
+
+        def result2 = getPreparedGradleRunner()
+                .withArguments(args2)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        true
+
+        when:
+        List<String> args3 = ['update', '-s', '-i']
+
+        def result3 = getPreparedGradleRunner()
+                .withArguments(args2)
                 .withGradleVersion(gradleVersion)
                 .build()
 
@@ -81,7 +110,7 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
         copyResources("descriptors/component-1.component", "component-1.component", tempProjectDir)
 
         new TestIvyRepoBuilder().repository( ivyPattern: DescriptorManager.INTERSHOP_IVY_PATTERN, artifactPattern: DescriptorManager.INTERSHOP_PATTERN ) {
-        module(org: 'com.intershop', name: 'testmodule1', rev: '1.0.0') {
+            module(org: 'com.intershop', name: 'testmodule1', rev: '1.0.0') {
                 artifact name: 'testmodule1', type: 'cartridge', ext: 'zip', entries: [
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'testmodule/testfiles/test1.file', content: 'test1.file'),
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'testmodule/testconf/test2.conf', content: 'test2.conf'),
@@ -110,8 +139,27 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
                 ]
                 dependency org: 'com.intershop', name: 'library3', rev: '1.0.0'
             }
+
             module(org: 'com.intershop.test', name: 'testcomponent', rev: '1.0.0') {
                 artifact name: 'testcomponent', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME, content: new File(tempProjectDir, "component-1.component")
+                artifact name: 'startscripts', type: 'bin', ext: 'zip', classifier: 'linux', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript1.sh', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript2.sh', content: 'interntest2.file')
+                        ]
+                artifact name: 'startscripts', type: 'bin', ext: 'zip', classifier: 'macos', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript1.sh', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript2.sh', content: 'interntest2.file')
+                ]
+                artifact name: 'startscripts', type: 'bin', ext: 'zip', classifier: 'win', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript1.bat', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript2.bat', content: 'interntest2.file')
+                ]
+                artifact name: 'share', type: 'sites', ext: 'zip', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/sites/org1/import.properties', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/sites/org2/import.properties', content: 'interntest2.file')
+                ]
+                artifact name: 'test1', type: 'properties', ext: 'properties', content: 'property1 = value1'
+                artifact name: 'test2', type: 'properties', ext: 'properties', content: 'property2 = value2'
             }
         }.writeTo(repoDir)
 

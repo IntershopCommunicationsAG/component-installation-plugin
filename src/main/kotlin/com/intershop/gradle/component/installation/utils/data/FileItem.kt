@@ -15,20 +15,17 @@
  */
 package com.intershop.gradle.component.installation.utils.data
 
-/**
- * Data class for artifacts.
- *
- * @property artifact   name of the artifact
- * @property type       type of artifact
- * @property ext        extensions of artifact
- */
+import com.intershop.gradle.component.installation.utils.ContentType
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
+import java.io.File
 
-data class Artifact @JvmOverloads constructor(val artifact: String,
-                                              val type: String,
-                                              val ext: String,
-                                              val classifier: String = "") {
-
-    fun isNotEmpty(): Boolean {
-        return (ext.isNotEmpty() && type.isNotEmpty() && artifact.isNotEmpty())
-    }
-}
+data class FileItem constructor(
+        @get:InputFile
+        val file: File,
+        @get:Input
+        val filePath: String,
+        @get:Input
+        val contentType: ContentType = ContentType.IMMUTABLE,
+        @get:Input
+        val excludeFromUpdate: Boolean = false)

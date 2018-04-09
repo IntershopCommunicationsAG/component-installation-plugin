@@ -15,12 +15,13 @@
  */
 package com.intershop.gradle.component.installation.extension
 
+import com.intershop.gradle.component.installation.utils.getValue
+import com.intershop.gradle.component.installation.utils.setValue
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
 import org.gradle.api.provider.Provider
 import java.io.File
-import java.util.*
 import javax.inject.Inject
 
 open class InstallationExtension @Inject constructor(val project: Project) {
@@ -33,7 +34,7 @@ open class InstallationExtension @Inject constructor(val project: Project) {
     private val installDirProperty = project.layout.directoryProperty()
     private val installConfigContainer = project.objects.newInstance(InstallConfiguration::class.java, project)
 
-    private val environmentConfigProperty = project.objects.setProperty(String::class.java)
+    private val environmentProperty = project.objects.setProperty(String::class.java)
     private val componentSet: MutableSet<Component> = mutableSetOf()
 
     val installDirProvider: Provider<Directory>
@@ -50,28 +51,17 @@ open class InstallationExtension @Inject constructor(val project: Project) {
         action.execute(installConfigContainer)
     }
 
-    val environmentConfigProvider: Provider<Set<String>>
-        get() = environmentConfigProperty
+    val environmentProvider: Provider<Set<String>>
+        get() = environmentProperty
 
-    var environmentConfig: Set<String>
-        get() = environmentConfigProperty.get()
-        set(value) = environmentConfigProperty.set(value)
+    var environment: Set<String> by environmentProperty
 
-    fun environmentConfig(config: String) {
-        environmentConfigProperty.add(config)
+    fun environment(config: String) {
+        environmentProperty.add(config)
     }
 
     val detectedOS: OSType
-        get() {
-            val systemOS = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH)
-            val type = when {
-                (systemOS.indexOf("mac") >= 0 || systemOS.indexOf("darwin") >= 0) -> OSType.MACOS
-                (systemOS.indexOf("win") >= 0) -> OSType.WINDOWS
-                (systemOS.indexOf("nux") >= 0) -> OSType.LINUX
-                else -> OSType.OTHER
-            }
-            return type
-        }
+        get() = OSType.detectedOS()
 
     val components: Set<Component>
         get() = componentSet
