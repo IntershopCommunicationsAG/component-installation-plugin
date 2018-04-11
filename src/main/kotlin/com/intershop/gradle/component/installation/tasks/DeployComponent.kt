@@ -15,16 +15,13 @@
  */
 package com.intershop.gradle.component.installation.tasks
 
-import com.intershop.gradle.component.installation.utils.data.Artifact
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.TaskAction
-import java.io.File
 
-open class DeployComponent : AModuleInstallTask() {
+open class DeployComponent : AInstallTask() {
 
     private val jarSources: ConfigurableFileCollection = project.files()
 
@@ -36,15 +33,16 @@ open class DeployComponent : AModuleInstallTask() {
     @get:InputFiles
     val jarFiles: FileCollection
         get() = jarSources
-
+/**
     @Suppress("private")
     @get:InputFile
     val ivyFile: File?
         get() =  getIvyFile(dependencyProperty)
-
+**/
     @Suppress("unused")
     @TaskAction
     fun runComponentDepyment(){
+        /**
         jars.forEach {
             jarSources.from(getJarFile(dependencyProperty, it))
         }
@@ -56,15 +54,17 @@ open class DeployComponent : AModuleInstallTask() {
             }
             it.into(outputDir)
         }
+        **/
     }
-
+/**
     fun getJarFile(dependency: String, name: String): File? {
-        val artifacts = getArtifacts(dependency, Artifact(name, "jar", "jar"))
+        //val artifacts = getArtifacts(dependency, Artifact(name, "jar", "jar"))
         return if (! artifacts.isEmpty()) artifacts.first().file else null
     }
 
     fun getIvyFile(dependency: String): File? {
-        val artifacts = getArtifacts(dependency, Artifact("ivy", "ivy", "xml"))
+        //val artifacts = getArtifacts(dependency, Artifact("ivy", "ivy", "xml"))
         return if (! artifacts.isEmpty()) artifacts.first().file else null
     }
+    **/
 }

@@ -21,8 +21,10 @@ import com.intershop.gradle.component.installation.utils.getValue
 import com.intershop.gradle.component.installation.utils.property
 import com.intershop.gradle.component.installation.utils.setValue
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.CopySpec
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
@@ -92,5 +94,55 @@ open class AInstallTask: DefaultTask() {
     val outputDir: File
         get() = when {  installPath.isNotBlank() -> File(installDir, installPath)
                         else -> installDir }
+
+    @get:Internal
+    var runUpdate: Boolean = false
+
+    protected fun removeDirFromPath(dirName: String,  path: String): String {
+        return if(path.startsWith(dirName) && dirName.isNotBlank()) {
+            val newPath = path.replaceFirst(dirName, "")
+            if(newPath.startsWith("/")) {
+                newPath.substring(1)
+            } else {
+                newPath
+            }
+        } else {
+            path
+        }
+    }
+
+    protected fun finalizeSpec(spec: CopySpec, update: Boolean = false) {
+        if(update && ! excludesFromUpdate.isEmpty()) {
+            excludesFromUpdate.forEach {
+                spec.exclude(it)
+            }
+        }
+
+        if(! fileItems.isEmpty()) {
+            fileItems.forEach { item ->
+                if (item.filePath.startsWith(installPath) &&
+                        ((update && !item.excludeFromUpdate && item.contentType != ContentType.DATA) || !update)) {
+                    spec.exclude(item.filePath)
+                    spec.from(item.file) {
+                        it.into(item.filePath)
+                    }
+                }
+            }
+        }
+
+        if(targetIncluded) {
+            spec.eachFile { details ->
+                details.path = removeDirFromPath(installPath, details.path)
+            }
+        }
+
+        spec.duplicatesStrategy = DuplicatesStrategy.FAIL
+
+        val type = File(outputDir, ".type")
+        if(! type.exists() && contentType == ContentType.DATA) {
+            type.createNewFile()
+            type.appendText(contentType.toString())
+        }
+    }
 
 }

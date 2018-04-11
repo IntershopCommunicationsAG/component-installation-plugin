@@ -17,6 +17,7 @@
 package com.intershop.gradle.component.installation.utils.data
 
 import org.gradle.api.artifacts.repositories.AuthenticationSupported
+import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal
 import java.util.*
 
 /**
@@ -30,7 +31,14 @@ data class Credentials(val username: String, val password: String) {
 
     companion object {
         fun initFrom(repo: AuthenticationSupported) : Credentials {
-            return Credentials(repo.credentials.username ?: "", repo.credentials.password ?: "")
+
+            var rc = Credentials("", "")
+
+            if(repo is AuthenticationSupportedInternal && repo.configuredCredentials != null) {
+                rc = Credentials(repo.credentials.username ?: "", repo.credentials.password ?: "")
+            }
+
+            return rc
         }
     }
 

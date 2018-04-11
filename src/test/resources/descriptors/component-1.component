@@ -8,6 +8,7 @@
   "fileTarget" : "",
   "containerTarget" : "",
   "target" : "",
+  "descriptorPath" : "component",
   "modules" : {
     "testmodule1" : {
       "name" : "testmodule1",
@@ -20,11 +21,13 @@
       "itemType" : "",
       "pkgs" : [ "testmodule1-cartridge" ],
       "jars" : [ "extlib", "testmodule1" ],
+      "jarPath" : "libs",
+      "descriptorPath" : "",
       "targetIncluded" : false,
       "contentType" : "IMMUTABLE",
       "excludesFromUpdate" : [ ],
       "excludeFromUpdate" : false,
-      "types" : [ "test" ],
+      "types" : [ "production" ],
       "classifiers" : [ ]
     },
     "testmodule2" : {
@@ -38,11 +41,13 @@
       "itemType" : "",
       "pkgs" : [ "testmodule2-cartridge" ],
       "jars" : [ "testmodule1" ],
+      "jarPath" : "libs",
+      "descriptorPath" : "",
       "targetIncluded" : false,
       "contentType" : "IMMUTABLE",
       "excludesFromUpdate" : [ ],
       "excludeFromUpdate" : false,
-      "types" : [ "test" ],
+      "types" : [ "production" ],
       "classifiers" : [ ]
     },
     "testmodule3" : {
@@ -54,14 +59,38 @@
         "version" : "1.0.0"
       },
       "itemType" : "",
-      "pkgs" : [ "testmodule3-local-linux", "testmodule3-local-win" ],
+      "pkgs" : [ "testmodule3-local-linux", "testmodule3-local-win", "testmodule3-local-macos" ],
       "jars" : [ ],
+      "jarPath" : "libs",
+      "descriptorPath" : "",
       "targetIncluded" : false,
       "contentType" : "IMMUTABLE",
       "excludesFromUpdate" : [ ],
       "excludeFromUpdate" : false,
-      "types" : [ "test" ],
-      "classifiers" : [ "linux", "win" ]
+      "types" : [ "production" ],
+      "classifiers" : [ "linux", "win", "macos" ]
+    },
+    "testmodule4" : {
+      "name" : "testmodule4",
+      "targetPath" : "testmodule4",
+      "dependency" : {
+        "group" : "com.intershop",
+        "module" : "testmodule4",
+        "version" : "1.0.0"
+      },
+      "itemType" : "",
+      "pkgs" : [ "testmodule4-local-solaris"],
+      "jars" : [ ],
+      "jarPath" : "libs",
+      "descriptorPath" : "",
+      "jarPath" : "libs",
+      "descriptorPath" : "",
+      "targetIncluded" : false,
+      "contentType" : "IMMUTABLE",
+      "excludesFromUpdate" : [ ],
+      "excludeFromUpdate" : false,
+      "types" : [ "production" ],
+      "classifiers" : [ "solaris" ]
     }
   },
   "libs" : {

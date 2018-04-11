@@ -15,10 +15,8 @@
  */
 package com.intershop.gradle.component.installation.tasks
 
-import com.intershop.gradle.component.installation.utils.ContentType
 import org.gradle.api.GradleException
 import org.gradle.api.file.CopySpec
-import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Provider
@@ -37,8 +35,6 @@ open class PackageTask: AInstallTask() {
 
     fun provideFileContainer(fileContainer: Provider<RegularFile>) = fileContainerProperty.set(fileContainer)
 
-    var runUpdate: Boolean = false
-
     @TaskAction
     fun runInstall() {
         if(! outputDir.exists()) {
@@ -55,43 +51,8 @@ open class PackageTask: AInstallTask() {
         spec.from(project.zipTree(fileContainer))
         spec.into(outputDir)
 
-        if(update && ! excludesFromUpdate.isEmpty()) {
-            excludesFromUpdate.forEach {
-                spec.exclude(it)
-            }
-        }
-
-        if(! fileItems.isEmpty()) {
-            fileItems.forEach { item ->
-                if (item.filePath.startsWith(installPath) &&
-                        ((update && !item.excludeFromUpdate && item.contentType != ContentType.DATA) || !update)) {
-                    spec.exclude(item.filePath)
-                    spec.from(item.file) {
-                        it.into(item.filePath)
-                    }
-                }
-            }
-        }
-
-        if(targetIncluded) {
-            spec.eachFile { details ->
-                details.path = removeDirFromPath(installPath, details.path)
-            }
-        }
-
-        spec.duplicatesStrategy = DuplicatesStrategy.FAIL
+        finalizeSpec(spec, update)
     }
 
-    private fun removeDirFromPath(dirName: String,  path: String): String {
-        return if(path.startsWith(dirName) && dirName.isNotBlank()) {
-            val newPath = path.replaceFirst(dirName, "")
-            if(newPath.startsWith("/")) {
-                newPath.substring(1)
-            } else {
-                newPath
-            }
-        } else {
-            path
-        }
-    }
+
 }

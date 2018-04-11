@@ -18,6 +18,7 @@ package com.intershop.gradle.component.installation
 import com.intershop.gradle.component.descriptor.util.ComponentUtil
 import com.intershop.gradle.component.installation.extension.InstallationExtension
 import com.intershop.gradle.component.installation.extension.OSType
+import com.intershop.gradle.component.installation.tasks.ModuleTask
 import com.intershop.gradle.component.installation.tasks.PackageTask
 import com.intershop.gradle.component.installation.utils.ContentType
 import com.intershop.gradle.component.installation.utils.DescriptorManager
@@ -67,15 +68,22 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
         companion object {
             val LOGGER = LoggerFactory.getLogger(InstallRule::class.java)
 
-            fun checkForOSandTyp(detectedOS: OSType,
-                                 classifier: String,
-                                 environment: Set<String>,
-                                 types: Set<String>): Boolean {
+            fun checkForOSandType(detectedOS: OSType,
+                                  classifier: String,
+                                  environment: Set<String>,
+                                  types: Set<String>): Boolean {
                 var rv = (classifier.isNotBlank() && OSType.from(classifier) == detectedOS) || classifier.isBlank()
-                if(! types.isEmpty() && ! environment.isEmpty()) {
-                    rv = rv && types.intersect(environment).size > 0
-                }
+                rv = rv && checkForType(environment, types)
                 return rv
+            }
+
+            fun checkForType(environment: Set<String>,
+                             types: Set<String>): Boolean {
+                return if(! types.isEmpty() && ! environment.isEmpty()) {
+                    types.intersect(environment).size > 0
+                } else {
+                    true
+                }
             }
 
             fun calculatFilePath(fileTarget: String, fileName: String, fileExtension: String): String{
@@ -91,6 +99,14 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                     path.append(fileExtension)
                 }
                 return path.toString()
+            }
+
+            fun calculateInstallDir(installDir: File, path: String) : File {
+                return if(path.isNotBlank()) {
+                    File(installDir, path)
+                } else {
+                    installDir
+                }
             }
         }
 
@@ -125,7 +141,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
                             val classifier = file.classifier
 
-                            if(checkForOSandTyp(detectedOS, classifier, this.environment, file.types)) {
+                            if(checkForOSandType(detectedOS, classifier, this.environment, file.types)) {
                                 val artifact = if (classifier.isNotBlank() && OSType.from(classifier) == detectedOS) {
                                     Artifact(file.name, file.extension, file.extension, classifier)
                                 } else {
@@ -150,7 +166,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
                             val classifier = pkg.classifier
 
-                            if(checkForOSandTyp(detectedOS, classifier, this.environment, pkg.types)) {
+                            if(checkForOSandType(detectedOS, classifier, this.environment, pkg.types)) {
                                 val artifact = if (classifier.isNotBlank() && OSType.from(classifier) == detectedOS) {
                                     Artifact(pkg.name, pkg.itemType, "zip", classifier)
                                 } else {
@@ -165,7 +181,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                                     it.runUpdate = false
                                     it.fileContainer = pkgFile
 
-                                    it.installDir = this.installDir
+                                    it.installDir = calculateInstallDir(this.installDir, component.containerTarget)
                                     it.installPath = pkg.targetPath
                                     it.targetIncluded = pkg.targetIncluded
                                     it.excludesFromUpdate = pkg.excludesFromUpdate
@@ -179,7 +195,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                                         it.runUpdate = true
                                         it.fileContainer = pkgFile
 
-                                        it.installDir = this.installDir
+                                        it.installDir = calculateInstallDir(this.installDir, component.containerTarget)
                                         it.installPath = pkg.targetPath
                                         it.targetIncluded = pkg.targetIncluded
                                         it.excludesFromUpdate = pkg.excludesFromUpdate
@@ -191,11 +207,56 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                             }
                         }
 
+                        component.modules.forEach { module ->
+                            if(checkForType(this.environment, module.value.types)) {
+                                with(module.value)  module@{
+                                    val taskNameSuffix = module.value.name.capitalize()
+                                    tasks.create("install${taskNameSuffix}", ModuleTask::class.java) {
+                                        it.runUpdate = false
+                                        it.dependency = dependency.toString()
+                                        it.jarPath = jarPath
+                                        it.descriptorPath = descriptorPath
+                                        it.classifiers = classifiers
+                                        it.jars = jars
+                                        it.pkgs = pkgs
+                                        it.moduleName = name
+
+                                        it.installDir = calculateInstallDir(this@with.installDir, component.modulesTarget)
+                                        it.installPath = module.key
+                                        it.targetIncluded = targetIncluded
+                                        it.excludesFromUpdate = excludesFromUpdate
+                                        it.fileItems = fileItemSet
+                                    }
+
+                                    installTask?.dependsOn("install${taskNameSuffix}")
+
+                                    if (!module.value.excludeFromUpdate) {
+                                        tasks.create("update${taskNameSuffix}", ModuleTask::class.java) {
+                                            it.runUpdate = true
+                                            it.dependency = dependency.toString()
+                                            it.jarPath = jarPath
+                                            it.descriptorPath = descriptorPath
+                                            it.classifiers = classifiers
+                                            it.jars = jars
+                                            it.pkgs = pkgs
+                                            it.moduleName = name
+
+                                            it.installDir = calculateInstallDir(this@with.installDir, component.modulesTarget)
+                                            it.installPath = module.key
+                                            it.targetIncluded = targetIncluded
+                                            it.excludesFromUpdate = excludesFromUpdate
+                                            it.fileItems = fileItemSet
+                                        }
+
+                                        updateTask?.dependsOn("update${taskNameSuffix}")
+                                    }
+
+                                }
+                            }
+                        }
 
 
-                        println(component.modules.size)
                         println(component.libs.size)
-
                         println(component.properties.size)
                     } else {
                         throw GradleException("Component '${it.dependency.getDependencyString()}' is " +
