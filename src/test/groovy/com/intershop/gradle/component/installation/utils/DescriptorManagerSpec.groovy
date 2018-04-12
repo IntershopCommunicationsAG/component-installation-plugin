@@ -444,7 +444,6 @@ class DescriptorManagerSpec extends Specification {
     }
 
     def createRepo(File repoDir) {
-
         copyResources("descriptors/component-1.component", "component-1.component")
         copyResources("descriptors/component-2.component", "component-2.component")
         copyResources("descriptors/component-3.component", "component-3.component")
@@ -461,7 +460,8 @@ class DescriptorManagerSpec extends Specification {
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/intern/test1.file', content: 'interntest1.file'),
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/intern/test2.file', content: 'interntest2.file')
                 ]
-                artifact name: 'test', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME, content: new File(tempProjectDir, "component-1.component")
+                artifact name: 'test', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME,
+                        content: replaceContent(new File(tempProjectDir, "component-1.component"), ['@group@': 'com.intershop.test', '@module@': 'test', '@version@': '1.0.0'])
             }
             module(org: 'com.intershop.test', name: 'test', rev: '2.0.0') {
                 artifact name: 'test', type: 'test', ext: 'zip', entries: [
@@ -473,7 +473,8 @@ class DescriptorManagerSpec extends Specification {
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/intern/test1.file', content: 'interntest1.file'),
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/intern/test2.file', content: 'interntest2.file')
                 ]
-                artifact name: 'test', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME, content: new File(tempProjectDir, "component-2.component")
+                artifact name: 'test', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME,
+                        content: replaceContent(new File(tempProjectDir, "component-2.component"), ['@group@': 'com.intershop.test', '@module@': 'test', '@version@': '2.0.0'])
             }
             module(org: 'com.intershop.test', name: 'test', rev: '2.1.0') {
                 artifact name: 'test', type: 'test', ext: 'zip', entries: [
@@ -485,7 +486,8 @@ class DescriptorManagerSpec extends Specification {
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/intern/test1.file', content: 'interntest1.file'),
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/intern/test2.file', content: 'interntest2.file')
                 ]
-                artifact name: 'test', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME, content: new File(tempProjectDir, "component-3.component")
+                artifact name: 'test', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME,
+                        content: replaceContent(new File(tempProjectDir, "component-3.component"), ['@group@': 'com.intershop.test', '@module@': 'test', '@version@': '2.1.0'])
             }
             module(org: 'com.intershop.test', name: 'test', rev: '2.0.1') {
                 artifact name: 'test', type: 'test', ext: 'zip', entries: [
@@ -497,7 +499,8 @@ class DescriptorManagerSpec extends Specification {
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/intern/test1.file', content: 'interntest1.file'),
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/intern/test2.file', content: 'interntest2.file')
                 ]
-                artifact name: 'test', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME, content: new File(tempProjectDir, "component-4.component")
+                artifact name: 'test', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME,
+                        content: replaceContent(new File(tempProjectDir, "component-4.component"), ['@group@': 'com.intershop.test', '@module@': 'test', '@version@': '2.0.1'])
             }
         }.writeTo(repoDir)
 
@@ -508,21 +511,24 @@ class DescriptorManagerSpec extends Specification {
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/test1.file', content: 'test1.file'),
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/test2.file', content: 'test2.file'),
                 ]
-                artifact classifier: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME, content: new File(tempProjectDir, "component-1.component")
+                artifact classifier: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME,
+                        content: replaceContent(new File(tempProjectDir, "component-1.component"), ['@group@': 'com.intershop.test', '@module@': 'test', '@version@': '1.0.0'])
             }
             project(groupId: 'com.intershop.test', artifactId: 'test', version: '2.2.0') {
                 artifact entries: [
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/test1.file', content: 'test1.file'),
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/test2.file', content: 'test2.file'),
                 ]
-                artifact classifier: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME, content: new File(tempProjectDir, "component-2.component")
+                artifact classifier: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME,
+                        content: replaceContent(new File(tempProjectDir, "component-2.component"), ['@group@': 'com.intershop.test', '@module@': 'test', '@version@': '2.2.0'])
             }
             project(groupId: 'com.intershop.test', artifactId: 'test', version: '3.0.0') {
                 artifact entries: [
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/test1.file', content: 'test1.file'),
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/test2.file', content: 'test2.file'),
                 ]
-                artifact classifier: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME, content: new File(tempProjectDir, "component-3.component")
+                artifact classifier: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME,
+                        content: replaceContent(new File(tempProjectDir, "component-3.component"), ['@group@': 'com.intershop.test', '@module@': 'test', '@version@': '3.0.0'])
             }
         }.writeTo(repoDir)
 
@@ -568,5 +574,20 @@ class DescriptorManagerSpec extends Specification {
                 FileUtils.copyDirectory(resourceFile, baseDir)
             }
         }
+    }
+
+    private File replaceContent(File orgFile, Map<String, String> replacements, File baseDir = tempProjectDir) {
+        File newFile = new File(baseDir, "${orgFile.name}.2")
+        newFile.withWriter { w ->
+            orgFile.eachLine { line ->
+                def newLine = line
+                replacements.each { key, value ->
+                    newLine = newLine.replaceAll(key, value)
+                }
+                w << newLine + '\n'
+            }
+        }
+
+        return newFile
     }
 }

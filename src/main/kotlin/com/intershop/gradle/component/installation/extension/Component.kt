@@ -29,9 +29,7 @@ open class Component @Inject constructor(val group: String,
         get() {
             val sb = StringBuilder(module)
             if(path.isNotBlank()) {
-                path.split("/").forEach {
-                    sb.append(it.capitalize())
-                }
+                path.split("/").last().capitalize()
             }
             return sb.toString()
         }

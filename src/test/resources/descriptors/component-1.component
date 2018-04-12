@@ -5,7 +5,6 @@
   "classifiers" : [ "linux", "win", "macos", "" ],
   "modulesTarget" : "",
   "libsTarget" : "lib/release/libs",
-  "fileTarget" : "",
   "containerTarget" : "",
   "target" : "",
   "descriptorPath" : "component",
@@ -101,7 +100,7 @@
         "version" : "1.0.0"
       },
       "targetName" : "com.intershop_library1_1.0.0",
-      "types" : [ "test" ]
+      "types" : [ "production" ]
     },
     "com.intershop:library2:1.0.0" : {
       "dependency" : {
@@ -110,7 +109,7 @@
         "version" : "1.0.0"
       },
       "targetName" : "com.intershop_library2_1.0.0",
-      "types" : [ "test" ]
+      "types" : [ "production" ]
     },
     "com.intershop:library3:1.0.0" : {
       "dependency" : {
@@ -119,7 +118,7 @@
         "version" : "1.0.0"
       },
       "targetName" : "com.intershop_library3_1.0.0",
-      "types" : [ "test" ]
+      "types" : [ "production" ]
     }
   },
   "fileContainers" : [ {
@@ -198,6 +197,11 @@
   "excludesFromUpdate" : [ ],
   "metadata" : {
     "creation" : 1523179434565,
-    "version" : "v1"
+    "version" : "v1",
+    "componentID" : {
+      "group" : "@group@",
+      "module" : "@module@",
+      "version" : "@version@"
+    }
   }
 }

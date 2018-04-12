@@ -15,15 +15,19 @@
  */
 package com.intershop.gradle.component.installation
 
+import com.intershop.gradle.component.descriptor.FileContainer
+import com.intershop.gradle.component.descriptor.Module
 import com.intershop.gradle.component.descriptor.util.ComponentUtil
 import com.intershop.gradle.component.installation.extension.InstallationExtension
 import com.intershop.gradle.component.installation.extension.OSType
+import com.intershop.gradle.component.installation.tasks.LibsTask
 import com.intershop.gradle.component.installation.tasks.ModuleTask
 import com.intershop.gradle.component.installation.tasks.PackageTask
 import com.intershop.gradle.component.installation.utils.ContentType
 import com.intershop.gradle.component.installation.utils.DescriptorManager
 import com.intershop.gradle.component.installation.utils.data.Artifact
 import com.intershop.gradle.component.installation.utils.data.FileItem
+import com.intershop.gradle.component.installation.utils.data.LibData
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -42,6 +46,11 @@ import javax.inject.Inject
 @Suppress("unused")
 class ComponentInstallPlugin @Inject constructor(private val modelRegistry: ModelRegistry) : Plugin<Project> {
 
+    companion object {
+        private val MAININSTALL = Triple("install", "Component Installation", "Run installation of ")
+        private val MAINUPDATE = Triple("update", "Component Update", "Run update of ")
+    }
+
     override fun apply(project: Project) {
         with(project) {
             logger.info("Install plugin adds extension {} to {}",
@@ -51,8 +60,8 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                     ?: extensions.create(InstallationExtension.INSTALLATION_EXTENSION_NAME,
                             InstallationExtension::class.java, project)
 
-            tasks.maybeCreate("install").group = InstallationExtension.INSTALLATION_GROUP_NAME
-            tasks.maybeCreate("update").group = InstallationExtension.INSTALLATION_GROUP_NAME
+            tasks.maybeCreate(MAININSTALL.first).group = MAININSTALL.second
+            tasks.maybeCreate(MAINUPDATE.first).group = MAINUPDATE.second
 
             if(modelRegistry.state(ModelPath.nonNullValidatedPath("installExtension")) == null) {
                 modelRegistry.register(ModelRegistrations.bridgedInstance(
@@ -108,6 +117,81 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                     installDir
                 }
             }
+
+            fun createComponentTasks(tasks: ModelMap<Task>,
+                                     name: String,
+                                     commonName: String,
+                                     mainconf: Triple<String, String, String>): Task? {
+                if(tasks.get(name) == null) {
+                    tasks.create(name) {
+                        it.group = mainconf.second
+                        it.description = "${mainconf.third}'${commonName}'"
+                    }
+                    val installTask = tasks.get(mainconf.first)
+                    installTask?.dependsOn(name)
+                }
+                return tasks.get(name)
+            }
+
+            fun createPackageTask(tasks: ModelMap<Task>,
+                                  file: File,
+                                  pkg: FileContainer,
+                                  installDir: File,
+                                  target: String,
+                                  taskName: String,
+                                  singleFiles: Set<FileItem>,
+                                  runUpdate: Boolean = false) {
+                if(tasks.get(taskName) == null) {
+                    tasks.create(taskName, PackageTask::class.java)
+                }
+                val pkgTask = tasks.get(taskName)
+                if(pkgTask is PackageTask) {
+                    with(pkgTask) {
+                        this.runUpdate = runUpdate
+                        this.fileContainer = file
+
+                        this.installDir = calculateInstallDir(installDir, target)
+                        this.installPath = pkg.targetPath
+                        this.targetIncluded = pkg.targetIncluded
+                        this.excludesFromUpdate = pkg.excludesFromUpdate
+                        this.fileItems = singleFiles
+                    }
+                } else {
+                    throw GradleException("Task '${taskName} exists, but it has the wrong type!")
+                }
+            }
+
+            fun createModuleTask(tasks: ModelMap<Task>,
+                                 module: Module,
+                                 modulePath: String,
+                                 installDir: File,
+                                 target: String,
+                                 taskName: String,
+                                 singleFiles: Set<FileItem>,
+                                 runUpdate: Boolean = false) {
+                if(tasks.get(taskName) == null) {
+                    tasks.create(taskName, ModuleTask::class.java)
+                }
+                val moduleTask = tasks.get(taskName)
+                if(moduleTask is ModuleTask) {
+                    with(moduleTask) {
+                        this.runUpdate = runUpdate
+                        this.dependency = module.dependency.toString()
+                        this.jarPath = module.jarPath
+                        this.descriptorPath = module.descriptorPath
+                        this.classifiers = module.classifiers
+                        this.jars = module.jars
+                        this.pkgs = module.pkgs
+                        this.moduleName = module.name
+
+                        this.installDir = calculateInstallDir(installDir, target)
+                        this.installPath = modulePath
+                        this.targetIncluded = module.targetIncluded
+                        this.excludesFromUpdate = module.excludesFromUpdate
+                        this.fileItems = singleFiles
+                    }
+                }
+            }
         }
 
         @Defaults
@@ -119,14 +203,14 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                     throw GradleException("The operating system is not suppported by the component install plugin!")
                 }
 
-                components.forEach {
+                components.forEach { componentDep ->
                     val descriptorMgr =
-                            DescriptorManager(project.repositories, it.dependency, installConfig.ivyPatterns)
+                            DescriptorManager(project.repositories, componentDep.dependency, installConfig.ivyPatterns)
 
                     val descriptorRepo = descriptorMgr.getDescriptorRepository()
                     if(descriptorRepo != null) {
                         val targetFile = File(installConfig.installAdminDir,
-                                "${it.commonName}/components/component.component")
+                                "${componentDep.commonName}/components/component.component")
 
                         descriptorMgr.loadDescriptorFile(descriptorRepo, targetFile)
                         descriptorMgr.validateDescriptor(targetFile)
@@ -137,7 +221,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
                         component.fileItems.forEach { file ->
                             val localFile = File(installConfig.installAdminDir,
-                                    "${it.commonName}/files/${file.name}.${file.extension}")
+                                    "${componentDep.commonName}/files/${file.name}.${file.extension}")
 
                             val classifier = file.classifier
 
@@ -156,13 +240,19 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                             }
                         }
 
-                        val installTask = tasks.get("install")
-                        val updateTask = tasks.get("update")
+                        val installPrefix = "${MAININSTALL.first}${componentDep.commonName.capitalize()}"
+                        val updatePrefix = "${MAINUPDATE.first}${componentDep.commonName.capitalize()}"
+
+                        val installTask = createComponentTasks(tasks, installPrefix,
+                                componentDep.commonName, MAININSTALL)
+
+                        val updateTask = createComponentTasks(tasks, updatePrefix,
+                                componentDep.commonName, MAINUPDATE)
 
                         component.fileContainers.forEach { pkg ->
 
                             val pkgFile = File(installConfig.installAdminDir,
-                                    "${it.commonName}/pkgs/${pkg.name}.zip")
+                                    "${componentDep.commonName}/pkgs/${pkg.name}.zip")
 
                             val classifier = pkg.classifier
 
@@ -177,89 +267,58 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
                                 val taskNameSuffix = "Pkg${pkg.name.capitalize()}${pkg.itemType.capitalize()}"
 
-                                tasks.create("install${taskNameSuffix}", PackageTask::class.java) {
-                                    it.runUpdate = false
-                                    it.fileContainer = pkgFile
+                                createPackageTask(tasks, pkgFile, pkg, this.installDir, component.containerTarget,
+                                        "$installPrefix$taskNameSuffix", fileItemSet)
 
-                                    it.installDir = calculateInstallDir(this.installDir, component.containerTarget)
-                                    it.installPath = pkg.targetPath
-                                    it.targetIncluded = pkg.targetIncluded
-                                    it.excludesFromUpdate = pkg.excludesFromUpdate
-                                    it.fileItems = fileItemSet
-                                }
-
-                                installTask?.dependsOn("install${taskNameSuffix}")
+                                installTask?.dependsOn("$installPrefix$taskNameSuffix")
 
                                 if(! pkg.excludeFromUpdate) {
-                                    tasks.create("update${taskNameSuffix}", PackageTask::class.java) {
-                                        it.runUpdate = true
-                                        it.fileContainer = pkgFile
+                                    createPackageTask(tasks, pkgFile, pkg, this.installDir, component.containerTarget,
+                                            "$updatePrefix$taskNameSuffix", fileItemSet, true)
 
-                                        it.installDir = calculateInstallDir(this.installDir, component.containerTarget)
-                                        it.installPath = pkg.targetPath
-                                        it.targetIncluded = pkg.targetIncluded
-                                        it.excludesFromUpdate = pkg.excludesFromUpdate
-                                        it.fileItems = fileItemSet
-                                    }
-
-                                    updateTask?.dependsOn("update${taskNameSuffix}")
+                                    updateTask?.dependsOn("$updatePrefix$taskNameSuffix")
                                 }
                             }
                         }
 
                         component.modules.forEach { module ->
                             if(checkForType(this.environment, module.value.types)) {
-                                with(module.value)  module@{
-                                    val taskNameSuffix = module.value.name.capitalize()
-                                    tasks.create("install${taskNameSuffix}", ModuleTask::class.java) {
-                                        it.runUpdate = false
-                                        it.dependency = dependency.toString()
-                                        it.jarPath = jarPath
-                                        it.descriptorPath = descriptorPath
-                                        it.classifiers = classifiers
-                                        it.jars = jars
-                                        it.pkgs = pkgs
-                                        it.moduleName = name
+                                val taskNameSuffix = "Module${module.value.name.capitalize()}"
+                                createModuleTask(tasks, module.value, module.key, this.installDir,
+                                        component.modulesTarget, "$installPrefix$taskNameSuffix",
+                                        fileItemSet)
 
-                                        it.installDir = calculateInstallDir(this@with.installDir, component.modulesTarget)
-                                        it.installPath = module.key
-                                        it.targetIncluded = targetIncluded
-                                        it.excludesFromUpdate = excludesFromUpdate
-                                        it.fileItems = fileItemSet
-                                    }
+                                installTask?.dependsOn("$installPrefix$taskNameSuffix")
 
-                                    installTask?.dependsOn("install${taskNameSuffix}")
+                                if (!module.value.excludeFromUpdate) {
+                                    createModuleTask(tasks, module.value, module.key, this.installDir,
+                                            component.modulesTarget, "$updatePrefix$taskNameSuffix",
+                                            fileItemSet, true)
 
-                                    if (!module.value.excludeFromUpdate) {
-                                        tasks.create("update${taskNameSuffix}", ModuleTask::class.java) {
-                                            it.runUpdate = true
-                                            it.dependency = dependency.toString()
-                                            it.jarPath = jarPath
-                                            it.descriptorPath = descriptorPath
-                                            it.classifiers = classifiers
-                                            it.jars = jars
-                                            it.pkgs = pkgs
-                                            it.moduleName = name
-
-                                            it.installDir = calculateInstallDir(this@with.installDir, component.modulesTarget)
-                                            it.installPath = module.key
-                                            it.targetIncluded = targetIncluded
-                                            it.excludesFromUpdate = excludesFromUpdate
-                                            it.fileItems = fileItemSet
-                                        }
-
-                                        updateTask?.dependsOn("update${taskNameSuffix}")
-                                    }
-
+                                    updateTask?.dependsOn("$updatePrefix$taskNameSuffix")
                                 }
                             }
                         }
 
+                        if(component.libs.size > 0) {
 
-                        println(component.libs.size)
+                            tasks.create("installLibs", LibsTask::class.java) {
+                                component.libs.values.forEach {lib ->
+                                    if(checkForType(this.environment, lib.types)) {
+                                        it.addLibData(LibData(lib.dependency.group, lib.dependency.module, lib.dependency.version, lib.targetName))
+                                    }
+                                }
+                                it.installDir = this.installDir
+                                it.installPath = component.libsTarget
+                            }
+
+                            installTask?.dependsOn("installLibs")
+                            updateTask?.dependsOn("installLibs")
+                        }
+
                         println(component.properties.size)
                     } else {
-                        throw GradleException("Component '${it.dependency.getDependencyString()}' is " +
+                        throw GradleException("Component '${componentDep.dependency.getDependencyString()}' is " +
                                 "not found in configured repositories. See log files for more information.")
                     }
                 }

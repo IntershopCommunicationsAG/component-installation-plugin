@@ -28,7 +28,7 @@ open class InstallationExtension @Inject constructor(val project: Project) {
 
     companion object {
         const val INSTALLATION_EXTENSION_NAME = "installation"
-        const val INSTALLATION_GROUP_NAME = "Component Installation"
+
     }
 
     private val installDirProperty = project.layout.directoryProperty()

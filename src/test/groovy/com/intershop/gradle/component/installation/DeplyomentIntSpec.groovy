@@ -165,7 +165,8 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
             }
 
             module(org: 'com.intershop.test', name: 'testcomponent', rev: '1.0.0') {
-                artifact name: 'testcomponent', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME, content: new File(tempProjectDir, "component-1.component")
+                artifact name: 'testcomponent', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME,
+                        content: replaceContent(new File(tempProjectDir, "component-1.component"), ['@group@': 'com.intershop.test', '@module@': 'testcomponent', '@version@': '1.0.0'])
                 artifact name: 'startscripts', type: 'bin', ext: 'zip', classifier: 'linux', entries: [
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript1.sh', content: 'interntest1.file'),
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript2.sh', content: 'interntest2.file')
@@ -232,5 +233,20 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
                     url "file://${repoDir.absolutePath.replace('\\', '/')}"
                 }
             }""".stripIndent()
+    }
+
+    private File replaceContent(File orgFile, Map<String, String> replacements, File baseDir = tempProjectDir) {
+        File newFile = new File(baseDir, "${orgFile.name}.2")
+        newFile.withWriter { w ->
+            orgFile.eachLine { line ->
+                def newLine = line
+                replacements.each { key, value ->
+                    newLine = newLine.replaceAll(key, value)
+                }
+                w << newLine + '\n'
+            }
+        }
+
+        return newFile
     }
 }

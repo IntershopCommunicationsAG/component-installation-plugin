@@ -5,7 +5,6 @@
   "classifiers" : [ "linux", "win", "" ],
   "modulesTarget" : "",
   "libsTarget" : "lib/release/libs",
-  "fileTarget" : "",
   "containerTarget" : "",
   "target" : "",
   "descriptorPath" : "component",
@@ -166,6 +165,11 @@
   "excludesFromUpdate" : [ ],
   "metadata" : {
     "creation" : 1523179434565,
-    "version" : "v1"
+    "version" : "v1",
+    "componentID" : {
+      "group" : "@group@",
+      "module" : "@module@",
+      "version" : "@version@"
+    }
   }
 }

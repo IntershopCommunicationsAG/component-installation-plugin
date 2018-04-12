@@ -148,20 +148,7 @@ open class ModuleTask : AInstallTask() {
         finalizeSpec(spec, update)
     }
 
-    private fun getClassifier(): String {
-        classifiers.forEach {
-            if(OSType.from(it) == detectedOS) {
-                return it
-            }
-        }
-        return ""
-    }
-
     private fun initFiles() {
-        getIvyArtifact().forEach {
-            ivyFilesCollection.from(it.file)
-        }
-
         getArtifacts().forEach {
             if(it.type == "jar" && it.extension == "jar" && jars.contains(it.name)) {
                 jarFilesCollection.from(it.file)
@@ -171,46 +158,35 @@ open class ModuleTask : AInstallTask() {
                     (OSType.from(it.classifier ?: "") == detectedOS || it.classifier.isNullOrBlank())) {
                 pkgFilesCollection.from(it.file)
             }
+            if(it.type == "ivy" && it.extension == "xml" && it.name == "ivy") {
+                ivyFilesCollection.from(it.file)
+            }
         }
+        filesInit = false
     }
 
-    private fun getIvyArtifact() : Set<ResolvedArtifact> {
+    private fun getArtifacts() : Set<ResolvedArtifact> {
         try {
-            val dep = project.dependencies.create(dependency) as ModuleDependency
-            dep.isTransitive = false
+            val ivyDep = project.dependencies.create(dependency) as ModuleDependency
 
-            dep.artifact {
+            ivyDep.artifact {
                 it.name = "ivy"
                 it.type = "ivy"
                 it.extension = "xml"
             }
 
-            val conf = project.configurations.detachedConfiguration(dep)
-            conf.description = "Configuration for ${this.name}"
+            val conf = project.configurations.create("config${this.name.capitalize()}")
+            conf.description = "Configuration for ${this.moduleName}"
             conf.isTransitive = false
-            conf.isVisible = false
+            conf.defaultDependencies {
+                it.add(project.dependencies.create(dependency))
+                it.add(project.dependencies.create(ivyDep))
+            }
 
             return conf.resolvedConfiguration.firstLevelModuleDependencies.first().allModuleArtifacts
 
         }catch(ex: ResolveException) {
-            throw ResolveException("ivy file of '${dependency}' in '${this.name}'", ex)
-        }
-    }
-
-    private fun getArtifacts() : Set<ResolvedArtifact> {
-        try {
-            val dep = project.dependencies.create(dependency) as ModuleDependency
-            dep.isTransitive = false
-
-            val conf = project.configurations.detachedConfiguration(dep)
-            conf.description = "Configuration for ${this.name}"
-            conf.isTransitive = false
-            conf.isVisible = false
-
-            return conf.resolvedConfiguration.firstLevelModuleDependencies.first().allModuleArtifacts
-
-        }catch(ex: ResolveException) {
-            throw ResolveException("modules of '${dependency}' in '${this.name}'", ex)
+            throw ResolveException("modules of '${dependency}' in '${this.moduleName}'", ex)
         }
     }
 }
