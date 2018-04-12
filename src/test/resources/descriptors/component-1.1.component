@@ -119,6 +119,24 @@
       },
       "targetName" : "com.intershop_library3_1.0.0",
       "types" : [ "production" ]
+    },
+    "com.intershop:library4:1.0.0" : {
+      "dependency" : {
+        "group" : "com.intershop",
+        "module" : "library4",
+        "version" : "1.0.0"
+      },
+      "targetName" : "com.intershop_library4_1.0.0",
+      "types" : [ "production" ]
+    },
+    "com.other:library4:1.0.0" : {
+      "dependency" : {
+        "group" : "com.other",
+        "module" : "library4",
+        "version" : "1.0.0"
+      },
+      "targetName" : "com.other_library4_1.0.0",
+      "types" : [ "production" ]
     }
   },
   "fileContainers" : [ {

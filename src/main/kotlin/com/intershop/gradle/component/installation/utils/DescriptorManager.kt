@@ -16,6 +16,7 @@
 
 package com.intershop.gradle.component.installation.utils
 
+import com.intershop.gradle.component.descriptor.MetaData
 import com.intershop.gradle.component.descriptor.util.ComponentUtil
 import com.intershop.gradle.component.installation.utils.data.Artifact
 import com.intershop.gradle.component.installation.utils.data.Credentials
@@ -257,22 +258,28 @@ class DescriptorManager(val repositories: RepositoryHandler, val descriptor: Dep
         }
     }
 
-    @Throws(IOException::class, GradleException::class)
-    fun loadDescriptorFile(repoData: Repository, target: File) {
-        val artifact = Artifact(descriptor.module, DESCRIPTOR_NAME, DESCRIPTOR_NAME)
-        loadArtifactFile(repoData, artifact, target)
+    lateinit var descriptorRepo: Repository
+
+    init {
+        calcDescriptorRepository()
     }
 
     @Throws(IOException::class, GradleException::class)
-    fun loadArtifactFile(repoData: Repository, artifact: Artifact, target: File) {
+    fun loadDescriptorFile(target: File) {
+        val artifact = Artifact(descriptor.module, DESCRIPTOR_NAME, DESCRIPTOR_NAME)
+        loadArtifactFile(artifact, target)
+    }
+
+    @Throws(IOException::class, GradleException::class)
+    fun loadArtifactFile(artifact: Artifact, target: File) {
         var path = ""
 
-        when(repoData.type) {
+        when(descriptorRepo.type) {
             RepositoryType.IVY -> {
-                path = getPathFromIvy(descriptor, repoData, artifact)
+                path = getPathFromIvy(descriptor, descriptorRepo, artifact)
             }
             RepositoryType.MAVEN -> {
-                val pathBuilder = StringBuilder(repoData.artifactPath)
+                val pathBuilder = StringBuilder(descriptorRepo.artifactPath)
                 pathBuilder.append("-")
                 pathBuilder.append(artifact.type).append(".")
                 pathBuilder.append(artifact.ext)
@@ -292,13 +299,12 @@ class DescriptorManager(val repositories: RepositoryHandler, val descriptor: Dep
                 throw GradleException("The file '${target.absolutePath} can not be recreated.")
             }
 
-            val conn = getUrlconnection(path, repoData.credentials)
+            val conn = getUrlconnection(path, descriptorRepo.credentials)
             target.copyInputStreamToFile(conn.getInputStream())
         }
     }
 
-
-    fun getDescriptorRepository(): Repository? {
+    private fun calcDescriptorRepository() {
         val versionRepoMap = mutableMapOf<String, Repository>()
 
         repositories.forEach repo@{ repo ->
@@ -321,11 +327,19 @@ class DescriptorManager(val repositories: RepositoryHandler, val descriptor: Dep
             }
         }
 
-        return if(versionRepoMap.size > 0) {
-            val version = versionRepoMap.keys.sortedWith(VersionComparator()).last()
-            versionRepoMap[version]
-        } else {
-            null
+        if(versionRepoMap.size > 0) {
+            val repo = versionRepoMap[versionRepoMap.keys.sortedWith(VersionComparator()).last()]
+            if(repo != null) {
+                descriptorRepo = repo
+            }
+        }
+
+        try {
+            val url = descriptorRepo.url
+            logger.info("Descriptor '{}' found in '{}'.", descriptor, url)
+        } catch(ex: UninitializedPropertyAccessException) {
+            throw GradleException("Descriptor '${descriptor}' not found in the configured repositories! " +
+                    "Please check your logfiles!")
         }
     }
 
@@ -439,12 +453,15 @@ class DescriptorManager(val repositories: RepositoryHandler, val descriptor: Dep
     }
 
     @Throws(GradleException::class)
-    fun validateDescriptor(targetFile: File) {
+    fun getDescriptorMetadata(targetFile: File): MetaData {
         val metadata = ComponentUtil.metadataFromFile(targetFile)
+
         if(metadata.version != ComponentUtil.version) {
             throw GradleException("The component desriptor '${descriptor.getDependencyString()}'" +
                     "was created by an other version (Descriptor version is '${metadata.version}', " +
                     "but the used framework has '${ComponentUtil.version}').")
         }
+
+        return metadata
     }
 }

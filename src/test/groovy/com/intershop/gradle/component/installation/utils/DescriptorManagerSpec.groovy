@@ -146,18 +146,19 @@ class DescriptorManagerSpec extends Specification {
         copyResources("maven-metadata/versions.xml", "maven-metadata.xml")
         File metadata = new File(testProjectDir, "maven-metadata.xml")
 
-        Repository repo = new Repository(RepositoryType.MAVEN, hostURL.toURI(), emptyCredentials)
+        project.repositories {
+            maven {
+                url hostURL.toURI().toURL().toString()
+            }
+        }
         Dependency dependency = new Dependency("com.intershop.test", "test", "1.3.0")
-
-        def descrMgr = new DescriptorManager((RepositoryHandler)project.getRepositories(), dependency, pattern)
 
         when:
         server.enqueue(new MockResponse().setBody(metadata.text))
-        String version = descrMgr.addMavenArtifactPath(repo)
+        def descrMgr = new DescriptorManager((RepositoryHandler)project.getRepositories(), dependency, pattern)
 
         then:
-        repo.artifactPath == "${hostURL}com/intershop/test/test/1.3.0/test-1.3.0"
-        version == "1.3.0"
+        descrMgr.descriptorRepo.artifactPath == "${hostURL}com/intershop/test/test/1.3.0/test-1.3.0"
     }
 
     def 'test artifact snapshot path from maven'() {
@@ -170,20 +171,22 @@ class DescriptorManagerSpec extends Specification {
         File metadata1 = new File(testProjectDir, "1-maven-metadata.xml")
         File metadata2 = new File(testProjectDir, "2-maven-metadata.xml")
 
-        Repository repo = new Repository(RepositoryType.MAVEN, hostURL.toURI(), emptyCredentials)
-        Dependency dependency = new Dependency("com.intershop.test", "test", "1.6.0-SNAPSHOT")
+        project.repositories {
+            maven {
+                url hostURL.toURI().toURL().toString()
+            }
+        }
 
-        def descrMgr = new DescriptorManager((RepositoryHandler)project.getRepositories(), dependency, pattern)
+        Dependency dependency = new Dependency("com.intershop.test", "test", "1.6.0-SNAPSHOT")
 
         when:
         server.enqueue(new MockResponse().setBody(metadata1.text))
         server.enqueue(new MockResponse().setBody(metadata2.text))
 
-        String version = descrMgr.addMavenArtifactPath(repo)
+        def descrMgr = new DescriptorManager((RepositoryHandler)project.getRepositories(), dependency, pattern)
 
         then:
-        repo.artifactPath == "${hostURL}com/intershop/test/test/1.6.0-SNAPSHOT/test-1.6.0-20180312.090758-7"
-        version == "1.6.0-SNAPSHOT"
+        descrMgr.descriptorRepo.artifactPath == "${hostURL}com/intershop/test/test/1.6.0-SNAPSHOT/test-1.6.0-20180312.090758-7"
     }
 
     def 'test artifact path from latest with pattern'() {
@@ -194,19 +197,20 @@ class DescriptorManagerSpec extends Specification {
         copyResources("maven-metadata/versions.xml", "maven-metadata.xml")
         File metadata = new File(testProjectDir, "maven-metadata.xml")
 
-        Repository repo = new Repository(RepositoryType.MAVEN, hostURL.toURI(), emptyCredentials)
-        Dependency dependency = new Dependency("com.intershop.test", "test", "1.3.+")
+        project.repositories {
+            maven {
+                url hostURL.toURI().toURL().toString()
+            }
+        }
 
-        def descrMgr = new DescriptorManager((RepositoryHandler)project.getRepositories(), dependency, pattern)
+        Dependency dependency = new Dependency("com.intershop.test", "test", "1.3.+")
 
         when:
         server.enqueue(new MockResponse().setBody(metadata.text))
-
-        String version = descrMgr.addMavenArtifactPath(repo)
+        def descrMgr = new DescriptorManager((RepositoryHandler)project.getRepositories(), dependency, pattern)
 
         then:
-        repo.artifactPath == "${hostURL}com/intershop/test/test/1.3.2/test-1.3.2"
-        version == "1.3.2"
+        descrMgr.descriptorRepo.artifactPath == "${hostURL}com/intershop/test/test/1.3.2/test-1.3.2"
     }
 
     def 'test artifact path from latest'() {
@@ -258,18 +262,28 @@ class DescriptorManagerSpec extends Specification {
         copyResources("ivy-listing/listing.html", "index.html")
         File index = new File(testProjectDir, "index.html")
 
-        Repository repo = new Repository(RepositoryType.IVY, hostURL.toURI(), emptyCredentials, DescriptorManager.INTERSHOP_PATTERN)
         Dependency dependency = new Dependency("com.intershop.test", "test", "12.0.+")
 
-        def descrMgr = new DescriptorManager((RepositoryHandler)project.getRepositories(), dependency, pattern)
+        project.repositories {
+            ivy {
+                name 'ivyLocal'
+                url hostURL.toURI().toURL().toString()
+                layout('pattern') {
+                    ivy DescriptorManager.INTERSHOP_IVY_PATTERN
+                    artifact DescriptorManager.INTERSHOP_PATTERN
+                    artifact DescriptorManager.INTERSHOP_IVY_PATTERN
+                }
+            }
+        }
 
         when:
         server.enqueue(new MockResponse().setBody(index.text))
-
-        String version = descrMgr.addIvyVersion(repo)
+        server.enqueue(new MockResponse().setBody(index.text))
+        server.enqueue(new MockResponse().setBody(index.text))
+        def descrMgr = new DescriptorManager((RepositoryHandler)project.getRepositories(), dependency, pattern)
 
         then:
-        version == "12.0.39"
+        descrMgr.descriptorRepo.version == "12.0.39"
     }
 
     def 'test ivy version from latest with pattern - file url'() {
@@ -321,18 +335,28 @@ class DescriptorManagerSpec extends Specification {
         copyResources("ivy-listing/listing.html", "index.html")
         File index = new File(testProjectDir, "index.html")
 
-        Repository repo = new Repository(RepositoryType.IVY, hostURL.toURI(), emptyCredentials, DescriptorManager.INTERSHOP_PATTERN)
-        Dependency dependency = new Dependency("com.intershop.test", "test", "11.1.11")
+        project.repositories {
+            ivy {
+                name 'ivyLocal'
+                url hostURL.toURI().toURL().toString()
+                layout('pattern') {
+                    ivy DescriptorManager.INTERSHOP_IVY_PATTERN
+                    artifact DescriptorManager.INTERSHOP_PATTERN
+                    artifact DescriptorManager.INTERSHOP_IVY_PATTERN
+                }
+            }
+        }
 
-        def descrMgr = new DescriptorManager((RepositoryHandler)project.getRepositories(), dependency, pattern)
+        Dependency dependency = new Dependency("com.intershop.test", "test", "11.1.11")
 
         when:
         server.enqueue(new MockResponse().setBody(index.text))
-
-        String version = descrMgr.addIvyVersion(repo)
+        server.enqueue(new MockResponse().setBody(index.text))
+        server.enqueue(new MockResponse().setBody(index.text))
+        def descrMgr = new DescriptorManager((RepositoryHandler)project.getRepositories(), dependency, pattern)
 
         then:
-        version == "11.1.11"
+        descrMgr.descriptorRepo.version == "11.1.11"
     }
 
     @Unroll
@@ -342,7 +366,7 @@ class DescriptorManagerSpec extends Specification {
         def descrMgr = new DescriptorManager((RepositoryHandler)project.getRepositories(), dependency, pattern)
 
         when:
-        def repo = descrMgr.getDescriptorRepository()
+        def repo = descrMgr.descriptorRepo
 
         then:
         repo != null
@@ -367,8 +391,8 @@ class DescriptorManagerSpec extends Specification {
         def component = new File(testProjectDir, "build/component.component")
 
         when:
-        def repo = descrMgr.getDescriptorRepository()
-        descrMgr.loadDescriptorFile(repo, component)
+        def repo = descrMgr.descriptorRepo
+        descrMgr.loadDescriptorFile(component)
 
         then:
         component.exists()

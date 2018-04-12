@@ -49,7 +49,7 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
         installation {
             environment('production')
 
-            add('com.intershop.test:testcomponent:1.0.0')
+            add("com.intershop.test:testcomponent:\${project.ext.installv}")
             installDir = file('installation')
         }
        
@@ -58,7 +58,7 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        List<String> args1 = ['install', '-s', '-i']
+        List<String> args1 = ['install', '-s', '-i', "-Pinstallv=1.0.0"]
 
         def result1 = getPreparedGradleRunner()
                 .withArguments(args1)
@@ -67,9 +67,9 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
 
         then:
         true
-
+/**
         when:
-        List<String> args2 = ['update', '-s', '-i']
+        List<String> args2 = ['update', '-s', '-i', "-Pinstallv=1.1.0"]
 
         def result2 = getPreparedGradleRunner()
                 .withArguments(args2)
@@ -80,16 +80,16 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
         true
 
         when:
-        List<String> args3 = ['update', '-s', '-i']
+        List<String> args3 = ['update', '-s', '-i', "-Pinstallv=1.0.0"]
 
         def result3 = getPreparedGradleRunner()
-                .withArguments(args2)
+                .withArguments(args3)
                 .withGradleVersion(gradleVersion)
                 .build()
 
         then:
         true
-
+**/
         where:
         gradleVersion << supportedGradleVersions
 
@@ -108,6 +108,7 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
         File repoDir = new File(dir, 'repo')
 
         copyResources("descriptors/component-1.component", "component-1.component", tempProjectDir)
+        copyResources("descriptors/component-1.1.component", "component-1.1.component", tempProjectDir)
 
         new TestIvyRepoBuilder().repository( ivyPattern: DescriptorManager.INTERSHOP_IVY_PATTERN, artifactPattern: DescriptorManager.INTERSHOP_PATTERN ) {
             module(org: 'com.intershop', name: 'testmodule1', rev: '1.0.0') {
@@ -186,32 +187,61 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
                 artifact name: 'test1', type: 'properties', ext: 'properties', content: 'property1 = value1'
                 artifact name: 'test2', type: 'properties', ext: 'properties', content: 'property2 = value2'
             }
+            module(org: 'com.intershop.test', name: 'testcomponent', rev: '1.1.0') {
+                artifact name: 'testcomponent', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME,
+                        content: replaceContent(new File(tempProjectDir, "component-1.1.component"), ['@group@': 'com.intershop.test', '@module@': 'testcomponent', '@version@': '1.1.0'])
+                artifact name: 'startscripts', type: 'bin', ext: 'zip', classifier: 'linux', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript1.sh', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript2.sh', content: 'interntest2.file')
+                ]
+                artifact name: 'startscripts', type: 'bin', ext: 'zip', classifier: 'macos', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript1.sh', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript2.sh', content: 'interntest2.file')
+                ]
+                artifact name: 'startscripts', type: 'bin', ext: 'zip', classifier: 'win', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript1.bat', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript2.bat', content: 'interntest2.file')
+                ]
+                artifact name: 'share', type: 'sites', ext: 'zip', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/sites/org1/import.properties', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/sites/org2/import.properties', content: 'interntest2.file')
+                ]
+                artifact name: 'test1', type: 'properties', ext: 'properties', content: 'property1 = value1'
+                artifact name: 'test2', type: 'properties', ext: 'properties', content: 'property2 = value2'
+            }
+
+            module(org: 'com.intershop', name: 'library4', rev: '1.0.0'){
+                artifact name: 'library4', type: 'jar', ext: 'jar', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/intern/test1.file', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/intern/test2.file', content: 'interntest2.file')
+                ]
+            }
         }.writeTo(repoDir)
 
 
         new TestMavenRepoBuilder().repository {
             project(groupId: 'com.intershop', artifactId: 'library1', version: '1.0.0') {
                 artifact entries: [
-                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/test1.file', content: 'test1.file'),
-                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/test2.file', content: 'test2.file'),
+                        TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/test1.file', content: 'test1.file'),
+                        TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/test2.file', content: 'test2.file'),
                 ]
             }
             project(groupId: 'com.intershop', artifactId: 'library2', version: '1.0.0'){
                 artifact entries: [
-                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/test1.file', content: 'test1.file'),
-                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/test2.file', content: 'test2.file'),
+                        TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/test1.file', content: 'test1.file'),
+                        TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/test2.file', content: 'test2.file'),
                 ]
             }
             project(groupId: 'com.intershop', artifactId: 'library3', version: '1.0.0'){
                 artifact entries: [
-                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/test1.file', content: 'test1.file'),
-                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/test2.file', content: 'test2.file'),
+                        TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/test1.file', content: 'test1.file'),
+                        TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/test2.file', content: 'test2.file'),
                 ]
             }
-            project(groupId: 'com.intershop', artifactId: 'library4', version: '1.0.0'){
+            project(groupId: 'com.other', artifactId: 'library4', version: '1.0.0'){
                 artifact entries: [
-                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/test1.file', content: 'test1.file'),
-                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/test2.file', content: 'test2.file'),
+                        TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/test1.file', content: 'test1.file'),
+                        TestMavenRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/test2.file', content: 'test2.file'),
                 ]
             }
         }.writeTo(repoDir)
