@@ -16,6 +16,7 @@
 package com.intershop.gradle.component.installation.tasks
 
 import com.intershop.gradle.component.installation.extension.OSType
+import com.intershop.gradle.component.installation.utils.DependencyConfig
 import com.intershop.gradle.component.installation.utils.getValue
 import com.intershop.gradle.component.installation.utils.setValue
 import org.gradle.api.GradleException
@@ -23,28 +24,20 @@ import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.CopySpec
-import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.TaskAction
 
 open class ModuleTask : AInstallTask() {
-
-    private val ivyFilesCollection: ConfigurableFileCollection = project.files()
-    private val jarFilesCollection: ConfigurableFileCollection = project.files()
-    private val pkgFilesCollection: ConfigurableFileCollection = project.files()
 
     @get:Synchronized
     private var filesInit = true
 
     private val moduleNameProperty: Property<String> = project.objects.property(String::class.java)
 
-    private val dependencyProperty: Property<String> = project.objects.property(String::class.java)
+    private val dependencyProperty: Property<DependencyConfig> = project.objects.property(DependencyConfig::class.java)
 
     private val jarPathProperty: Property<String> = project.objects.property(String::class.java)
     private val descriptorPathProperty: Property<String> = project.objects.property(String::class.java)
@@ -59,9 +52,19 @@ open class ModuleTask : AInstallTask() {
     fun provideModuleName(moduleName: Provider<String>) = moduleNameProperty.set(moduleName)
 
     @get:Input
-    var dependency: String by dependencyProperty
+    var dependency: DependencyConfig
+        get() {
+            val dependency = dependencyProperty.get() ?: throw GradleException("It is necessary to specify a dependency!")
+            with(dependency.version.toLowerCase()) {
+                super.getOutputs().upToDateWhen {
+                    ! endsWith("snapshot") && ! endsWith("local")
+                }
+            }
+            return dependency
+        }
+        set(value) = dependencyProperty.set(value)
 
-    fun provideDependency(dependency: Provider<String>) = dependencyProperty.set(dependency)
+    fun provideDependency(dependency: Provider<DependencyConfig>) = dependencyProperty.set(dependency)
 
     @get:Input
     var jarPath: String by jarPathProperty
@@ -92,77 +95,42 @@ open class ModuleTask : AInstallTask() {
     val detectedOS: OSType
         get() = OSType.detectedOS()
 
-    @get:InputFiles
-    @get:Throws(GradleException::class)
-    val jarFiles: FileCollection
-        get() {
-            if(filesInit) {
-                initFiles()
-            }
-            return jarFilesCollection
-        }
+    override fun specifyCopyConfiguration() {
+        val ivyFiles: ConfigurableFileCollection = project.files()
+        val jarFiles: ConfigurableFileCollection = project.files()
+        val pkgFiles: ConfigurableFileCollection = project.files()
 
-    @get:InputFiles
-    val pkgFiles: FileCollection
-        get() {
-            if(filesInit) {
-                initFiles()
-            }
-            return pkgFilesCollection
-        }
+        initFiles(jarFiles, pkgFiles, ivyFiles)
 
-    @get:InputFiles
-    val ivyFiles: FileCollection
-        get() {
-            if(filesInit) {
-                initFiles()
-            }
-            return ivyFilesCollection
-        }
-
-    @TaskAction
-    fun runInstall() {
-        if(! outputDir.exists()) {
-            throw GradleException("The target directory '${outputDir}' does not exists!")
-        }
-        if(! runUpdate) {
-            project.sync { configureCopySpec(it) }
-        } else {
-            project.copy { configureCopySpec(it) }
-        }
-    }
-
-    protected fun configureCopySpec(spec: CopySpec, update: Boolean = false) {
-        spec.from(ivyFiles) {
+        super.from(ivyFiles) {
             it.into(descriptorPath)
         }
-        spec.from(jarFiles) {
+        super.from(jarFiles) {
             it.into(jarPath)
         }
-        spec.into(outputDir)
 
         pkgFiles.forEach {
-            spec.from(project.zipTree(it))
+            super.from(project.zipTree(it))
         }
-
-        finalizeSpec(spec, update)
     }
 
-    private fun initFiles() {
+    private fun initFiles(jarFiles: ConfigurableFileCollection,
+                          pkgFiles: ConfigurableFileCollection,
+                          ivyFiles: ConfigurableFileCollection) {
+
         getArtifacts().forEach {
-            if(it.type == "jar" && it.extension == "jar" && jars.contains(it.name)) {
-                jarFilesCollection.from(it.file)
+            if (it.type == "jar" && it.extension == "jar" && jars.contains(it.name)) {
+                jarFiles.from(it.file)
             }
 
-            if(it.extension == "zip" &&
+            if (it.extension == "zip" &&
                     (OSType.from(it.classifier ?: "") == detectedOS || it.classifier.isNullOrBlank())) {
-                pkgFilesCollection.from(it.file)
+                pkgFiles.from(it.file)
             }
-            if(it.type == "ivy" && it.extension == "xml" && it.name == "ivy") {
-                ivyFilesCollection.from(it.file)
+            if (it.type == "ivy" && it.extension == "xml" && it.name == "ivy") {
+                ivyFiles.from(it.file)
             }
         }
-        filesInit = false
     }
 
     private fun getArtifacts() : Set<ResolvedArtifact> {

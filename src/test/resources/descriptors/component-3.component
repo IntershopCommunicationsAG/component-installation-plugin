@@ -24,8 +24,8 @@
       "descriptorPath" : "",
       "targetIncluded" : false,
       "contentType" : "IMMUTABLE",
-      "excludesFromUpdate" : [ ],
-      "excludeFromUpdate" : false,
+      "excludes" : [ ],
+      "updatable" : true,
       "types" : [ "test" ],
       "classifiers" : [ ]
     },
@@ -44,8 +44,8 @@
       "descriptorPath" : "",
       "targetIncluded" : false,
       "contentType" : "IMMUTABLE",
-      "excludesFromUpdate" : [ ],
-      "excludeFromUpdate" : false,
+      "excludes" : [ ],
+      "updatable" : true,
       "types" : [ "test" ],
       "classifiers" : [ ]
     },
@@ -64,8 +64,8 @@
       "descriptorPath" : "",
       "targetIncluded" : false,
       "contentType" : "IMMUTABLE",
-      "excludesFromUpdate" : [ ],
-      "excludeFromUpdate" : false,
+      "excludes" : [ ],
+      "updatable" : true,
       "types" : [ "test" ],
       "classifiers" : [ "linux", "win" ]
     }
@@ -106,8 +106,8 @@
     "classifier" : "linux",
     "targetIncluded" : false,
     "contentType" : "IMMUTABLE",
-    "excludesFromUpdate" : [ ],
-    "excludeFromUpdate" : false,
+    "excludes" : [ ],
+    "updatable" : true,
     "types" : [ "production", "test" ]
   }, {
     "name" : "startscripts",
@@ -116,8 +116,8 @@
     "classifier" : "win",
     "targetIncluded" : false,
     "contentType" : "IMMUTABLE",
-    "excludesFromUpdate" : [ ],
-    "excludeFromUpdate" : false,
+    "excludes" : [ ],
+    "updatable" : true,
     "types" : [ "production", "test" ]
   }, {
     "name" : "share",
@@ -126,8 +126,8 @@
     "classifier" : "",
     "targetIncluded" : false,
     "contentType" : "IMMUTABLE",
-    "excludesFromUpdate" : [ ],
-    "excludeFromUpdate" : false,
+    "excludes" : [ ],
+    "updatable" : true,
     "types" : [ "test" ]
   } ],
   "fileItems" : [ {
@@ -136,7 +136,7 @@
     "targetPath" : "share/system/config",
     "classifier" : "win",
     "contentType" : "IMMUTABLE",
-    "excludeFromUpdate" : false,
+    "updatable" : true,
     "types" : [ ]
   }, {
     "name" : "test2",
@@ -144,7 +144,7 @@
     "targetPath" : "share/system/config",
     "classifier" : "linux",
     "contentType" : "IMMUTABLE",
-    "excludeFromUpdate" : false,
+    "updatable" : true,
     "types" : [ ]
   } ],
   "properties" : [ {
@@ -152,17 +152,18 @@
     "value" : "pvalues1",
     "classifier" : "win",
     "contentType" : "IMMUTABLE",
-    "excludeFromUpdate" : false,
+    "updatable" : true,
     "types" : [ "perfTest" ]
   }, {
     "key" : "pkey2",
     "value" : "pvalue2",
     "classifier" : "",
     "contentType" : "IMMUTABLE",
-    "excludeFromUpdate" : false,
+    "updatable" : true,
     "types" : [ "perfTest" ]
   } ],
-  "excludesFromUpdate" : [ ],
+  "excludes" : [ ],
+  "preserves" : [ ],
   "metadata" : {
     "creation" : 1523179434565,
     "version" : "v1",

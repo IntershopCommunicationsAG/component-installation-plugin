@@ -15,13 +15,10 @@
  */
 package com.intershop.gradle.component.installation.tasks
 
-import org.gradle.api.GradleException
-import org.gradle.api.file.CopySpec
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.TaskAction
 import java.io.File
 
 open class PackageTask: AInstallTask() {
@@ -35,23 +32,8 @@ open class PackageTask: AInstallTask() {
 
     fun provideFileContainer(fileContainer: Provider<RegularFile>) = fileContainerProperty.set(fileContainer)
 
-    @TaskAction
-    fun runInstall() {
-        if(! outputDir.exists()) {
-            throw GradleException("The target directory '${outputDir}' does not exists!")
-        }
-        if(! runUpdate) {
-            project.sync { configureCopySpec(it) }
-        } else {
-            project.copy { configureCopySpec(it) }
-        }
-    }
-
-    protected fun configureCopySpec(spec: CopySpec, update: Boolean = false) {
-        spec.from(project.zipTree(fileContainer))
-        spec.into(outputDir)
-
-        finalizeSpec(spec, update)
+    override fun specifyCopyConfiguration() {
+        super.from(project.zipTree(fileContainer))
     }
 
 

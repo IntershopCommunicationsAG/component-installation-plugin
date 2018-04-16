@@ -33,11 +33,6 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
         String projectName = "testdeployment"
         createSettingsGradle(projectName)
 
-        File dir = new File(testProjectDir,"installation/bin")
-        dir.mkdirs()
-        File test = new File(dir, "startscript1.sh")
-        test << "wrong file"
-
         buildFile << """
         plugins {
             id 'com.intershop.gradle.component.installation'

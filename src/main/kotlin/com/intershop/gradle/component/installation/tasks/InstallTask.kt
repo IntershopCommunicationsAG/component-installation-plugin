@@ -13,19 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intershop.gradle.component.installation.utils.data
+package com.intershop.gradle.component.installation.tasks
 
-import com.intershop.gradle.component.installation.utils.ContentType
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFile
-import java.io.File
+open class InstallTask: AInstallTask() {
 
-data class FileItem constructor(
-        @get:InputFile
-        val file: File,
-        @get:Input
-        val filePath: String,
-        @get:Input
-        val contentType: ContentType = ContentType.IMMUTABLE,
-        @get:Input
-        val updatable: Boolean = true)
+    override fun specifyCopyConfiguration() {}
+
+}

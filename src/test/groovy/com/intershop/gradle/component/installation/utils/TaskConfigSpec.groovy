@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intershop.gradle.component.installation.utils.data
+package com.intershop.gradle.component.installation.utils
 
-import com.intershop.gradle.component.installation.utils.ContentType
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFile
-import java.io.File
+import spock.lang.Specification
 
-data class FileItem constructor(
-        @get:InputFile
-        val file: File,
-        @get:Input
-        val filePath: String,
-        @get:Input
-        val contentType: ContentType = ContentType.IMMUTABLE,
-        @get:Input
-        val updatable: Boolean = true)
+class TaskConfigSpec extends Specification {
+    
+    def "Test path calculation"() {
+        when:
+        File  f = TaskConfig.getTargetDir(new File("test"), input)
+        
+        then:
+        f.path == output
+
+        where:
+        input | output
+        ["test1", "", null, "test2", ""] as String[] | "test/test1/test2"
+        ["test1", "", null, "test2"] as String[] | "test/test1/test2"
+        ["test1", "", "bla bla", "test2"] as String[] | "test/test1/bla_bla/test2"
+    }
+}

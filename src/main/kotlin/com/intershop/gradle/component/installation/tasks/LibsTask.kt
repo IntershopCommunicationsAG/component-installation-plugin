@@ -18,49 +18,23 @@ package com.intershop.gradle.component.installation.tasks
 import com.intershop.gradle.component.installation.utils.data.LibData
 import com.intershop.gradle.component.installation.utils.getValue
 import com.intershop.gradle.component.installation.utils.setValue
-import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
-import org.gradle.api.file.Directory
-import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.TaskAction
 import org.gradle.ivy.IvyDescriptorArtifact
 import org.gradle.ivy.IvyModule
 import org.gradle.maven.MavenModule
 import org.gradle.maven.MavenPomArtifact
-import java.io.File
 
-open class LibsTask: DefaultTask() {
+open class LibsTask: AInstallTask() {
 
-    private val installDirProperty: DirectoryProperty = project.layout.directoryProperty()
     private val installPathProperty: Property<String> = project.objects.property(String::class.java)
-
     private val libDataProperty: SetProperty<LibData> = project.objects.setProperty(LibData::class.java)
-
-    @get:Internal
-    var installDir: File
-        get() = installDirProperty.get().asFile
-        set(value) = installDirProperty.set(value)
-
-    fun provideInstallDir(installDir: Provider<Directory>) = installDirProperty.set(installDir)
-
-    @get:Internal
-    var installPath: String by installPathProperty
-
-    fun provideInstallPath(installPath: Provider<String>) = installPathProperty.set(installPath)
-
-    @get:OutputDirectory
-    val outputDir: File
-        get() = when {  installPath.isNotBlank() -> File(installDir, installPath)
-            else -> installDir }
 
     @get:Nested
     var libData: Set<LibData> by libDataProperty
@@ -71,21 +45,15 @@ open class LibsTask: DefaultTask() {
         libDataProperty.add(data)
     }
 
-    @TaskAction
-    fun runInstall() {
+    override fun specifyCopyConfiguration() {
         val fileMap = getArtifacts()
         val fileCollection = project.files(fileMap.keys)
 
-        project.sync {
-            it.from(fileCollection)
-            it.into(outputDir)
+        super.from(fileCollection)
 
-            it.eachFile {
-                val newName = fileMap[it.file.absolutePath]
-                if(newName != null) {
-                    it.name = newName
-                }
-            }
+        super.eachFile {
+            val newName = fileMap[it.file.absolutePath]
+            it.name = newName ?: it.name
         }
     }
 
@@ -152,7 +120,7 @@ open class LibsTask: DefaultTask() {
             }
 
             return libDataFileMap
-        }catch(ex: ResolveException) {
+        } catch(ex: ResolveException) {
             throw ResolveException("modules in library configuration of '${name}'", ex)
         }
     }

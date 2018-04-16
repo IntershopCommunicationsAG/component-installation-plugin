@@ -20,83 +20,76 @@ import com.intershop.gradle.component.installation.utils.data.FileItem
 import com.intershop.gradle.component.installation.utils.getValue
 import com.intershop.gradle.component.installation.utils.property
 import com.intershop.gradle.component.installation.utils.setValue
-import org.gradle.api.DefaultTask
-import org.gradle.api.file.CopySpec
-import org.gradle.api.file.Directory
-import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.internal.file.copy.CopyAction
+import org.gradle.api.internal.file.copy.DestinationRootCopySpec
+import org.gradle.api.internal.file.copy.FileCopyAction
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.Sync
+import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.util.PatternSet
+import org.gradle.util.GFileUtils
 import java.io.File
 
-open class AInstallTask: DefaultTask() {
+abstract class AInstallTask : Sync() {
 
-    private val installDirProperty: DirectoryProperty = project.layout.directoryProperty()
+    companion object {
+        const val ERRORMSG = "No copy destination directory has been specified, use 'into' to specify a target directory."
+    }
+
     private val installPathProperty: Property<String> = project.objects.property(String::class.java)
-
     private val targetIncludedProperty = project.objects.property<Boolean>()
-    private val excludesFromUpdateProperty: SetProperty<String> = project.objects.setProperty(String::class.java)
+    private val updateExcludesProperty: SetProperty<String> = project.objects.setProperty(String::class.java)
     private val contentTypeProperty: Property<ContentType> = project.objects.property(ContentType::class.java)
-
     private val fileItemsProperty: SetProperty<FileItem> = project.objects.setProperty(FileItem::class.java)
 
-    @get:Internal
-    var installDir: File
-        get() = installDirProperty.get().asFile
-        set(value) = installDirProperty.set(value)
+    private val preserveInDestination = PatternSet()
 
-    fun provideInstallDir(installDir: Provider<Directory>) = installDirProperty.set(installDir)
+    override fun createCopyAction(): CopyAction {
+        val destinationDir = destinationDir ?: throw InvalidUserDataException(ERRORMSG)
 
-    @get:Internal
-    var installPath: String by installPathProperty
-
-    fun provideInstallPath(installPath: Provider<String>) = installPathProperty.set(installPath)
-
-    @get:Input
-    var targetIncluded: Boolean
-        get() = targetIncludedProperty.getOrElse(false)
-        set(value) = targetIncludedProperty.set(value)
-
-    fun targetIncluded(targetIncluded: Provider<Boolean>) = targetIncludedProperty.set(targetIncluded)
-
-    @get:Input
-    var excludesFromUpdate: Set<String> by excludesFromUpdateProperty
-
-    fun excludesFromUpdate(excludesFromUpdate: Provider<Set<String>>) =
-            excludesFromUpdateProperty.set(excludesFromUpdate)
-
-    @get:Input
-    var contentType: ContentType
-        get() = contentTypeProperty.getOrElse(ContentType.UNSPECIFIED)
-        set(value) = contentTypeProperty.set(value)
-
-    fun setContentType(type: String) {
-        contentTypeProperty.set(ContentType.valueOf(type))
+        return SyncCopyActionDecorator(destinationDir, FileCopyAction(fileLookup.getFileResolver(destinationDir)),
+                preserveInDestination, directoryFileTreeFactory, System.currentTimeMillis())
     }
 
-    @get:Nested
-    var fileItems: Set<FileItem>
-        get() = fileItemsProperty.get()
-        set(value) = fileItemsProperty.set(value)
+    override fun getRootSpec(): DestinationRootCopySpec {
+        val rootSpec = super.getRootSpec()
 
-    fun addFileItemConf(conf: FileItem) {
-        fileItemsProperty.add(conf)
+        if(runUpdate && ! updateExcludes.isEmpty()) {
+            updateExcludes.forEach {
+                rootSpec.exclude(it)
+            }
+        }
+
+        if(! fileItems.isEmpty()) {
+            fileItems.forEach { item ->
+                if (item.filePath.startsWith(installPath) &&
+                        ((runUpdate && item.updatable && item.contentType != ContentType.DATA) || !runUpdate)) {
+
+                    rootSpec.exclude(item.filePath)
+                    rootSpec.from(item.file) {
+                        it.into(item.filePath)
+                    }
+                }
+            }
+        }
+
+        if(targetIncluded) {
+            rootSpec.eachFile { details ->
+                details.path = removeDirFromPath(installPath, details.path)
+            }
+        }
+
+        rootSpec.duplicatesStrategy = DuplicatesStrategy.FAIL
+
+        return rootSpec
     }
-
-    fun provideFileItemsConfs(fileItemConfs: Provider<Set<FileItem>>) = fileItemsProperty.set(fileItemConfs)
-
-    @get:OutputDirectory
-    val outputDir: File
-        get() = when {  installPath.isNotBlank() -> File(installDir, installPath)
-                        else -> installDir }
-
-    @get:Internal
-    var runUpdate: Boolean = false
 
     protected fun removeDirFromPath(dirName: String,  path: String): String {
         return if(path.startsWith(dirName) && dirName.isNotBlank()) {
@@ -111,38 +104,65 @@ open class AInstallTask: DefaultTask() {
         }
     }
 
-    protected fun finalizeSpec(spec: CopySpec, update: Boolean = false) {
-        if(update && ! excludesFromUpdate.isEmpty()) {
-            excludesFromUpdate.forEach {
-                spec.exclude(it)
-            }
-        }
-
-        if(! fileItems.isEmpty()) {
-            fileItems.forEach { item ->
-                if (item.filePath.startsWith(installPath) &&
-                        ((update && !item.excludeFromUpdate && item.contentType != ContentType.DATA) || !update)) {
-                    spec.exclude(item.filePath)
-                    spec.from(item.file) {
-                        it.into(item.filePath)
-                    }
-                }
-            }
-        }
-
-        if(targetIncluded) {
-            spec.eachFile { details ->
-                details.path = removeDirFromPath(installPath, details.path)
-            }
-        }
-
-        spec.duplicatesStrategy = DuplicatesStrategy.FAIL
-
-        val type = File(outputDir, ".type")
-        if(! type.exists() && contentType == ContentType.DATA) {
-            type.createNewFile()
-            type.appendText(contentType.toString())
-        }
+    init {
+        // set default values ...
+        installPathProperty.set("")
+        targetIncludedProperty.set(false)
     }
 
+    abstract fun specifyCopyConfiguration()
+
+    @get:Input
+    var installPath: String by installPathProperty
+
+    fun provideInstallPath(installPath: Provider<String>) = installPathProperty.set(installPath)
+
+    @get:Input
+    var targetIncluded: Boolean by targetIncludedProperty
+
+    fun targetIncluded(targetIncluded: Provider<Boolean>) = targetIncludedProperty.set(targetIncluded)
+
+    @get:Input
+    var contentType: ContentType
+        get() = contentTypeProperty.getOrElse(ContentType.UNSPECIFIED)
+        set(value) = contentTypeProperty.set(value)
+
+    fun setContentType(type: String) {
+        contentTypeProperty.set(ContentType.valueOf(type))
+    }
+
+    @get:Nested
+    var fileItems: Set<FileItem> by fileItemsProperty
+
+    fun addFileItemConf(conf: FileItem) {
+        fileItemsProperty.add(conf)
+    }
+
+    fun provideFileItems(fileItemConfs: Provider<Set<FileItem>>) = fileItemsProperty.set(fileItemConfs)
+
+    @get:Input
+    var updateExcludes: Set<String> by updateExcludesProperty
+
+    fun excludesFromUpdate(updateExcludes: Provider<Set<String>>) =
+            updateExcludesProperty.set(updateExcludes)
+
+    fun provideUpdateExcludesProperty(excludes: Provider<Set<String>>) = updateExcludesProperty.set(excludes)
+
+    @get:Internal
+    var runUpdate: Boolean = false
+
+    @TaskAction
+    override fun copy() {
+
+        specifyCopyConfiguration()
+
+        super.copy()
+
+        val typeFile = File(destinationDir, ".install")
+        if(typeFile.exists()) {
+            GFileUtils.forceDelete(typeFile)
+        }
+
+        GFileUtils.writeFile(contentType.toString(), typeFile)
+    }
 }
