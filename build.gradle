@@ -79,6 +79,11 @@ if (project.version.endsWith('-SNAPSHOT')) {
 }
 
 test {
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+    }
+
     // Gradle versions for test
     systemProperty 'intershop.gradle.versions', '4.6'
 }
