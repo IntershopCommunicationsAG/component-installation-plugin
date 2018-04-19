@@ -25,6 +25,8 @@ data class FileItem constructor(
         val file: File,
         @get:Input
         val filePath: String,
+        @get: Input
+        val targetPath: String,
         @get:Input
         val contentType: ContentType = ContentType.IMMUTABLE,
         @get:Input

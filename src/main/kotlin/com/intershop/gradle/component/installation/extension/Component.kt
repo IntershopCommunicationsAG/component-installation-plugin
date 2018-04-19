@@ -18,12 +18,18 @@ package com.intershop.gradle.component.installation.extension
 
 
 import com.intershop.gradle.component.installation.utils.data.Dependency
+import org.gradle.api.Action
+import org.gradle.api.tasks.util.PatternFilterable
+import org.gradle.api.tasks.util.PatternSet
 import javax.inject.Inject
 
 open class Component @Inject constructor(val group: String,
                                          val module: String,
                                          val version: String,
                                          val path: String = "") {
+
+    private val excludesProperty: MutableSet<String> = mutableSetOf()
+    private val preserveProperty: PatternSet = PatternSet()
 
     val commonName: String
         get() {
@@ -38,4 +44,22 @@ open class Component @Inject constructor(val group: String,
         get() {
             return Dependency(group, module, version)
         }
+
+    val excludes: Set<String>
+        get() = excludesProperty
+
+    fun exclude(pattern: String) {
+        excludesProperty.add(pattern)
+    }
+
+    fun exclude(patterns: Set<String>) {
+        excludesProperty.addAll(patterns)
+    }
+
+    val preserve: PatternFilterable
+        get() = preserveProperty
+
+    fun preserve(action: Action<in PatternFilterable>) {
+        action.execute(preserveProperty)
+    }
 }

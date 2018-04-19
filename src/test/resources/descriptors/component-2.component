@@ -26,6 +26,8 @@
       "contentType" : "IMMUTABLE",
       "excludes" : [ ],
       "updatable" : true,
+      "preserveExcludes" : [ ],
+      "preserveIncludes" : [ ],
       "types" : [ "test" ],
       "classifiers" : [ ]
     },
@@ -46,6 +48,8 @@
       "contentType" : "IMMUTABLE",
       "excludes" : [ ],
       "updatable" : true,
+      "preserveExcludes" : [ ],
+      "preserveIncludes" : [ ],
       "types" : [ "test" ],
       "classifiers" : [ ]
     },
@@ -65,6 +69,8 @@
       "targetIncluded" : false,
       "contentType" : "IMMUTABLE",
       "excludes" : [ ],
+      "preserveExcludes" : [ ],
+      "preserveIncludes" : [ ],
       "updatable" : true,
       "types" : [ "test" ],
       "classifiers" : [ "linux", "win" ]
@@ -107,6 +113,8 @@
     "targetIncluded" : false,
     "contentType" : "IMMUTABLE",
     "excludes" : [ ],
+    "preserveExcludes" : [ ],
+    "preserveIncludes" : [ ],
     "updatable" : true,
     "types" : [ "production", "test" ]
   }, {
@@ -117,6 +125,8 @@
     "targetIncluded" : false,
     "contentType" : "IMMUTABLE",
     "excludes" : [ ],
+    "preserveExcludes" : [ ],
+    "preserveIncludes" : [ ],
     "updatable" : true,
     "types" : [ "production", "test" ]
   }, {
@@ -127,6 +137,8 @@
     "targetIncluded" : false,
     "contentType" : "IMMUTABLE",
     "excludes" : [ ],
+    "preserveExcludes" : [ ],
+    "preserveIncludes" : [ ],
     "updatable" : true,
     "types" : [ "test" ]
   } ],
@@ -163,7 +175,8 @@
     "types" : [ "perfTest" ]
   } ],
   "excludes" : [ ],
-  "preserves" : [ ],
+  "preserveExcludes" : [ ],
+  "preserveIncludes" : [ ],
   "metadata" : {
     "creation" : 1523179434565,
     "version" : "v1",

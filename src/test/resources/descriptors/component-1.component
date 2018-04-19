@@ -25,6 +25,8 @@
       "targetIncluded" : false,
       "contentType" : "IMMUTABLE",
       "excludes" : [ ],
+      "preserveExcludes" : [ ],
+      "preserveIncludes" : [ ],
       "updatable" : true,
       "types" : [ "production" ],
       "classifiers" : [ ]
@@ -39,12 +41,14 @@
       },
       "itemType" : "",
       "pkgs" : [ "testmodule2-cartridge" ],
-      "jars" : [ "testmodule1" ],
+      "jars" : [ "testmodule2" ],
       "jarPath" : "libs",
       "descriptorPath" : "",
       "targetIncluded" : false,
       "contentType" : "IMMUTABLE",
       "excludes" : [ ],
+      "preserveExcludes" : [ ],
+      "preserveIncludes" : [ ],
       "updatable" : true,
       "types" : [ "production" ],
       "classifiers" : [ ]
@@ -65,6 +69,8 @@
       "targetIncluded" : false,
       "contentType" : "IMMUTABLE",
       "excludes" : [ ],
+      "preserveExcludes" : [ ],
+      "preserveIncludes" : [ ],
       "updatable" : true,
       "types" : [ "production" ],
       "classifiers" : [ "linux", "win", "macos" ]
@@ -87,6 +93,8 @@
       "targetIncluded" : false,
       "contentType" : "IMMUTABLE",
       "excludes" : [ ],
+      "preserveExcludes" : [ ],
+      "preserveIncludes" : [ ],
       "updatable" : true,
       "types" : [ "production" ],
       "classifiers" : [ "solaris" ]
@@ -129,6 +137,8 @@
     "targetIncluded" : true,
     "contentType" : "IMMUTABLE",
     "excludes" : [ ],
+    "preserveExcludes" : [ ],
+    "preserveIncludes" : [ ],
     "updatable" : true,
     "types" : [ "production", "test" ]
   }, {
@@ -139,6 +149,8 @@
     "targetIncluded" : true,
     "contentType" : "IMMUTABLE",
     "excludes" : [ ],
+    "preserveExcludes" : [ ],
+    "preserveIncludes" : [ ],
     "updatable" : true,
     "types" : [ "production", "test" ]
   }, {
@@ -149,6 +161,8 @@
     "targetIncluded" : true,
     "contentType" : "IMMUTABLE",
     "excludes" : [ ],
+    "preserveExcludes" : [ ],
+    "preserveIncludes" : [ ],
     "updatable" : true,
     "types" : [ "production", "test" ]
   }, {
@@ -159,6 +173,8 @@
     "targetIncluded" : false,
     "contentType" : "IMMUTABLE",
     "excludes" : [ ],
+    "preserveExcludes" : [ ],
+    "preserveIncludes" : [ ],
     "updatable" : true,
     "types" : [ "test" ]
   } ],
@@ -195,7 +211,8 @@
     "types" : [ "perfTest" ]
   } ],
   "excludes" : [ ],
-  "preserves" : [ ],
+  "preserveExcludes" : [ ],
+  "preserveIncludes" : [ ],
   "metadata" : {
     "creation" : 1523179434565,
     "version" : "v1",

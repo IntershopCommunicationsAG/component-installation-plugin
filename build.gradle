@@ -38,7 +38,7 @@ plugins {
     id 'com.intershop.gradle.scmversion' version '3.4.0'
 
     // plugin for documentation
-    id 'org.asciidoctor.convert' version '1.5.3'
+    id 'org.asciidoctor.convert' version '1.5.7'
 
     // plugin for publishing to Gradle Portal
     id 'com.gradle.plugin-publish' version '0.9.10'
@@ -264,12 +264,12 @@ task sendCoverageToCodacy(type: JavaExec, dependsOn: jacocoTestReport) {
 }
 
 dependencies {
-    compile 'com.intershop.gradle.component:component-descriptor:1.0.0-dev.12'
+    compile 'com.intershop.gradle.component:component-descriptor:1.0.0-dev.14'
 
     compile 'org.apache.ivy:ivy:2.4.0'
     compile 'org.apache.maven:maven-model-builder:3.5.3'
-    compile 'org.jsoup:jsoup:1.11.2'
-    compile 'commons-io:commons-io:2.2'
+    compile 'org.jsoup:jsoup:1.11.3'
+    compile 'commons-io:commons-io:2.6'
 
     compileOnly 'org.jetbrains:annotations:15.0'
 
@@ -280,7 +280,7 @@ dependencies {
     testCompile 'com.intershop.gradle.test:test-gradle-plugin:3.0.0'
     testCompile gradleTestKit()
 
-    codacy 'com.codacy:codacy-coverage-reporter:3.0.0'
+    codacy 'com.codacy:codacy-coverage-reporter:4.0.0'
 }
 
 repositories {

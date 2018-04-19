@@ -15,6 +15,8 @@
  */
 package com.intershop.gradle.component.installation.utils.data
 
+import com.intershop.gradle.component.installation.extension.OSType.Companion.checkClassifierForOS
+
 /**
  * Data class for artifacts.
  *
@@ -27,6 +29,16 @@ data class Artifact @JvmOverloads constructor(val artifact: String,
                                               val type: String,
                                               val ext: String,
                                               val classifier: String = "") {
+
+    companion object {
+        fun getArtifact(name: String, type: String,  extension: String, classifier: String) : Artifact{
+            return if (checkClassifierForOS(classifier)) {
+                Artifact(name, type, extension, classifier)
+            } else {
+                Artifact(name, type, extension)
+            }
+        }
+    }
 
     fun isNotEmpty(): Boolean {
         return (ext.isNotEmpty() && type.isNotEmpty() && artifact.isNotEmpty())

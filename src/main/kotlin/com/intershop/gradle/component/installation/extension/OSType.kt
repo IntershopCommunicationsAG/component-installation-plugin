@@ -38,5 +38,9 @@ enum class OSType {
         fun detectedOS(): OSType {
             return from(System.getProperty("os.name", "generic"))
         }
+
+        fun checkClassifierForOS(classifier: String): Boolean {
+            return classifier.isNotBlank() && OSType.from(classifier) == detectedOS() || classifier.isBlank()
+        }
     }
 }

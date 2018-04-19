@@ -15,8 +15,51 @@
  */
 package com.intershop.gradle.component.installation.tasks
 
-open class InstallTask: AInstallTask() {
+import com.intershop.gradle.component.installation.utils.ContentType
+import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.file.copy.CopyAction
+import org.gradle.api.internal.file.copy.FileCopyAction
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Sync
+import org.gradle.api.tasks.TaskAction
+import org.gradle.util.GFileUtils
+import java.io.File
 
-    override fun specifyCopyConfiguration() {}
+open class InstallTask : Sync() {
 
+    companion object {
+        const val ERRORMSG = "No copy destination directory has been specified, " +
+                "use 'into' to specify a target directory."
+    }
+
+    private val contentTypeProperty: Property<ContentType> = project.objects.property(ContentType::class.java)
+
+    override fun createCopyAction(): CopyAction {
+        val destinationDir = destinationDir ?: throw InvalidUserDataException(ERRORMSG)
+
+        return SyncCopyActionDecorator(destinationDir, FileCopyAction(fileLookup.getFileResolver(destinationDir)),
+                super.getPreserve(), directoryFileTreeFactory, System.currentTimeMillis())
+    }
+
+    @get:Input
+    var contentType: ContentType
+        get() = contentTypeProperty.getOrElse(ContentType.UNSPECIFIED)
+        set(value) = contentTypeProperty.set(value)
+
+    fun setContentType(type: String) {
+        contentTypeProperty.set(ContentType.valueOf(type))
+    }
+
+    @TaskAction
+    override fun copy() {
+        super.copy()
+
+        val typeFile = File(destinationDir, ".install")
+        if(typeFile.exists()) {
+            GFileUtils.forceDelete(typeFile)
+        }
+
+        GFileUtils.writeFile(contentType.toString(), typeFile)
+    }
 }

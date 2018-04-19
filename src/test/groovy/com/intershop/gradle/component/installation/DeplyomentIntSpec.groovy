@@ -62,9 +62,9 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
 
         then:
         true
-/**
+
         when:
-        List<String> args2 = ['update', '-s', '-i', "-Pinstallv=1.1.0"]
+        List<String> args2 = ['install', '-s', "-Pinstallv=1.1.0"]
 
         def result2 = getPreparedGradleRunner()
                 .withArguments(args2)
@@ -73,9 +73,9 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
 
         then:
         true
-
+/**
         when:
-        List<String> args3 = ['update', '-s', '-i', "-Pinstallv=1.0.0"]
+        List<String> args3 = ['install', '-s', "-Pinstallv=1.0.0"]
 
         def result3 = getPreparedGradleRunner()
                 .withArguments(args3)
@@ -177,10 +177,11 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
                 ]
                 artifact name: 'share', type: 'sites', ext: 'zip', entries: [
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/sites/org1/import.properties', content: 'interntest1.file'),
-                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/sites/org2/import.properties', content: 'interntest2.file')
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/sites/org2/import.properties', content: 'interntest2.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/system/config/test1.properties', content: 'fromZip.file')
                 ]
                 artifact name: 'test1', type: 'properties', ext: 'properties', content: 'property1 = value1'
-                artifact name: 'test2', type: 'properties', ext: 'properties', content: 'property2 = value2'
+                artifact name: 'test2', type: 'properties', ext: 'properties', classifier: 'linux', content: 'property2 = value2'
             }
             module(org: 'com.intershop.test', name: 'testcomponent', rev: '1.1.0') {
                 artifact name: 'testcomponent', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME,
@@ -199,10 +200,11 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
                 ]
                 artifact name: 'share', type: 'sites', ext: 'zip', entries: [
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/sites/org1/import.properties', content: 'interntest1.file'),
-                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/sites/org2/import.properties', content: 'interntest2.file')
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/sites/org2/import.properties', content: 'interntest2.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/system/config/test1.properties', content: 'changed --- fromZip.file')
                 ]
                 artifact name: 'test1', type: 'properties', ext: 'properties', content: 'property1 = value1'
-                artifact name: 'test2', type: 'properties', ext: 'properties', content: 'property2 = value2'
+                artifact name: 'test2', type: 'properties', ext: 'properties', classifier: 'linux', content: 'property2 = value2'
             }
 
             module(org: 'com.intershop', name: 'library4', rev: '1.0.0'){

@@ -60,19 +60,32 @@ open class InstallationExtension @Inject constructor(val project: Project) {
         environmentProperty.add(config)
     }
 
-    val detectedOS: OSType
-        get() = OSType.detectedOS()
-
     val components: Set<Component>
         get() = componentSet
 
-    fun add(component: Any) {
+    fun add(component: Any): Component {
         val dependency = project.dependencies.create(component)
-        componentSet.add(Component(dependency.group ?: "", dependency.name, dependency.version ?: "", ""))
+        val componentExt = Component(dependency.group ?: "", dependency.name, dependency.version ?: "", "")
+        componentSet.add(componentExt)
+        return componentExt
     }
 
-    fun add(component: Any, path: String) {
+    fun add(component: Any, path: String): Component {
         val dependency = project.dependencies.create(component)
-        componentSet.add(Component(dependency.group ?: "", dependency.name, dependency.version ?: "", path))
+        val componentExt = Component(dependency.group ?: "", dependency.name, dependency.version ?: "", path)
+        componentSet.add(componentExt)
+        return componentExt
+    }
+
+    fun add(component: Any, action: Action<in Component>): Component {
+        val componentExt = add(component)
+        action.execute(componentExt)
+        return componentExt
+    }
+
+    fun add(component: Any, path: String, action: Action<in Component>): Component {
+        val componentExt = add(component, path)
+        action.execute(componentExt)
+        return componentExt
     }
 }

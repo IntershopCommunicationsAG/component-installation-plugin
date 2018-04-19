@@ -15,13 +15,14 @@
  */
 package com.intershop.gradle.component.installation.utils
 
+import com.intershop.gradle.component.installation.tasks.InstallConfigManager
 import spock.lang.Specification
 
-class TaskConfigSpec extends Specification {
+class InstallconfigManager extends Specification {
     
     def "Test path calculation"() {
         when:
-        File  f = TaskConfig.getTargetDir(new File("test"), input)
+        File  f = InstallConfigManager.getTargetDir(new File("test"), input)
         
         then:
         f.path == output

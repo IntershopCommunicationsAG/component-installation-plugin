@@ -99,5 +99,4 @@ class SyncCopyActionDecorator(val baseDestDir: File,
             didWork = true
         }
     }
-
 }

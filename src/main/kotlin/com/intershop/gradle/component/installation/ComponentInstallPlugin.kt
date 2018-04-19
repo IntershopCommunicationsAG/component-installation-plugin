@@ -15,24 +15,24 @@
  */
 package com.intershop.gradle.component.installation
 
+import com.intershop.gradle.component.descriptor.items.ContainerItem
 import com.intershop.gradle.component.descriptor.util.ComponentUtil
 import com.intershop.gradle.component.installation.extension.Component
 import com.intershop.gradle.component.installation.extension.InstallationExtension
 import com.intershop.gradle.component.installation.extension.OSType
-import com.intershop.gradle.component.installation.tasks.LibsTask
-import com.intershop.gradle.component.installation.tasks.ModuleTask
-import com.intershop.gradle.component.installation.tasks.PackageTask
+import com.intershop.gradle.component.installation.tasks.InstallConfigManager
+import com.intershop.gradle.component.installation.tasks.InstallConfigManager.Companion.checkForOS
+import com.intershop.gradle.component.installation.tasks.InstallTask
 import com.intershop.gradle.component.installation.utils.ContentType
-import com.intershop.gradle.component.installation.utils.DependencyConfig
 import com.intershop.gradle.component.installation.utils.DescriptorManager
-import com.intershop.gradle.component.installation.utils.TaskConfig
 import com.intershop.gradle.component.installation.utils.data.Artifact
 import com.intershop.gradle.component.installation.utils.data.FileItem
-import com.intershop.gradle.component.installation.utils.data.LibData
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.tasks.util.PatternSet
 import org.gradle.model.Defaults
 import org.gradle.model.ModelMap
 import org.gradle.model.RuleSource
@@ -45,13 +45,14 @@ import java.io.File
 import javax.inject.Inject
 import com.intershop.gradle.component.descriptor.Component as ComponentDescr
 import com.intershop.gradle.component.descriptor.FileItem as FileItemDescr
+import com.intershop.gradle.component.descriptor.Module as ModuleDescr
 
 @Suppress("unused")
 class ComponentInstallPlugin @Inject constructor(private val modelRegistry: ModelRegistry) : Plugin<Project> {
 
     companion object {
-        val INSTALLTASKNAME = "install"
-        val INSTALLGROUPNAME = "Component Installation"
+        const val INSTALLTASKNAME = "install"
+        const val INSTALLGROUPNAME = "Component Installation"
     }
 
     override fun apply(project: Project) {
@@ -82,24 +83,6 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
             const val CHECKCONF = "Check your configuration!"
             const val DOCUTEXT = "Consult documentation for next steps."
 
-            private fun checkForOSandType(detectedOS: OSType,
-                                          classifier: String,
-                                          environment: Set<String>,
-                                          types: Set<String>): Boolean {
-                var rv = (classifier.isNotBlank() && OSType.from(classifier) == detectedOS) || classifier.isBlank()
-                rv = rv && checkForType(environment, types)
-                return rv
-            }
-
-            private fun checkForType(environment: Set<String>,
-                                     types: Set<String>): Boolean {
-                return if (!types.isEmpty() && !environment.isEmpty()) {
-                    types.intersect(environment).size > 0
-                } else {
-                    true
-                }
-            }
-
             private fun getComponentDir(installDir: File,
                                         comp: Component,
                                         defPath: String): File {
@@ -112,6 +95,28 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                     File(installDir, comp.path)
                 } else {
                     File(installDir, defPath)
+                }
+            }
+
+            private fun initFileItems(confMgr: InstallConfigManager,
+                                     descrMgr: DescriptorManager,
+                                     adminDir: File) {
+
+                confMgr.fileItemSet.clear()
+
+                confMgr.descriptor.fileItems.forEach { file ->
+                    val localFile = File(adminDir, "files/${file.name}.${file.extension}")
+                    val classifier = file.classifier
+
+                    if (checkForOS(file) && confMgr.checkForType(file)) {
+                        val artifact = Artifact.getArtifact(file.name, file.extension, file.extension, classifier)
+
+                        descrMgr.loadArtifactFile(artifact, localFile)
+
+                        confMgr.fileItemSet.add(FileItem(localFile,
+                                calculatFilePath(file.targetPath, file.name, file.extension),
+                                file.targetPath, ContentType.valueOf(file.contentType.toString()), file.updatable))
+                    }
                 }
             }
 
@@ -130,137 +135,72 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                 return path.toString()
             }
 
-            private fun loadFileItems(ext: InstallationExtension,
-                                      taskConfig: TaskConfig,
-                                      descrMgr: DescriptorManager,
-                                      adminDir: File,
-                                      items: Set<FileItemDescr>) {
+            private fun configSpec(spec: InstallTask,
+                                   confMgr: InstallConfigManager,
+                                   targetIncluded: Boolean,
+                                   update: Boolean,
+                                   target: String) {
 
-                taskConfig.fileItemSet.clear()
-
-                items.forEach { file ->
-                    val localFile = File(adminDir, "files/${file.name}.${file.extension}")
-                    val classifier = file.classifier
-
-                    if (checkForOSandType(ext.detectedOS, classifier, ext.environment, file.types)) {
-                        val artifact = if (classifier.isNotBlank() && OSType.from(classifier) == ext.detectedOS) {
-                            Artifact(file.name, file.extension, file.extension, classifier)
-                        } else {
-                            Artifact(file.name, file.extension, file.extension)
-                        }
-
-                        descrMgr.loadArtifactFile(artifact, localFile)
-
-                        taskConfig.fileItemSet.add(FileItem(localFile,
-                                calculatFilePath(file.targetPath, file.name, file.extension),
-                                ContentType.valueOf(file.contentType.toString()), file.updatable))
-                    }
-                }
-            }
-
-            private fun createContainerTasks(ext: InstallationExtension,
-                                             taskConfig: TaskConfig,
-                                             descrMgr: DescriptorManager,
-                                             adminDir: File,
-                                             comp: ComponentDescr) {
-
-                comp.fileContainers.forEach { pkg ->
-                    val pkgFile = File(adminDir, "pkgs/${pkg.name}.zip")
-                    val classifier = pkg.classifier
-
-                    if (checkForOSandType(ext.detectedOS, classifier, ext.environment, pkg.types)) {
-                        val artifact = if (classifier.isNotBlank() && OSType.from(classifier) == ext.detectedOS) {
-                            Artifact(pkg.name, pkg.itemType, "zip", classifier)
-                        } else {
-                            Artifact(pkg.name, pkg.itemType, "zip")
-                        }
-
-                        descrMgr.loadArtifactFile(artifact, pkgFile)
-
-                        val taskName = taskConfig.getTasknameFor("pkg", pkg.name, pkg.itemType)
-
-                        if (taskConfig.tasks.get(taskName) == null) {
-                            taskConfig.tasks.create(taskName, PackageTask::class.java)
-                        }
-                        val pkgTask = taskConfig.tasks.get(taskName)
-                        if (pkgTask is PackageTask) {
-                            with(pkgTask) {
-                                this.onlyIf { ! pkg.updatable }
-
-                                this.runUpdate = taskConfig.update
-
-                                this.fileContainer = pkgFile
-                                this.destinationDir = taskConfig.getTargetDir(comp.containerTarget, pkg.targetPath)
-                                this.installPath = pkg.targetPath
-                                this.targetIncluded = pkg.targetIncluded
-                                this.updateExcludes = pkg.excludes
-                                this.fileItems = taskConfig.fileItemSet
+                if(confMgr.fileItemSet.isNotEmpty()) {
+                    confMgr.fileItemSet.forEach { item ->
+                        if(item.filePath.startsWith(target) &&
+                                ((update && item.updatable && item.contentType != ContentType.DATA) || ! update)) {
+                            spec.exclude(item.filePath)
+                            spec.from(item.file.parent) {
+                                it.include(item.file.name)
+                                it.into(item.targetPath)
                             }
-                        } else {
-                            throw GradleException("Task '${taskName} exists, but it has the wrong type!")
                         }
-
-                        taskConfig.compInstallTask?.dependsOn(taskName)
                     }
+                }
+
+                if(targetIncluded) {
+                    spec.eachFile { details ->
+                        details.path = removeDirFromPath(target, details.path)
+                    }
+                }
+
+                spec.duplicatesStrategy = DuplicatesStrategy.FAIL
+            }
+
+            private fun configExcludesPreserve(spec: InstallTask,
+                                               comp: Component,
+                                               item: ContainerItem) {
+                spec.exclude(item.excludes)
+                spec.exclude(comp.excludes)
+
+                val preservePatternSet = PatternSet()
+
+                preservePatternSet.include(item.preserveIncludes)
+                preservePatternSet.include(comp.preserve.excludes)
+                preservePatternSet.exclude(item.preserveExcludes)
+                preservePatternSet.exclude(comp.preserve.includes)
+
+                spec.preserve.setIncludes(preservePatternSet.includes)
+                spec.preserve.setExcludes(preservePatternSet.excludes)
+            }
+
+            private fun removeDirFromPath(dirName: String,
+                                          path: String): String {
+                return if(path.startsWith(dirName) && dirName.isNotBlank()) {
+                    val newPath = path.replaceFirst(dirName, "")
+                    if(newPath.startsWith("/")) {
+                        newPath.substring(1)
+                    } else {
+                        newPath
+                    }
+                } else {
+                    path
                 }
             }
 
-            private fun createModuleTasks(ext: InstallationExtension,
-                                          taskConfig: TaskConfig,
-                                          comp: ComponentDescr) {
-
-                comp.modules.forEach { module ->
-
-                    if (checkForType(ext.environment, module.value.types)) {
-
-                        val taskName = taskConfig.getTasknameFor("module", module.value.name)
-
-                        if (taskConfig.tasks.get(taskName) == null) {
-                            taskConfig.tasks.create(taskName, ModuleTask::class.java)
-                        }
-                        val moduleTask = taskConfig.tasks.get(taskName)
-                        if (moduleTask is ModuleTask) {
-                            with(moduleTask) {
-                                this.onlyIf { ! module.value.updatable }
-                                this.outputs.upToDateWhen {
-                                    isDependencyUpToDate(module.value.dependency.version)
-                                }
-
-                                this.runUpdate = taskConfig.update
-
-                                this.dependency = DependencyConfig.getFrom(module.value.dependency)
-                                this.jarPath = module.value.jarPath
-                                this.descriptorPath = module.value.descriptorPath
-                                this.classifiers = module.value.classifiers
-                                this.jars = module.value.jars
-                                this.pkgs = module.value.pkgs
-                                this.moduleName = module.value.name
-
-                                this.destinationDir = taskConfig.getTargetDir(comp.modulesTarget, module.key)
-                                this.installPath = module.key
-                                this.targetIncluded = module.value.targetIncluded
-                                this.updateExcludes = module.value.excludes
-                                this.fileItems = taskConfig.fileItemSet
-                            }
-                        } else {
-                            throw GradleException("Task '${taskName} exists, but it has the wrong type!")
-                        }
-
-                        taskConfig.compInstallTask?.dependsOn(taskName)
-                    }
-                }
-            }
-
-            private fun isDependencyUpToDate(version: String): Boolean {
-                return !(version.isBlank() || version.endsWith("SNAPSHOT") || version.endsWith("LOCAL"))
-            }
         }
 
         @Defaults
         fun configureDeploymentTasks(tasks: ModelMap<Task>,
                                      installExtension: InstallationExtension) {
 
-            if(installExtension.detectedOS == OSType.OTHER) {
+            if(OSType.detectedOS() == OSType.OTHER) {
                 throw GradleException("The operating system is not suppported by the component install plugin!")
             }
 
@@ -269,6 +209,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
             val adminDir = installExtension.installConfig.installAdminDir
 
             installExtension.components.forEach { compToInstall ->
+
                 // get URL for dependency
                 val descriptorMgr = DescriptorManager(repoHandler, compToInstall.dependency, ivyPatterns)
 
@@ -285,10 +226,10 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
                 val compDir = getComponentDir(installExtension.installDir, compToInstall, mainDescr.target)
 
-                val taskConfig = TaskConfig(tasks, compToInstall.commonName, compDir)
-
                 // update mode
-                val instDescrFile = File(taskConfig.getTargetDir(mainDescr.descriptorPath), "component.component")
+                val instDescrFile = File(File(compDir, mainDescr.descriptorPath), "component.component")
+                var update = false
+
                 if(instDescrFile.exists()) {
                     val prevID = ComponentUtil.metadataFromFile(targetFile).componentID
 
@@ -296,41 +237,75 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                         throw GradleException("The previous installed component was '$prevID'. $CHECKCONF $DOCUTEXT ")
                     }
 
-                    taskConfig.update = true
+                    update = true
                 }
 
+                val confMgr = InstallConfigManager(installExtension, tasks,
+                        compToInstall.commonName, mainDescr, compDir, update)
+
                 // load files from desc
-                loadFileItems(installExtension, taskConfig, descriptorMgr, compAdminDir, mainDescr.fileItems)
+                initFileItems(confMgr, descriptorMgr, compAdminDir)
 
-                // create package tasks
-                createContainerTasks(installExtension, taskConfig, descriptorMgr, compAdminDir, mainDescr)
+                mainDescr.fileContainers.forEach { pkg ->
+                    val pkgFile = File(adminDir, "pkgs/${pkg.name}.zip")
 
-                // create module tasks
-                createModuleTasks(installExtension, taskConfig, mainDescr)
+                    if (checkForOS(pkg) && confMgr.checkForType(pkg) && pkg.updatable ) {
+                        val artifact = Artifact.getArtifact(pkg.name, pkg.itemType, "zip", pkg.classifier)
+                        descriptorMgr.loadArtifactFile(artifact, pkgFile)
 
-                if(mainDescr.libs.size > 0) {
+                        val taskName = INSTALLTASKNAME.plus(confMgr.getSuffixStr("pkg", pkg.name, pkg.itemType))
+                        val pkgTask = confMgr.getInstallTask(taskName)
 
-                    val libsTaskname = taskConfig.getTasknameFor("libs")
-                    tasks.create(libsTaskname, LibsTask::class.java) {
-
-                        var uptodate = true
-                        mainDescr.libs.values.forEach {lib ->
-                            if(checkForType(installExtension.environment, lib.types)) {
-                                with(lib.dependency) {
-                                    it.addLibData(LibData(this.group, this.module, this.version, lib.targetName))
-                                    uptodate = uptodate && isDependencyUpToDate(this.version)
-                                }
+                        with(pkgTask) {
+                            from(project.zipTree(pkgFile))
+                            configSpec(this, confMgr, pkg.targetIncluded, update, pkg.targetPath)
+                            if(update) {
+                                configExcludesPreserve(this, compToInstall, pkg)
                             }
+                            destinationDir = confMgr.getTargetDir(mainDescr.containerTarget, pkg.targetPath)
                         }
-                        it.destinationDir = compDir
-                        it.installPath = mainDescr.libsTarget
+
+                        confMgr.compInstallTask?.dependsOn(taskName)
+
+                    }
+                }
+
+                mainDescr.modules.forEach { entry ->
+                    val taskName = INSTALLTASKNAME.plus(confMgr.getSuffixStr("module", entry.value.name))
+
+                    val install = confMgr.getInstallTask(taskName)
+                    with(install) {
+                        destinationDir = confMgr.getTargetDir(mainDescr.modulesTarget, entry.key)
+
+                        confMgr.configureModuleSpec(this, entry.value)
+                        configSpec(this, confMgr, entry.value.targetIncluded, update, entry.key)
+
+                        if(update) {
+                            configExcludesPreserve(this, compToInstall, entry.value)
+                        }
                     }
 
-                    taskConfig.compInstallTask?.dependsOn(libsTaskname)
+                    confMgr.compInstallTask?.dependsOn(taskName)
+                }
+
+                if(mainDescr.libs.isNotEmpty()) {
+                    val libTaskName = INSTALLTASKNAME.plus(confMgr.getSuffixStr("libs"))
+
+                    val libInstall = confMgr.getInstallTask(libTaskName)
+
+                    libInstall.destinationDir = confMgr.getTargetDir(mainDescr.libsTarget)
+                    libInstall.duplicatesStrategy = DuplicatesStrategy.FAIL
+
+                    confMgr.configureLibsSpec(libInstall, mainDescr.libs)
+
+                    confMgr.compInstallTask?.dependsOn(libTaskName)
                 }
 
                 println(mainDescr.properties.size)
             }
+
+
+
         }
     }
 }
