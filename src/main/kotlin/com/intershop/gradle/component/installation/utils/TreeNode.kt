@@ -101,10 +101,6 @@ class TreeNode(val name: String) {
 
     fun isTarget(dir: File): Boolean {
         val node = children.find { it.name == dir.name }
-        return if(node != null) {
-            node.target
-        } else {
-            false
-        }
+        return node?.target ?: false
     }
 }

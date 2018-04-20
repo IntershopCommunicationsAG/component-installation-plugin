@@ -216,7 +216,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                 val descriptorMgr = DescriptorManager(repoHandler, compToInstall.dependency, ivyPatterns)
 
                 // load component configuration
-                val compAdminDir = File(adminDir,"${compToInstall.commonName}")
+                val compAdminDir = File(adminDir, compToInstall.commonName)
 
                 val installTimeFormat = SimpleDateFormat("yyyyMMddHHmmssSSS")
                 val backupDir = File(compAdminDir, "backup/${installTimeFormat.format(Date())}")

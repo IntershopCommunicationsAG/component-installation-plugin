@@ -22,7 +22,7 @@ package com.intershop.gradle.component.installation.utils
  * @property description description of the enum.
  */
 @Suppress("unused")
-enum class ContentType (val description: String) {
+enum class ContentType (private val description: String) {
 
     /**
      * Static content - can be installed without any exception. Old content

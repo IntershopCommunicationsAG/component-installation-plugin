@@ -49,7 +49,9 @@ import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 import javax.xml.parsers.DocumentBuilderFactory
 
-class DescriptorManager(val repositories: RepositoryHandler, val descriptor: Dependency, val ivyPattern: Set<String>) {
+class DescriptorManager(private val repositories: RepositoryHandler,
+                        private val descriptor: Dependency,
+                        private val ivyPattern: Set<String>) {
 
     companion object {
         private val logger = LoggerFactory.getLogger(DescriptorManager::class.java)
@@ -169,7 +171,7 @@ class DescriptorManager(val repositories: RepositoryHandler, val descriptor: Dep
                     val versionList = mutableListOf<String>()
                     val regexObj = regex.toRegex()
 
-                    for (i in 0..versionElements.length - 1) {
+                    for (i in 0 until versionElements.length) {
                         if (regex.isBlank() ||
                                 (regex.isNotBlank() && versionElements.item(i).textContent.matches(regexObj))) {
                             versionList.add(versionElements.item(i).textContent)
@@ -193,7 +195,7 @@ class DescriptorManager(val repositories: RepositoryHandler, val descriptor: Dep
             val builder = dbFactory.newDocumentBuilder()
 
             val meta = if( metadata is File ) builder.parse(metadata) else builder.parse(metadata as InputStream)
-            meta.getDocumentElement().normalize()
+            meta.documentElement.normalize()
 
             val versioning = meta.getElementsByTagName("versioning")
             if(versioning.length > 0) {
@@ -272,18 +274,16 @@ class DescriptorManager(val repositories: RepositoryHandler, val descriptor: Dep
 
     @Throws(IOException::class, GradleException::class)
     fun loadArtifactFile(artifact: Artifact, target: File) {
-        var path = ""
-
-        when(descriptorRepo.type) {
+        val path = when(descriptorRepo.type) {
             RepositoryType.IVY -> {
-                path = getPathFromIvy(descriptor, descriptorRepo, artifact)
+                getPathFromIvy(descriptor, descriptorRepo, artifact)
             }
             RepositoryType.MAVEN -> {
                 val pathBuilder = StringBuilder(descriptorRepo.artifactPath)
                 pathBuilder.append("-")
                 pathBuilder.append(artifact.type).append(".")
                 pathBuilder.append(artifact.ext)
-                path = pathBuilder.toString()
+                pathBuilder.toString()
             }
         }
 
@@ -327,7 +327,7 @@ class DescriptorManager(val repositories: RepositoryHandler, val descriptor: Dep
             }
         }
 
-        if(versionRepoMap.size > 0) {
+        if(versionRepoMap.isNotEmpty()) {
             val repo = versionRepoMap[versionRepoMap.keys.sortedWith(VersionComparator()).last()]
             if(repo != null) {
                 descriptorRepo = repo
@@ -338,7 +338,7 @@ class DescriptorManager(val repositories: RepositoryHandler, val descriptor: Dep
             val url = descriptorRepo.url
             logger.info("Descriptor '{}' found in '{}'.", descriptor, url)
         } catch(ex: UninitializedPropertyAccessException) {
-            throw GradleException("Descriptor '${descriptor}' not found in the configured repositories! " +
+            throw GradleException("Descriptor '$descriptor' not found in the configured repositories! " +
                     "Please check your logfiles!")
         }
     }
@@ -367,7 +367,7 @@ class DescriptorManager(val repositories: RepositoryHandler, val descriptor: Dep
 
     @Throws(IOException::class)
     fun addIvyVersion(repo: Repository) : String {
-        var version: String
+        val version: String
 
         val revPos = repo.pattern.indexOf("[revision]")
         val verPattern = repo.pattern.substring(0, revPos - 1)
@@ -384,22 +384,23 @@ class DescriptorManager(val repositories: RepositoryHandler, val descriptor: Dep
 
         when(connection) {
             is HttpURLConnection -> {
-                if (descriptor.hasLatestVersion) {
-                    version = getVersionFromIvyIndex(connection.inputStream, "", repo.urlStr)
-                } else if (descriptor.hasVersionPattern) {
-                    version = getVersionFromIvyIndex(connection.inputStream, descriptor.versionPattern, repo.urlStr)
-                } else {
-                    version = getVersionFromIvyIndex(connection.inputStream, descriptor.versionPattern)
+                version = when {
+                    descriptor.hasLatestVersion ->
+                        getVersionFromIvyIndex(connection.inputStream, "", repo.urlStr)
+                    descriptor.hasVersionPattern ->
+                        getVersionFromIvyIndex(connection.inputStream, descriptor.versionPattern, repo.urlStr)
+                    else ->
+                        getVersionFromIvyIndex(connection.inputStream, descriptor.versionPattern)
                 }
             }
             is FileURLConnection -> {
                 val dir = File(connection.url.toURI())
-                if (descriptor.hasLatestVersion) {
-                    version = getVersionFromIvyDir(dir, "")
+                version = if (descriptor.hasLatestVersion) {
+                    getVersionFromIvyDir(dir, "")
                 } else if (descriptor.hasVersionPattern) {
-                    version = getVersionFromIvyDir(dir, descriptor.versionPattern)
+                    getVersionFromIvyDir(dir, descriptor.versionPattern)
                 } else {
-                    version = getVersionFromIvyDir(dir, descriptor.versionPattern)
+                    getVersionFromIvyDir(dir, descriptor.versionPattern)
                 }
             }
             else -> {
@@ -414,19 +415,23 @@ class DescriptorManager(val repositories: RepositoryHandler, val descriptor: Dep
 
     @Throws(IOException::class)
     fun addMavenArtifactPath(repo: Repository): String {
-        var version: String
+        val version: String
 
         val path = getMavenModulePath(descriptor, repo.urlStr)
 
-        if(descriptor.hasLatestVersion) {
-            val connection = getUrlconnection("$path/maven-metadata.xml", repo.credentials)
-            version = getVersionFromMaven(connection.inputStream)
-        } else if(descriptor.hasVersionPattern) {
-            val connection = getUrlconnection("$path/maven-metadata.xml", repo.credentials)
-            version = getVersionFromMaven(connection.inputStream, descriptor.versionPattern)
-        } else {
-            val connection = getUrlconnection("$path/maven-metadata.xml", repo.credentials)
-            version = getVersionFromMaven(connection.inputStream, descriptor.versionPattern)
+        when {
+            descriptor.hasLatestVersion -> {
+                val connection = getUrlconnection("$path/maven-metadata.xml", repo.credentials)
+                version = getVersionFromMaven(connection.inputStream)
+            }
+            descriptor.hasVersionPattern -> {
+                val connection = getUrlconnection("$path/maven-metadata.xml", repo.credentials)
+                version = getVersionFromMaven(connection.inputStream, descriptor.versionPattern)
+            }
+            else -> {
+                val connection = getUrlconnection("$path/maven-metadata.xml", repo.credentials)
+                version = getVersionFromMaven(connection.inputStream, descriptor.versionPattern)
+            }
         }
 
         var updateStr = ""

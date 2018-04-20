@@ -39,8 +39,4 @@ data class Artifact @JvmOverloads constructor(val artifact: String,
             }
         }
     }
-
-    fun isNotEmpty(): Boolean {
-        return (ext.isNotEmpty() && type.isNotEmpty() && artifact.isNotEmpty())
-    }
 }

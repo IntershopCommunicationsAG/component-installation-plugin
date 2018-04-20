@@ -120,9 +120,12 @@ open class CleanUpTask: DefaultTask() {
         node.distinctFiles(dir).forEach {
             var backup = false
             if(it.isDirectory) {
-                Files.walk(Paths.get(it.absolutePath)).filter({ it.toFile().isFile && it.toFile().name == ".install" }).forEach {
+                Files.walk(Paths.get(it.absolutePath)).
+                        filter({ it.toFile().isFile && it.toFile().name == ".install" }).
+                        forEach {
                     val content = it.toFile().readText()
-                    if (content.contains(ContentType.DATA.toString()) || content.contains(ContentType.UNSPECIFIED.toString())) {
+                    if (content.contains(ContentType.DATA.toString()) ||
+                            content.contains(ContentType.UNSPECIFIED.toString())) {
                         backup = true
                     }
                 }

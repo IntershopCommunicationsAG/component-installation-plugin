@@ -38,17 +38,15 @@ import org.gradle.model.ModelMap
 import org.slf4j.LoggerFactory
 import java.io.File
 
-class InstallConfigManager(val prjext: InstallationExtension,
-                           val tasks: ModelMap<Task>,
-                           val commonName: String,
+class InstallConfigManager(private val prjext: InstallationExtension,
+                           private val tasks: ModelMap<Task>,
+                           private val commonName: String,
                            val descriptor: Component,
-                           val compInstallDir: File,
-                           val update: Boolean = false) {
+                           private val compInstallDir: File,
+                           private val update: Boolean = false) {
 
     companion object {
         private val logger = LoggerFactory.getLogger(InstallConfigManager::class.java)
-
-        const val PREFIX = "config"
 
         private fun initIvyArtifact(dependency: ModuleDependency) {
             dependency.artifact {
@@ -85,12 +83,12 @@ class InstallConfigManager(val prjext: InstallationExtension,
     var compInstallTask: Task? = null
 
     fun getSuffixStr(vararg suffix: String): String {
-        return commonPrefix.plus(suffix.asList().map { it.capitalize() }.joinToString(""))
+        return commonPrefix.plus(suffix.asList().joinToString("") { it.capitalize() })
     }
 
     fun checkForType(item: DeploymentItem): Boolean {
         return if (!item.types.isEmpty() && ! prjext.environment.isEmpty()) {
-            item.types.intersect(prjext.environment).size > 0
+            item.types.intersect(prjext.environment).isNotEmpty()
         } else {
             true
         }
@@ -110,7 +108,7 @@ class InstallConfigManager(val prjext: InstallationExtension,
                     initIvyArtifact(ivyDep)
 
                     val conf = configurations.create("config".plus(configSuffix))
-                    conf.description = "Configuration for ${module.value.dependency.module} of '${commonName}'"
+                    conf.description = "Configuration for ${module.value.dependency.module} of '$commonName'"
                     conf.isTransitive = false
                     conf.defaultDependencies {
                         it.add(dependencyHandler.create(depString))
@@ -128,7 +126,7 @@ class InstallConfigManager(val prjext: InstallationExtension,
         if (descriptor.libs.isNotEmpty()) {
             val configSuffix = getSuffixStr("libs")
             val conf = configurations.create("config$configSuffix")
-            conf.description = "Configuration for libraries of '${commonName}'"
+            conf.description = "Configuration for libraries of '$commonName'"
             conf.isTransitive = false
 
             conf.defaultDependencies {
@@ -147,7 +145,7 @@ class InstallConfigManager(val prjext: InstallationExtension,
         if (tasks.get(taskPrefix) == null) {
             tasks.create(taskPrefix) {
                 it.group = ComponentInstallPlugin.INSTALLGROUPNAME
-                it.description = "Run installation of '${commonName}'"
+                it.description = "Run installation of '$commonName'"
             }
             val installTask = tasks.get(ComponentInstallPlugin.INSTALLTASKNAME)
             installTask?.dependsOn(taskPrefix)
@@ -172,7 +170,7 @@ class InstallConfigManager(val prjext: InstallationExtension,
         if(task != null && task is InstallTask) {
             return task
         } else {
-            throw GradleException("Task '${taskName} exists, but it has the wrong type!")
+            throw GradleException("Task '$taskName exists, but it has the wrong type!")
         }
     }
 
@@ -198,7 +196,7 @@ class InstallConfigManager(val prjext: InstallationExtension,
 
             compInstallTask?.dependsOn(taskName)
         } else {
-            throw GradleException("Task '${taskName} exists, but it has the wrong type!")
+            throw GradleException("Task '$taskName exists, but it has the wrong type!")
         }
     }
 

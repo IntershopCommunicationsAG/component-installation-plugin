@@ -32,11 +32,11 @@ import org.gradle.util.GFileUtils
 import java.io.File
 import java.util.*
 
-class SyncCopyActionDecorator(val baseDestDir: File,
-                              val delegate: CopyAction,
-                              val preserveSpec: PatternFilterable,
-                              val directoryFileTreeFactory: DirectoryFileTreeFactory,
-                              val defaultTime: Long) : CopyAction {
+class SyncCopyActionDecorator(private val baseDestDir: File,
+                              private val delegate: CopyAction,
+                              private val preserveSpec: PatternFilterable,
+                              private val directoryFileTreeFactory: DirectoryFileTreeFactory,
+                              private val defaultTime: Long) : CopyAction {
 
     override fun execute(stream: CopyActionProcessingStream) : WorkResult {
         val visited = HashMap<RelativePath,Long>()
@@ -74,11 +74,11 @@ class SyncCopyActionDecorator(val baseDestDir: File,
         }
 
         override fun visitDir(dirDetails: FileVisitDetails) {
-            maybeDelete(dirDetails, true);
+            maybeDelete(dirDetails, true)
         }
 
         override fun visitFile(fileDetails: FileVisitDetails) {
-            maybeDelete(fileDetails, false);
+            maybeDelete(fileDetails, false)
         }
 
         private fun maybeDelete(fileDetails: FileVisitDetails, isDir: Boolean) {
