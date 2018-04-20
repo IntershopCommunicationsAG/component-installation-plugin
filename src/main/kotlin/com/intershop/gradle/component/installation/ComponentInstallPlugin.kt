@@ -42,6 +42,8 @@ import org.gradle.model.internal.core.ModelRegistrations
 import org.gradle.model.internal.registry.ModelRegistry
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
 import javax.inject.Inject
 import com.intershop.gradle.component.descriptor.Component as ComponentDescr
 import com.intershop.gradle.component.descriptor.FileItem as FileItemDescr
@@ -215,6 +217,10 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
                 // load component configuration
                 val compAdminDir = File(adminDir,"${compToInstall.commonName}")
+
+                val installTimeFormat = SimpleDateFormat("yyyyMMddHHmmssSSS")
+                val backupDir = File(compAdminDir, "backup/${installTimeFormat.format(Date())}")
+
                 val targetFile = File(compAdminDir, "components/component.component")
                 descriptorMgr.loadDescriptorFile(targetFile)
 
@@ -243,11 +249,22 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                 val confMgr = InstallConfigManager(installExtension, tasks,
                         compToInstall.commonName, mainDescr, compDir, update)
 
+                // copy descriptor file for documentation
+                val descrTaskname = INSTALLTASKNAME.plus(confMgr.getSuffixStr("componentDescriptor"))
+                val descrInstall = confMgr.getInstallTask(descrTaskname)
+
+                with(descrInstall) {
+                    from(project.file(targetFile))
+                    destinationDir = confMgr.getTargetDir(mainDescr.descriptorPath)
+                }
+                confMgr.compInstallTask?.dependsOn(descrTaskname)
+
                 // load files from desc
                 initFileItems(confMgr, descriptorMgr, compAdminDir)
 
+                // install file containers
                 mainDescr.fileContainers.forEach { pkg ->
-                    val pkgFile = File(adminDir, "pkgs/${pkg.name}.zip")
+                    val pkgFile = File(compAdminDir, "pkgs/${pkg.name}.zip")
 
                     if (checkForOS(pkg) && confMgr.checkForType(pkg) && pkg.updatable ) {
                         val artifact = Artifact.getArtifact(pkg.name, pkg.itemType, "zip", pkg.classifier)
@@ -270,6 +287,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                     }
                 }
 
+                // install modules
                 mainDescr.modules.forEach { entry ->
                     val taskName = INSTALLTASKNAME.plus(confMgr.getSuffixStr("module", entry.value.name))
 
@@ -288,6 +306,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                     confMgr.compInstallTask?.dependsOn(taskName)
                 }
 
+                // install libs
                 if(mainDescr.libs.isNotEmpty()) {
                     val libTaskName = INSTALLTASKNAME.plus(confMgr.getSuffixStr("libs"))
 
@@ -301,7 +320,10 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                     confMgr.compInstallTask?.dependsOn(libTaskName)
                 }
 
-                println(mainDescr.properties.size)
+                confMgr.initCleanupTask(backupDir)
+
+                // configuration is currently not used
+                //println(mainDescr.properties.size)
             }
 
 

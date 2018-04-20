@@ -177,6 +177,32 @@ class InstallConfigManager(val prjext: InstallationExtension,
     }
 
     @Throws(GradleException::class)
+    fun initCleanupTask(backupDir: File) {
+
+        val taskName = "cleanup".plus(getSuffixStr("CleanUp"))
+        var task = tasks.get(taskName)
+
+        if(task == null) {
+            tasks.create(taskName, CleanUpTask::class.java)
+            task = tasks.get(taskName)
+        }
+        if(task != null && task is CleanUpTask) {
+            task.installDir = compInstallDir
+            task.backupDir = backupDir
+            task.descriptorPath = descriptor.descriptorPath
+            task.containersPath = descriptor.containerTarget
+            task.modulesPath = descriptor.modulesTarget
+            task.modulePaths = descriptor.modules.keys
+            task.containerPaths = descriptor.fileContainers.map { it.targetPath }.toSet()
+            task.libsPath = descriptor.libsTarget
+
+            compInstallTask?.dependsOn(taskName)
+        } else {
+            throw GradleException("Task '${taskName} exists, but it has the wrong type!")
+        }
+    }
+
+    @Throws(GradleException::class)
     fun configureModuleSpec(spec: CopySpec, module: Module) {
         if(! resolved) {
             commonConf.resolve()

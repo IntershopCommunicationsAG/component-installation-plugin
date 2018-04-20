@@ -98,6 +98,30 @@
       "updatable" : true,
       "types" : [ "production" ],
       "classifiers" : [ "solaris" ]
+    },
+    "testmodule5" : {
+      "name" : "testmodule5",
+      "targetPath" : "testmodule5",
+      "dependency" : {
+        "group" : "com.intershop",
+        "module" : "testmodule5",
+        "version" : "1.0.0"
+      },
+      "itemType" : "",
+      "pkgs" : [ "testmodule5-cartridge" ],
+      "jars" : [ "testmodule5" ],
+      "jarPath" : "libs",
+      "descriptorPath" : "",
+      "jarPath" : "libs",
+      "descriptorPath" : "",
+      "targetIncluded" : false,
+      "contentType" : "IMMUTABLE",
+      "excludes" : [ ],
+      "preserveExcludes" : [ ],
+      "preserveIncludes" : [ ],
+      "updatable" : true,
+      "types" : [ "production" ],
+      "classifiers" : [ ]
     }
   },
   "libs" : {

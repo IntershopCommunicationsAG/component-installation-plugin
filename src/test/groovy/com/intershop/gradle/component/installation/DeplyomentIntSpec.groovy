@@ -153,11 +153,23 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
                 ]
             }
             module(org: 'com.intershop', name: 'testmodule4', rev: '1.0.0') {
-                artifact name: 'testmodule3', type: 'local', ext: 'zip', classifier: 'solaris', entries: [
+                artifact name: 'testmodule4', type: 'local', ext: 'zip', classifier: 'solaris', entries: [
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'local/solaris/test21.file', content: 'test21.file'),
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'local/solaris/test22.conf', content: 'test22.conf'),
                         TestIvyRepoBuilder.ArchiveDirectoryEntry.newInstance(path: 'local/solaris/empttestdir')
                 ]
+            }
+            module(org: 'com.intershop', name: 'testmodule5', rev: '1.0.0') {
+                artifact name: 'testmodule5', type: 'cartridge', ext: 'zip', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'testmodule/testfiles/test51.file', content: 'test51.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'testmodule/testconf/test52.conf', content: 'test52.conf'),
+                        TestIvyRepoBuilder.ArchiveDirectoryEntry.newInstance(path: 'testmodule/empttestdir')
+                ]
+                artifact name: 'testmodule5', type: 'jar', ext: 'jar', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/intern/test1.file', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'com/class/intern/test2.file', content: 'interntest2.file')
+                ]
+                dependency org: 'com.intershop', name: 'library3', rev: '1.0.0'
             }
 
             module(org: 'com.intershop.test', name: 'testcomponent', rev: '1.0.0') {
