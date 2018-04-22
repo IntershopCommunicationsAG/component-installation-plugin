@@ -17,6 +17,10 @@ package com.intershop.gradle.component.installation.extension
 
 import java.util.*
 
+/**
+ * Enumaration for the OS type of an #
+ * installation process.
+ */
 enum class OSType {
     WINDOWS,
     LINUX,
@@ -24,6 +28,13 @@ enum class OSType {
     OTHER;
 
     companion object {
+        /**
+         * Get the OSType enumeration object from a string.
+         *
+         * @param osKey OS type string
+         *
+         * @return OS type enumaration object
+         */
         fun from(osKey: String): OSType {
             val internalOSKey = osKey.toLowerCase(Locale.ENGLISH)
             return when {
@@ -34,10 +45,24 @@ enum class OSType {
             }
         }
 
+        /**
+         * Get the OSType enumeration object of the current OS.
+         *
+         * @return OS type enumaration object
+         */
         fun detectedOS(): OSType {
             return from(System.getProperty("os.name", "generic"))
         }
 
+        /**
+         * Verify the parameter for the OS information.
+         * It will return true, if the string is not empty
+         * and matches with the current OS.
+         *
+         * @param classifier string with OS information.
+         *
+         * @return true it the classifier matches to the current OS.
+         */
         fun checkClassifierForOS(classifier: String): Boolean {
             return classifier.isNotBlank() && OSType.from(classifier) == detectedOS() || classifier.isBlank()
         }

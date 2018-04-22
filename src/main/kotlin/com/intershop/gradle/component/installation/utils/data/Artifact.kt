@@ -20,17 +20,27 @@ import com.intershop.gradle.component.installation.extension.OSType.Companion.ch
 /**
  * Data class for artifacts.
  *
- * @property artifact   name of the artifact
- * @property type       type of artifact
- * @property ext        extensions of artifact
+ * @property artifact   name of the artifact.
+ * @property type       type of artifact.
+ * @property ext        extensions of artifact.
+ * @property classifier classifier of the artifact.
  */
-
 data class Artifact @JvmOverloads constructor(val artifact: String,
                                               val type: String,
                                               val ext: String,
                                               val classifier: String = "") {
 
     companion object {
+        /**
+         * Get an artifact for the specified parameters. The classifier is
+         * verified with current OS.
+         *
+         * @param name          name of the artifact.
+         * @param type          type of artifact.
+         * @param extension     extensions of artifact.
+         * @param classifier    classifier of the artifact.
+         */
+        @JvmStatic
         fun getArtifact(name: String, type: String,  extension: String, classifier: String) : Artifact{
             return if (checkClassifierForOS(classifier)) {
                 Artifact(name, type, extension, classifier)

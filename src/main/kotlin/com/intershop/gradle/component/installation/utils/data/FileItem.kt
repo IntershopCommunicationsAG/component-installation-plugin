@@ -20,6 +20,18 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import java.io.File
 
+/**
+ * File item data object to configure install tasks combines
+ * the real file with the configuration from the descriptor.
+ *
+ * @property file           real file on file system.
+ * @property filePath       the file path on the target system.
+ * @property targetPath     the target path without the file name.
+ * @property contentType    the content type of this file item.
+ * @property updatable      this is true if the file can be updated.
+ *
+ * @constructor initialize a complete file item.
+ */
 data class FileItem constructor(
         @get:InputFile
         val file: File,

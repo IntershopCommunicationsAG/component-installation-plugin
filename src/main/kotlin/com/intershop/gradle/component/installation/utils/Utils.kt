@@ -22,14 +22,32 @@ import java.io.File
 import java.io.InputStream
 import kotlin.reflect.KProperty
 
+/**
+ * Provides 'set' functional extension for the Property object.
+ */
 operator fun <T> Property<T>.setValue(receiver: Any?, property: KProperty<*>, value: T) = set(value)
+/**
+ * Provides 'get' functional extension for the Property object.
+ */
 operator fun <T> Property<T>.getValue(receiver: Any?, property: KProperty<*>): T = get()
 
+/**
+ * Provides 'set' functional extension for the SetProperty object.
+ */
 operator fun <T> SetProperty<T>.setValue(receiver: Any?, property: KProperty<*>, value: Set<T>) = set(value)
+/**
+ * Provides 'get' functional extension for the SetProperty object.
+ */
 operator fun <T> SetProperty<T>.getValue(receiver: Any?, property: KProperty<*>): Set<T> = get()
 
+/**
+ * Provides functional extension for primitve objects.
+ */
 inline fun <reified T> ObjectFactory.property(): Property<T> = property(T::class.java)
 
+/**
+ * Extends File with an method to copy a stream to the file.
+ */
 fun File.copyInputStreamToFile(inputStream: InputStream) {
     inputStream.use { input ->
         this.outputStream().use { fileOut ->

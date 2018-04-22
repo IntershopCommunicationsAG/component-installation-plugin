@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.intershop.gradle.component.installation.utils.data
 
+/**
+ * Enumaration for repository types - Maven or IVY.
+ */
 enum class RepositoryType {
     MAVEN,
     IVY

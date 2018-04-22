@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.intershop.gradle.component.installation.utils.data
 
 import org.gradle.api.artifacts.repositories.AuthenticationSupported
@@ -30,6 +29,12 @@ import java.util.*
 data class Credentials(val username: String, val password: String) {
 
     companion object {
+        /**
+         * Initialize the credentials object from a Gradle repository.
+         *
+         * @param repo  repository with authentication support.
+         */
+        @JvmStatic
         fun initFrom(repo: AuthenticationSupported) : Credentials {
 
             var rc = Credentials("", "")

@@ -22,9 +22,10 @@ import java.net.URI
 /**
  * Data class of a repository.
  *
- * @property type describes the type of repository
- * @property url  URL string of the repository
- * @property credentials credentials for basic authentication
+ * @property type describes the type of repository.
+ * @property url  URL string of the repository.
+ * @property credentials credentials for basic authentication.
+ * @property pattern Ivy pattern
  */
 data class Repository @JvmOverloads constructor(val type: RepositoryType,
                                                 val url: URI,
@@ -32,27 +33,51 @@ data class Repository @JvmOverloads constructor(val type: RepositoryType,
                                                 val pattern: String = "") {
 
     companion object {
+        /**
+         * Initialize a internal repository object from an existing
+         * Gradle IVY repository.
+         *
+         * @param repo Ivy artifact repository
+         * @param pattern Ivy pattern
+         *
+         * @return the internal repository object
+         */
         @JvmStatic
         fun initIvyRepoFrom(repo: IvyArtifactRepository, pattern: String) : Repository {
             return Repository(RepositoryType.IVY, repo.url, Credentials.initFrom(repo), pattern)
         }
 
+        /**
+         * Initialize a internal repository object from an existing
+         * Gradle Maven repository.
+         *
+         * @param repo Maven artifact repository
+         *
+         * @return the internal repository object
+         */
         @JvmStatic
         fun initMavenRepoFrom(repo: MavenArtifactRepository) : Repository {
             return Repository(RepositoryType.MAVEN, repo.url, Credentials.initFrom(repo))
         }
     }
 
+    /**
+     * URL string object of the repository object.
+     */
     val urlStr: String
         get() = url.toURL().toString()
 
     /**
-     * Maven basic artifact path if available
+     * Maven basic artifact path if available.
+     *
+     * @property artifactPath artifact path of a maven repo, if available
      */
     var artifactPath = ""
 
     /**
-     * Necessary for Ivy path handling.
+     * The final version of an Ivy repository.
+     *
+     * @property version final version in an IVY repository.
      */
     var version = ""
 }

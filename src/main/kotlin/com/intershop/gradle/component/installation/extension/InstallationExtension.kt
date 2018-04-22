@@ -24,9 +24,22 @@ import org.gradle.api.provider.Provider
 import java.io.File
 import javax.inject.Inject
 
+/**
+ * The main extension of this plugin.
+ *
+ * It provides all information for the installation process
+ * with all components and directories.
+ *
+ * @property project instance of the current project.
+ *
+ * @constructor initialize the extension for the current project.
+ */
 open class InstallationExtension @Inject constructor(val project: Project) {
 
     companion object {
+        /**
+         * The name of the installation extension.
+         */
         const val INSTALLATION_EXTENSION_NAME = "installation"
 
     }
@@ -37,32 +50,81 @@ open class InstallationExtension @Inject constructor(val project: Project) {
     private val environmentProperty = project.objects.setProperty(String::class.java)
     private val componentSet: MutableSet<Component> = mutableSetOf()
 
+    /**
+     * Provider for the installation directory property.
+     *
+     * @property installDirProvider provider for the installation directory property. (read only)
+     */
     val installDirProvider: Provider<Directory>
         get() = installDirProperty
 
+    /**
+     * Installation directory for all components.
+     * This is the root directory for all configured components.
+     *
+     * @property installDir the file object of the installation directory
+     */
     var installDir: File
         get() = installDirProperty.get().asFile
         set(value) = installDirProperty.set(value)
 
+    /**
+     * The container for installation configuration.
+     *
+     * @property installConfig the instance of the installation configuration
+     */
     val installConfig: InstallConfiguration
         get() = installConfigContainer
 
+    /**
+     * Configures the installation configuration container.
+     *
+     * @param action action or closure to configure the configuration container.
+     */
     fun installConfig(action: Action<in InstallConfiguration>) {
         action.execute(installConfigContainer)
     }
 
+    /**
+     * Provider for the environment configuration of the installation process.
+     *
+     * @property environmentProvider provider for the environment configuration. (read only)
+     */
     val environmentProvider: Provider<Set<String>>
         get() = environmentProperty
 
+    /**
+     * Environment configuration of the installation.
+     * This set of strings will be compared with the
+     * configuration of component items.
+     *
+     * @property environment set of strings with the environment configuration
+     */
     var environment: Set<String> by environmentProperty
 
+    /**
+     * Add an environment configuration to the set
+     * of configuration strings.
+     *
+     * @param config environment configuration.
+     */
     fun environment(config: String) {
         environmentProperty.add(config)
     }
 
+    /**
+     * Set of components that will be installed in the project.
+     *
+     * @property components
+     */
     val components: Set<Component>
         get() = componentSet
 
+    /**
+     * Adds a dependency to the list of components.
+     *
+     * @param component a dependency of a component.
+     */
     fun add(component: Any): Component {
         val dependency = project.dependencies.create(component)
         val componentExt = Component(dependency.group ?: "", dependency.name, dependency.version ?: "", "")
@@ -70,6 +132,13 @@ open class InstallationExtension @Inject constructor(val project: Project) {
         return componentExt
     }
 
+    /**
+     * Adds a dependency to the list of components and
+     * configures the path of the component.
+     *
+     * @param component a dependency of a component.
+     * @param path the install path of the component
+     */
     fun add(component: Any, path: String): Component {
         val dependency = project.dependencies.create(component)
         val componentExt = Component(dependency.group ?: "", dependency.name, dependency.version ?: "", path)
@@ -77,12 +146,28 @@ open class InstallationExtension @Inject constructor(val project: Project) {
         return componentExt
     }
 
+    /**
+     * Adds a dependency to the list of components.
+     * The component is configured with an action
+     * or closure.
+     *
+     * @param component a dependency of a component.
+     */
     fun add(component: Any, action: Action<in Component>): Component {
         val componentExt = add(component)
         action.execute(componentExt)
         return componentExt
     }
 
+    /**
+     * Adds a dependency to the list of components and
+     * configures the path of the component.
+     * The component is configured with an action
+     * or closure.
+     *
+     * @param component a dependency of a component.
+     * @param path the install path of the component
+     */
     fun add(component: Any, path: String, action: Action<in Component>): Component {
         val componentExt = add(component, path)
         action.execute(componentExt)

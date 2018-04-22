@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.intershop.gradle.component.installation.tasks
 
 import org.gradle.api.file.FileTreeElement
@@ -32,12 +31,33 @@ import org.gradle.util.GFileUtils
 import java.io.File
 import java.util.*
 
+/**
+ * This class is a fork or the orginal Gradle SyncCopyActionDecorator.
+ * It extends the functionality to set the last modified time from
+ * source file.
+ *
+ * @property baseDestDir    base destination directory
+ * @property delegate       the copy action of the original task
+ * @property preserveSpec   the preserve configuration
+ * @property directoryFileTreeFactory factory from the Gradle environment
+ * @property defaultTime    used timestamp if no special time stamp is available
+ *
+ * @constructor initialize the copy action
+ */
 class SyncCopyActionDecorator(private val baseDestDir: File,
                               private val delegate: CopyAction,
                               private val preserveSpec: PatternFilterable,
                               private val directoryFileTreeFactory: DirectoryFileTreeFactory,
                               private val defaultTime: Long) : CopyAction {
 
+    /**
+     * The execute method of this copy action. This method
+     * will handle the main functionality.
+     *
+     * @param stream the copy action stream
+     *
+     * @return the work result of this copy aciton
+     */
     override fun execute(stream: CopyActionProcessingStream) : WorkResult {
         val visited = HashMap<RelativePath,Long>()
 
@@ -85,7 +105,7 @@ class SyncCopyActionDecorator(private val baseDestDir: File,
             val path = fileDetails.relativePath
 
             if (!visited.keys.contains(path)) {
-                if (preserveSet.isEmpty() || !this.preserveSpec.isSatisfiedBy(fileDetails)) {
+                if (preserveSet.isEmpty || !this.preserveSpec.isSatisfiedBy(fileDetails)) {
                     if (isDir) {
                         GFileUtils.deleteDirectory(fileDetails.file)
                     } else {

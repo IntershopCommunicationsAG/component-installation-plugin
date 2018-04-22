@@ -49,14 +49,33 @@ import com.intershop.gradle.component.descriptor.Component as ComponentDescr
 import com.intershop.gradle.component.descriptor.FileItem as FileItemDescr
 import com.intershop.gradle.component.descriptor.Module as ModuleDescr
 
+/**
+ * This is the main class of the plugin.
+ *
+ * @property modelRegistry the Gradle model registry of this project.
+ *
+ * @constructor initialize the plugin with the current model registry.
+ */
 @Suppress("unused")
 class ComponentInstallPlugin @Inject constructor(private val modelRegistry: ModelRegistry) : Plugin<Project> {
 
     companion object {
+        /**
+         * The task name of the main task. This is also the prefix for
+         * all install tasks.
+         */
         const val INSTALLTASKNAME = "install"
+        /**
+         * The task group name of all install tasks.
+         */
         const val INSTALLGROUPNAME = "Component Installation"
     }
 
+    /**
+     * Apply this plugin to the given target object.
+     *
+     * @param project The target project object.
+     */
     override fun apply(project: Project) {
         with(project) {
             logger.info("Install plugin adds extension {} to {}",
@@ -76,6 +95,16 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
         }
     }
 
+    /**
+     * Internal class to configure tasks from the extension
+     * in the project model space.
+     *
+     * A marker type for a class that is a collection of rules. A rule source is not used like a regular
+     * Java object. It is a stateless container of methods and possibly constants.
+     *
+     * Please consult the “Rule based model configuration” chapter of the Gradle User Guide for
+     * general information about “rules”.
+     */
     @Suppress("unused")
     class InstallRule : RuleSource() {
 
@@ -198,9 +227,14 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
         }
 
+        /**
+         * This rule downloads the components and configures all installation tasks.
+         *
+         * @param tasks             Model backed map of tasks.
+         * @param installExtension  The installation extensions.
+         */
         @Defaults
-        fun configureDeploymentTasks(tasks: ModelMap<Task>,
-                                     installExtension: InstallationExtension) {
+        fun installTasksRule(tasks: ModelMap<Task>, installExtension: InstallationExtension) {
 
             if(OSType.detectedOS() == OSType.OTHER) {
                 throw GradleException("The operating system is not suppported by the component install plugin!")

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.intershop.gradle.component.installation.utils
 
 import com.intershop.gradle.component.descriptor.MetaData
@@ -49,17 +48,39 @@ import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 import javax.xml.parsers.DocumentBuilderFactory
 
+/**
+ * This class contains all methods and data to handle the
+ * download of the descriptor and all items of the component.
+ * The standard Gradle resolution is not used and downloaded
+ * items will be not cached.
+ *
+ * @property repositories   initialized project repository handler
+ * @property descriptor     dependency configuration of the component
+ * @property ivyPattern     all used ivy patterns (it is not possible to get this
+ * information from the repository handler)
+ *
+ * @constructor initialize this class
+ */
 class DescriptorManager(private val repositories: RepositoryHandler,
                         private val descriptor: Dependency,
                         private val ivyPattern: Set<String>) {
 
     companion object {
         private val logger = LoggerFactory.getLogger(DescriptorManager::class.java)
+        private const val BASE_PATTERN = "[organisation]/[module]/[revision]"
 
-        const val BASE_PATTERN = "[organisation]/[module]/[revision]"
+        /**
+         * Default INTERSHOP IVY pattern for artifacts.
+         */
         const val INTERSHOP_PATTERN = "$BASE_PATTERN/[ext]s/[artifact]-[type](-[classifier])-[revision].[ext]"
+        /**
+         * Default INTERSHOP IVY pattern for ivy files.
+         */
         const val INTERSHOP_IVY_PATTERN = "$BASE_PATTERN/[type]s/ivy-[revision].xml"
 
+        /**
+         * Descriptor name.
+         */
         const val DESCRIPTOR_NAME = "component"
 
         @JvmStatic
@@ -266,12 +287,25 @@ class DescriptorManager(private val repositories: RepositoryHandler,
         calcDescriptorRepository()
     }
 
+    /**
+     * Load descriptor file from the repository. The repository is the first
+     * repository with the configured component.
+     *
+     * @param target    target file for download
+     */
     @Throws(IOException::class, GradleException::class)
     fun loadDescriptorFile(target: File) {
         val artifact = Artifact(descriptor.module, DESCRIPTOR_NAME, DESCRIPTOR_NAME)
         loadArtifactFile(artifact, target)
     }
 
+    /**
+     * Load component artifact from the repository. The repository is the first
+     * repository with the configured component.
+     *
+     * @param artifact  artifact description.
+     * @param target    target file for download.
+     */
     @Throws(IOException::class, GradleException::class)
     fun loadArtifactFile(artifact: Artifact, target: File) {
         val path = when(descriptorRepo.type) {
@@ -365,6 +399,14 @@ class DescriptorManager(private val repositories: RepositoryHandler,
         }
     }
 
+    /**
+     * Adds a final version string - without any placeholders - to the
+     * internal repository object.
+     *
+     * @param repo internal repository object.
+     *
+     * @return version string
+     */
     @Throws(IOException::class)
     fun addIvyVersion(repo: Repository) : String {
         val version: String
@@ -413,24 +455,32 @@ class DescriptorManager(private val repositories: RepositoryHandler,
         return version
     }
 
+    /**
+     * Adds a artifact path to an internal repository object
+     * of an IVY repository.
+     *
+     * @param repo internal repository object.
+     *
+     * @return artifact path.
+     */
     @Throws(IOException::class)
     fun addMavenArtifactPath(repo: Repository): String {
         val version: String
 
         val path = getMavenModulePath(descriptor, repo.urlStr)
 
-        when {
+        version = when {
             descriptor.hasLatestVersion -> {
                 val connection = getUrlconnection("$path/maven-metadata.xml", repo.credentials)
-                version = getVersionFromMaven(connection.inputStream)
+                getVersionFromMaven(connection.inputStream)
             }
             descriptor.hasVersionPattern -> {
                 val connection = getUrlconnection("$path/maven-metadata.xml", repo.credentials)
-                version = getVersionFromMaven(connection.inputStream, descriptor.versionPattern)
+                getVersionFromMaven(connection.inputStream, descriptor.versionPattern)
             }
             else -> {
                 val connection = getUrlconnection("$path/maven-metadata.xml", repo.credentials)
-                version = getVersionFromMaven(connection.inputStream, descriptor.versionPattern)
+                getVersionFromMaven(connection.inputStream, descriptor.versionPattern)
             }
         }
 
@@ -457,6 +507,13 @@ class DescriptorManager(private val repositories: RepositoryHandler,
         return version
     }
 
+    /**
+     * Determines the meta data of the descriptor file.
+     *
+     * @param targetFile the descriptor file.
+     *
+     * @return meta data information of the descriptor.
+     */
     @Throws(GradleException::class)
     fun getDescriptorMetadata(targetFile: File): MetaData {
         val metadata = ComponentUtil.metadataFromFile(targetFile)

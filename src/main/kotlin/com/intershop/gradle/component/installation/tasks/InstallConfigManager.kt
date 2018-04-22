@@ -38,6 +38,19 @@ import org.gradle.model.ModelMap
 import org.slf4j.LoggerFactory
 import java.io.File
 
+/**
+ * The object manages all installation information of a component. It
+ * is used to create all necessary tasks.
+ *
+ * @property prjext the extension of the plugin.
+ * @property tasks the tasks object of the model space of the plugin.
+ * @property commonName the common name of the component within the installation project.
+ * @property descriptor the component descriptor object
+ * @property compInstallDir the installation directory of the component
+ * @property update this is true if the installation of the component exists
+ *
+ * @constructor initializes a manager instance for a component
+ */
 class InstallConfigManager(private val prjext: InstallationExtension,
                            private val tasks: ModelMap<Task>,
                            private val commonName: String,
@@ -56,6 +69,16 @@ class InstallConfigManager(private val prjext: InstallationExtension,
             }
         }
 
+        /**
+         * Get the target dir from a base dir and addional path elements.
+         * The path elements will be filtered and adapted. Empty elements or elements with
+         * forbidden characters will be removed, spaces replaced with an underscore.
+         *
+         * @param dir the base dir
+         * @param path path elements
+         *
+         * @return a file object from the input values
+         */
         @JvmStatic
         fun getTargetDir(dir: File, vararg path: String): File {
             val extPath = path.filter { ! it.isNullOrBlank()}.map { it.replace(" ", "_")}.
@@ -68,6 +91,15 @@ class InstallConfigManager(private val prjext: InstallationExtension,
             }
         }
 
+        /**
+         * The function returns true, if no OS configuration is specified for
+         * the item or the OS configuration matches to the environment OS.
+         *
+         * @param item Installation item with OS specific configuration
+         *
+         * @return true if the OS configuration matches
+         */
+        @JvmStatic
         fun checkForOS(item: OSSpecificItem): Boolean {
             return checkClassifierForOS(item.classifier)
         }
@@ -80,12 +112,34 @@ class InstallConfigManager(private val prjext: InstallationExtension,
 
     private var resolved = false
 
+    /**
+     * The main installation task of the component.
+     * It will be initiazed in the init method of the class.
+     *
+     * @property compInstallTask the task object or null
+     */
     var compInstallTask: Task? = null
 
+    /**
+     * Get a suffix for tasks and configurations. This is
+     * specific for the component and depends from the common name.
+     *
+     * @param suffix additional elements for the name
+     *
+     * @return a specify suffix for the names
+     */
     fun getSuffixStr(vararg suffix: String): String {
         return commonPrefix.plus(suffix.asList().joinToString("") { it.capitalize() })
     }
 
+    /**
+     * Compares the type information of an item with
+     * configured environment information.
+     *
+     * @param item an item with a specific environment configuration.
+     *
+     * @return true if the configured environment matches to the configuration of the item.
+     */
     fun checkForType(item: DeploymentItem): Boolean {
         return if (!item.types.isEmpty() && ! prjext.environment.isEmpty()) {
             item.types.intersect(prjext.environment).isNotEmpty()
@@ -94,6 +148,7 @@ class InstallConfigManager(private val prjext: InstallationExtension,
         }
     }
 
+    // initialiazition of the class
     init {
         descriptor.modules.forEach { module ->
 
@@ -153,12 +208,38 @@ class InstallConfigManager(private val prjext: InstallationExtension,
         compInstallTask = tasks.get(taskPrefix)
     }
 
+    /**
+     * This is a set of file items for the installation.
+     * File items will replace existing files dependend
+     * on the OS or the environment type.
+     * File items can be added from outside.
+     *
+     * @property fileItemSet set of file items
+     */
     val fileItemSet: MutableSet<FileItem> = mutableSetOf()
 
+    /**
+     * Get a target dir from path elements for this
+     * secial component.
+     *
+     * See also the static method getTargetDir.
+     *
+     * @param path path elements
+     *
+     * @return a file object from the input values
+     */
     fun getTargetDir(vararg path: String): File {
         return getTargetDir(compInstallDir, *path)
     }
 
+    /**
+     * Get an install task for this component installation.
+     * If the tasks exist it will be configured.
+     *
+     * @param taskName a task name
+     *
+     * @return a preconfigured installation task
+     */
     @Throws(GradleException::class)
     fun getInstallTask(taskName: String): InstallTask {
         var task = tasks.get(taskName)
@@ -174,6 +255,13 @@ class InstallConfigManager(private val prjext: InstallationExtension,
         }
     }
 
+    /**
+     * It initialezes the clean up task for the
+     * component installation. Unused items will be removed
+     * or moved to a backup directory.
+     *
+     * @param backupDir directory for backup files
+     */
     @Throws(GradleException::class)
     fun initCleanupTask(backupDir: File) {
 
@@ -200,6 +288,14 @@ class InstallConfigManager(private val prjext: InstallationExtension,
         }
     }
 
+    /**
+     * This method configures an existing copy spec form
+     * the configuration of a module item. The artifacts
+     * must be resolved by the special configuration.
+     *
+     * @param spec the copy spec.
+     * @param module the module descriptor.
+     */
     @Throws(GradleException::class)
     fun configureModuleSpec(spec: CopySpec, module: Module) {
         if(! resolved) {
@@ -250,6 +346,14 @@ class InstallConfigManager(private val prjext: InstallationExtension,
         }
     }
 
+    /**
+     * This method configures an existing copy spec for the installation
+     * of the libraries item of the component installation. The artifacts
+     * must be resolved by the special configuration.
+     *
+     * @param spec the copy spec.
+     * @param libs the library configuration of the component descriptor.
+     */
     fun configureLibsSpec(spec: CopySpec, libs: MutableMap<String, Library>) {
         if(! resolved) {
             commonConf.resolve()

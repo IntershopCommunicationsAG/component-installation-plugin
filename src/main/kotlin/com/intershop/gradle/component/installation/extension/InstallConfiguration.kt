@@ -21,6 +21,13 @@ import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import java.io.File
 import javax.inject.Inject
 
+/**
+ * This is the configuration container of the
+ * installation process of all configured components.
+ *
+ * @constructor initialize the configuration container with
+ * the specified project.
+ */
 open class InstallConfiguration @Inject constructor(project: Project) {
 
     private val ivyPatternSet: MutableSet<String> = mutableSetOf()
@@ -31,12 +38,33 @@ open class InstallConfiguration @Inject constructor(project: Project) {
         ivyPatternSet.add(IvyArtifactRepository.IVY_ARTIFACT_PATTERN)
     }
 
+    /**
+     * Specifies the admin installation directory.
+     * The default value is the build directory of the project.
+     *
+     * @property installAdminDir base directory for all admin artifacty.
+     */
     var installAdminDir: File = project.buildDir
 
+    /**
+     * Adds an additional ivy pattern for the
+     * download of initial component artifacts.
+     *
+     * @param pattern additional IVY pattern.
+     */
     fun addIvyPattern(pattern: String) {
         ivyPatternSet.add(pattern)
     }
 
+    /**
+     * All configured IVY patterns for the
+     * download of initial component artifacts.
+     *
+     * Per default the INTERSHOP and the GRADLE
+     * IVY patterns are configured.
+     *
+     * @property ivyPatterns set of IVY patterns.
+     */
     val ivyPatterns: Set<String>
         get() = ivyPatternSet
 
