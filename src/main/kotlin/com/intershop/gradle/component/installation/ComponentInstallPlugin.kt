@@ -289,6 +289,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
                 with(descrInstall) {
                     from(project.file(targetFile))
+                    contentType = ContentType.IMMUTABLE
                     destinationDir = confMgr.getTargetDir(mainDescr.descriptorPath)
                 }
                 confMgr.compInstallTask?.dependsOn(descrTaskname)
@@ -310,6 +311,9 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                         with(pkgTask) {
                             from(project.zipTree(pkgFile))
                             configSpec(this, confMgr, pkg.targetIncluded, update, pkg.targetPath)
+
+                            pkgTask.contentType = ContentType.valueOf(pkg.contentType.toString())
+
                             if(update) {
                                 configExcludesPreserve(this, compToInstall, pkg)
                             }
@@ -332,6 +336,8 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                         confMgr.configureModuleSpec(this, entry.value)
                         configSpec(this, confMgr, entry.value.targetIncluded, update, entry.key)
 
+                        install.contentType = ContentType.valueOf(entry.value.contentType.toString())
+
                         if(update) {
                             configExcludesPreserve(this, compToInstall, entry.value)
                         }
@@ -350,6 +356,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                     libInstall.duplicatesStrategy = DuplicatesStrategy.FAIL
 
                     confMgr.configureLibsSpec(libInstall, mainDescr.libs)
+                    libInstall.contentType = ContentType.IMMUTABLE
 
                     confMgr.compInstallTask?.dependsOn(libTaskName)
                 }

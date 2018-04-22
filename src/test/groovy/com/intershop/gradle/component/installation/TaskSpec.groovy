@@ -16,6 +16,7 @@
 package com.intershop.gradle.component.installation
 
 import com.intershop.gradle.test.AbstractIntegrationSpec
+import org.gradle.testkit.runner.TaskOutcome
 import org.junit.Ignore
 
 class TaskSpec extends AbstractIntegrationSpec {
@@ -29,6 +30,8 @@ class TaskSpec extends AbstractIntegrationSpec {
         testFile.parentFile.mkdirs()
         testFile.createNewFile()
         testFile << "test"
+
+        def unpackagedFile = new File(testProjectDir, 'install/local/abina/startscript1.sh')
 
         buildFile << """
         plugins {
@@ -57,7 +60,9 @@ class TaskSpec extends AbstractIntegrationSpec {
                 .build()
 
         then:
-        true
+        result1.task(":installTest").outcome == TaskOutcome.SUCCESS
+        ! testFile.exists()
+        unpackagedFile.exists()
 
         when:
         def result2 = getPreparedGradleRunner()
@@ -65,6 +70,6 @@ class TaskSpec extends AbstractIntegrationSpec {
                 .build()
 
         then:
-        true
+        result2.task(":installTest").outcome == TaskOutcome.UP_TO_DATE
     }
 }

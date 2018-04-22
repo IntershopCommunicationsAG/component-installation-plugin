@@ -20,6 +20,7 @@ import com.intershop.gradle.test.AbstractIntegrationSpec
 import com.intershop.gradle.test.builder.TestIvyRepoBuilder
 import com.intershop.gradle.test.builder.TestMavenRepoBuilder
 import com.intershop.gradle.test.util.TestDir
+import org.gradle.testkit.runner.TaskOutcome
 import spock.lang.Unroll
 
 class DeplyomentIntSpec extends AbstractIntegrationSpec {
@@ -28,7 +29,7 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
     File tempProjectDir
 
     @Unroll
-    def 'Test plugin happy path'() {
+    def 'Test plugin - production environment with update'() {
         given:
         String projectName = "testdeployment"
         createSettingsGradle(projectName)
@@ -61,7 +62,32 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
                 .build()
 
         then:
-        true
+        result1.task(':installTestcomponent').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule1').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule2').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule3').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule5').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentComponentDescriptor').outcome == TaskOutcome.SUCCESS
+        result1.task(':cleanupTestcomponentCleanUp').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentLibs').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentPkgStartscriptsBin').outcome == TaskOutcome.SUCCESS
+
+        new File(testProjectDir, 'installation/testcomp/bin/.install').text == 'IMMUTABLE'
+        new File(testProjectDir, 'installation/testcomp/component/.install').text == 'IMMUTABLE'
+        new File(testProjectDir, 'installation/testcomp/lib/release/libs/.install').text == 'IMMUTABLE'
+        new File(testProjectDir, 'installation/testcomp/testmodule1/.install').text == 'IMMUTABLE'
+        new File(testProjectDir, 'installation/testcomp/testmodule2/.install').text == 'IMMUTABLE'
+        new File(testProjectDir, 'installation/testcomp/testmodule3/.install').text == 'IMMUTABLE'
+        new File(testProjectDir, 'installation/testcomp/testmodule4/.install').text == 'IMMUTABLE'
+        new File(testProjectDir, 'installation/testcomp/testmodule5/.install').text == 'IMMUTABLE'
+
+        new File(testProjectDir, 'installation/testcomp/lib/release/libs/com.intershop_library1_1.0.0.jar').exists()
+        new File(testProjectDir, 'installation/testcomp/lib/release/libs/com.intershop_library1_1.0.0.pom').exists()
+        new File(testProjectDir, 'installation/testcomp/testmodule1/libs/extlib-jar-1.0.0.jar').exists()
+        new File(testProjectDir, 'installation/testcomp/testmodule1/libs/testmodule1-jar-1.0.0.jar').exists()
+        new File(testProjectDir, 'installation/testcomp/testmodule1/testmodule/testconf/test2.conf').exists()
+        new File(testProjectDir, 'installation/testcomp/testmodule5/testmodule/testconf/test52.conf').exists()
 
         when:
         List<String> args2 = ['install', '-s', "-Pinstallv=1.1.0"]
@@ -72,19 +98,39 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
                 .build()
 
         then:
-        true
-/**
-        when:
-        List<String> args3 = ['install', '-s', "-Pinstallv=1.0.0"]
+        result2.task(':installTestcomponent').outcome == TaskOutcome.SUCCESS
+        result2.task(':installTestcomponentModuleTestmodule1').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentModuleTestmodule2').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentModuleTestmodule3').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.UP_TO_DATE
+        result2.tasks.find { it.path == ':installTestcomponentModuleTestmodule5'} == null
+        result2.task(':installTestcomponentComponentDescriptor').outcome == TaskOutcome.SUCCESS
+        result2.task(':cleanupTestcomponentCleanUp').outcome == TaskOutcome.SUCCESS
+        result2.task(':installTestcomponentLibs').outcome == TaskOutcome.SUCCESS
+        result2.task(':installTestcomponentPkgStartscriptsBin').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentPkgShareSites').outcome == TaskOutcome.SUCCESS
 
+        new File(testProjectDir, 'installation/testcomp/share/system/config/test1.properties').exists()
+        new File(testProjectDir, 'installation/testcomp/share/system/config/test1.properties').text.contains("property1 = value1")
+
+        when:
         def result3 = getPreparedGradleRunner()
-                .withArguments(args3)
+                .withArguments(args2)
                 .withGradleVersion(gradleVersion)
                 .build()
 
         then:
-        true
-**/
+        result3.task(':installTestcomponent').outcome == TaskOutcome.SUCCESS
+        result3.task(':installTestcomponentModuleTestmodule1').outcome == TaskOutcome.UP_TO_DATE
+        result3.task(':installTestcomponentModuleTestmodule2').outcome == TaskOutcome.UP_TO_DATE
+        result3.task(':installTestcomponentModuleTestmodule3').outcome == TaskOutcome.UP_TO_DATE
+        result3.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.UP_TO_DATE
+        result3.task(':installTestcomponentComponentDescriptor').outcome == TaskOutcome.UP_TO_DATE
+        result3.task(':cleanupTestcomponentCleanUp').outcome == TaskOutcome.SUCCESS
+        result3.task(':installTestcomponentLibs').outcome == TaskOutcome.UP_TO_DATE
+        result3.task(':installTestcomponentPkgStartscriptsBin').outcome == TaskOutcome.UP_TO_DATE
+        result3.task(':installTestcomponentPkgShareSites').outcome == TaskOutcome.UP_TO_DATE
+
         where:
         gradleVersion << supportedGradleVersions
 
