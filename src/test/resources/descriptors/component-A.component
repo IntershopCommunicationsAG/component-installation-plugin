@@ -1,0 +1,151 @@
+{
+  "displayName" : "testA",
+  "componentDescription" : "Test component A",
+  "types" : [ "test", "production", "perfTest" ],
+  "classifiers" : [ "linux", "win", "macos", "" ],
+  "modulesTarget" : "",
+  "libsTarget" : "lib/release/libs",
+  "containerTarget" : "",
+  "target" : "testcompA",
+  "descriptorPath" : "component",
+  "modules" : {
+    "testmodule1" : {
+      "name" : "testmodule1",
+      "targetPath" : "testmodule1",
+      "dependency" : {
+        "group" : "com.intershop",
+        "module" : "testmodule1",
+        "version" : "1.0.0"
+      },
+      "itemType" : "",
+      "pkgs" : [ "testmodule1-cartridge" ],
+      "jars" : [ "extlib", "testmodule1" ],
+      "jarPath" : "libs",
+      "descriptorPath" : "",
+      "targetIncluded" : false,
+      "contentType" : "IMMUTABLE",
+      "excludes" : [ ],
+      "preserveExcludes" : [ ],
+      "preserveIncludes" : [ ],
+      "updatable" : true,
+      "types" : [ "production" ],
+      "classifiers" : [ ]
+    },
+    "testmodule2" : {
+      "name" : "testmodule2",
+      "targetPath" : "testmodule2",
+      "dependency" : {
+        "group" : "com.intershop",
+        "module" : "testmodule2",
+        "version" : "1.0.0"
+      },
+      "itemType" : "",
+      "pkgs" : [ "testmodule2-cartridge" ],
+      "jars" : [ "testmodule2" ],
+      "jarPath" : "libs",
+      "descriptorPath" : "",
+      "targetIncluded" : false,
+      "contentType" : "IMMUTABLE",
+      "excludes" : [ ],
+      "preserveExcludes" : [ ],
+      "preserveIncludes" : [ ],
+      "updatable" : true,
+      "types" : [ "production" ],
+      "classifiers" : [ ]
+    }
+  },
+  "libs" : {
+    "com.intershop:library1:1.0.0" : {
+      "dependency" : {
+        "group" : "com.intershop",
+        "module" : "library1",
+        "version" : "1.0.0"
+      },
+      "targetName" : "com.intershop_library1_1.0.0",
+      "types" : [ "production" ]
+    },
+    "com.intershop:library2:1.0.0" : {
+      "dependency" : {
+        "group" : "com.intershop",
+        "module" : "library2",
+        "version" : "1.0.0"
+      },
+      "targetName" : "com.intershop_library2_1.0.0",
+      "types" : [ "production" ]
+    },
+    "com.intershop:library3:1.0.0" : {
+      "dependency" : {
+        "group" : "com.intershop",
+        "module" : "library3",
+        "version" : "1.0.0"
+      },
+      "targetName" : "com.intershop_library3_1.0.0",
+      "types" : [ "production" ]
+    }
+  },
+  "fileContainers" : [ {
+    "name" : "startscripts",
+    "targetPath" : "bin",
+    "itemType" : "bin",
+    "classifier" : "linux",
+    "targetIncluded" : true,
+    "contentType" : "IMMUTABLE",
+    "excludes" : [ ],
+    "preserveExcludes" : [ ],
+    "preserveIncludes" : [ ],
+    "updatable" : true,
+    "types" : [ "production", "test" ]
+  }, {
+    "name" : "startscripts",
+    "targetPath" : "bin",
+    "itemType" : "bin",
+    "classifier" : "win",
+    "targetIncluded" : true,
+    "contentType" : "IMMUTABLE",
+    "excludes" : [ ],
+    "preserveExcludes" : [ ],
+    "preserveIncludes" : [ ],
+    "updatable" : true,
+    "types" : [ "production", "test" ]
+  }, {
+    "name" : "startscripts",
+    "targetPath" : "bin",
+    "itemType" : "bin",
+    "classifier" : "macos",
+    "targetIncluded" : true,
+    "contentType" : "IMMUTABLE",
+    "excludes" : [ ],
+    "preserveExcludes" : [ ],
+    "preserveIncludes" : [ ],
+    "updatable" : true,
+    "types" : [ "production", "test" ]
+  } ],
+  "fileItems" : [ ],
+  "properties" : [ {
+    "key" : "pkey1",
+    "value" : "pvalues1",
+    "classifier" : "",
+    "contentType" : "IMMUTABLE",
+    "updatable" : true,
+    "types" : [ "perfTest" ]
+  }, {
+    "key" : "pkey2",
+    "value" : "pvalue2",
+    "classifier" : "",
+    "contentType" : "IMMUTABLE",
+    "updatable" : true,
+    "types" : [ "perfTest" ]
+  } ],
+  "excludes" : [ ],
+  "preserveExcludes" : [ ],
+  "preserveIncludes" : [ ],
+  "metadata" : {
+    "creation" : 1523179434565,
+    "version" : "v1",
+    "componentID" : {
+      "group" : "@group@",
+      "module" : "@module@",
+      "version" : "@version@"
+    }
+  }
+}

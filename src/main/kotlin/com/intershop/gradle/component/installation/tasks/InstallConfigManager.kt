@@ -361,9 +361,12 @@ class InstallConfigManager(private val prjext: InstallationExtension,
         }
 
         val depTargets: MutableMap<String, String> = mutableMapOf()
+        val fileTargets: MutableMap<String, File> = mutableMapOf()
 
         val confName = "config".plus(getSuffixStr("libs"))
         val conf = commonConf.extendsFrom.find { it.name ==  confName }
+
+
 
         if(conf != null) {
             val artifacts = conf.resolvedConfiguration.firstLevelModuleDependencies
@@ -371,10 +374,10 @@ class InstallConfigManager(private val prjext: InstallationExtension,
                 rd.allModuleArtifacts.forEach { ra ->
                     val lib = libs.values.find { it.dependency.toString() == ra.id.componentIdentifier.displayName }
                     if(lib != null) {
-                        renameLibSpec(spec, ra.file, "${lib.targetName}.${ra.file.extension}")
+                        fileTargets["${lib.targetName}.${ra.file.extension}"] = ra.file
                         depTargets[ra.id.componentIdentifier.displayName] = lib.targetName
                     } else {
-                        spec.from(prjext.project.file(ra.file))
+                        fileTargets[ra.file.name] = ra.file
                         depTargets[ra.id.componentIdentifier.displayName] = ra.file.nameWithoutExtension
                     }
                 }
@@ -392,7 +395,7 @@ class InstallConfigManager(private val prjext: InstallationExtension,
                     if(ra is ResolvedArtifactResult) {
                         val data = depTargets[ra.id.componentIdentifier.displayName]
                         if(data != null) {
-                            renameLibSpec(spec, ra.file, "$data.${ra.file.extension}")
+                            fileTargets["$data.${ra.file.extension}"] = ra.file
                         }
                     }
                 }
@@ -406,11 +409,16 @@ class InstallConfigManager(private val prjext: InstallationExtension,
                     if(ra is ResolvedArtifactResult) {
                         val data = depTargets[ra.id.componentIdentifier.displayName]
                         if(data != null) {
-                            renameLibSpec(spec, ra.file, "$data.${ra.file.extension}")
+                            fileTargets["$data.${ra.file.extension}"] = ra.file
                         }
                     }
                 }
             }
+
+            fileTargets.toSortedMap().forEach {
+                renameLibSpec(spec, it.value, it.key)
+            }
+
         } else {
             throw GradleException("Configuration '$confName' does not exists!")
         }

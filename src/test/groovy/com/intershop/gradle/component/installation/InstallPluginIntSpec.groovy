@@ -23,13 +23,13 @@ import com.intershop.gradle.test.util.TestDir
 import org.gradle.testkit.runner.TaskOutcome
 import spock.lang.Unroll
 
-class DeplyomentIntSpec extends AbstractIntegrationSpec {
+class InstallPluginIntSpec extends AbstractIntegrationSpec {
 
     @TestDir
     File tempProjectDir
 
     @Unroll
-    def 'Test plugin - production environment with update'() {
+    def 'Test plugin - production environment with update - #gradleVersion'(gradleVersion){
         given:
         String projectName = "testdeployment"
         createSettingsGradle(projectName)
@@ -90,7 +90,7 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
         new File(testProjectDir, 'installation/testcomp/testmodule5/testmodule/testconf/test52.conf').exists()
 
         when:
-        List<String> args2 = ['install', '-s', "-Pinstallv=1.1.0"]
+        List<String> args2 = ['install', '-s', "-i", "-Pinstallv=1.1.0"]
 
         def result2 = getPreparedGradleRunner()
                 .withArguments(args2)
@@ -133,7 +133,201 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
 
         where:
         gradleVersion << supportedGradleVersions
+    }
 
+    @Unroll
+    def 'Test plugin - poduction environment with two components - #gradleVersion'(gradleVersion){
+        given:
+        String projectName = "testdeployment"
+        createSettingsGradle(projectName)
+
+        buildFile << """
+        plugins {
+            id 'com.intershop.gradle.component.installation'
+        }
+
+        group 'com.intershop.test'
+        version = '1.0.0'
+   
+        installation {
+            environment('production')
+
+            add("com.intershop.test:testcomponentA:1.0.0")
+            add("com.intershop.test:testcomponentB:1.0.0")
+            installDir = file('installation')
+        }
+       
+        ${createRepo(testProjectDir)}
+
+        """.stripIndent()
+
+        when:
+        List<String> args1 = ['install', '-s', "-i", "-Pinstallv=1.0.0"]
+
+        def result1 = getPreparedGradleRunner()
+                .withArguments(args1)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result1.task(':installTestcomponentA').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentB').outcome == TaskOutcome.SUCCESS
+
+        new File(testProjectDir, 'installation/testcompA').exists()
+        new File(testProjectDir, 'installation/testcompB').exists()
+
+        when:
+        def result2 = getPreparedGradleRunner()
+                .withArguments(args1)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result2.task(':installTestcomponentA').outcome == TaskOutcome.SUCCESS
+        result2.task(':installTestcomponentB').outcome == TaskOutcome.SUCCESS
+
+        result2.task(':installTestcomponentBComponentDescriptor').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentALibs').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentBLibs').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentBModuleTestmodule3').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentBModuleTestmodule4').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentBModuleTestmodule5').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentBPkgStartscriptsBin').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentAComponentDescriptor').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentAModuleTestmodule1').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentAModuleTestmodule2').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentAPkgStartscriptsBin').outcome == TaskOutcome.UP_TO_DATE
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    @Unroll
+    def 'Test configuration - exclude - #gradleVersion'(gradleVersion) {
+        given:
+        String projectName = "testdeployment"
+        createSettingsGradle(projectName)
+
+        buildFile << """
+        plugins {
+            id 'com.intershop.gradle.component.installation'
+        }
+
+        group 'com.intershop.test'
+        version = '1.0.0'
+   
+        installation {
+            environment('production')
+
+            add("com.intershop.test:testcomponent:\${project.ext.installv}") {
+                exclude("**/**/test1.file")
+            }
+            installDir = file('installation') 
+        }
+       
+        ${createRepo(testProjectDir)}
+
+        """.stripIndent()
+
+        when:
+        List<String> args1 = ['install', '-s', '-i', "-Pinstallv=1.0.0"]
+
+        def result1 = getPreparedGradleRunner()
+                .withArguments(args1)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result1.task(':installTestcomponentModuleTestmodule1').outcome == TaskOutcome.SUCCESS
+        ! new File(testProjectDir, 'installation/testcomp/testmodule1/testmodule/testfiles/test1.file').exists()
+        new File(testProjectDir, 'installation/testcomp/testmodule1/testmodule/testconf/test2.conf').exists()
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    @Unroll
+    def 'Test configuration - preserve - #gradleVersion'(gradleVersion) {
+        given:
+        String projectName = "testdeployment"
+        createSettingsGradle(projectName)
+
+        File testFile = new File(testProjectDir, 'installation/testcomp/share/system/config/test1.properties')
+
+        def repoConfiguration = createRepo(testProjectDir)
+
+        buildFile << """
+        plugins {
+            id 'com.intershop.gradle.component.installation'
+        }
+
+        group 'com.intershop.test'
+        version = '1.0.0'
+   
+        installation {
+            environment('production')
+
+            add("com.intershop.test:testcomponent:\${project.ext.installv}") {
+            }
+            installDir = file('installation')
+        }
+       
+        ${repoConfiguration}
+
+        """.stripIndent()
+
+        when:
+        List<String> args1 = ['install', '-s', '-i', "-Pinstallv=1.1.0"]
+
+        def result1 = getPreparedGradleRunner()
+                .withArguments(args1)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result1.task(':installTestcomponent').outcome == TaskOutcome.SUCCESS
+
+        when:
+        testFile.text = "property1 = value3"
+
+        buildFile.delete()
+        buildFile << """
+        plugins {
+            id 'com.intershop.gradle.component.installation'
+        }
+
+        group 'com.intershop.test'
+        version = '1.0.0'
+   
+        installation {
+            environment('production')
+
+            add("com.intershop.test:testcomponent:\${project.ext.installv}") {
+                // file will be not copied ...
+                exclude("**/**/test1.properties")
+                // ... but not deleted
+                preserve {
+                    exclude "**/**/test1.properties"
+                }
+            }
+            installDir = file('installation')
+        }
+
+        ${repoConfiguration}
+
+        """.stripIndent()
+
+        def result2 = getPreparedGradleRunner()
+                .withArguments(args1)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result2.task(':installTestcomponent').outcome == TaskOutcome.SUCCESS
+        testFile.text == "property1 = value3"
+
+        where:
+        gradleVersion << supportedGradleVersions
     }
 
     File createSettingsGradle(String projectName) {
@@ -150,6 +344,8 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
 
         copyResources("descriptors/component-1.component", "component-1.component", tempProjectDir)
         copyResources("descriptors/component-1.1.component", "component-1.1.component", tempProjectDir)
+        copyResources("descriptors/component-A.component", "component-A.component", tempProjectDir)
+        copyResources("descriptors/component-B.component", "component-B.component", tempProjectDir)
 
         new TestIvyRepoBuilder().repository( ivyPattern: DescriptorManager.INTERSHOP_IVY_PATTERN, artifactPattern: DescriptorManager.INTERSHOP_PATTERN ) {
             module(org: 'com.intershop', name: 'testmodule1', rev: '1.0.0') {
@@ -264,6 +460,37 @@ class DeplyomentIntSpec extends AbstractIntegrationSpec {
                 artifact name: 'test1', type: 'properties', ext: 'properties', content: 'property1 = value1'
                 artifact name: 'test2', type: 'properties', ext: 'properties', classifier: 'linux', content: 'property2 = value2'
             }
+
+            module(org: 'com.intershop.test', name: 'testcomponentA', rev: '1.0.0') {
+                artifact name: 'testcomponentA', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME,
+                        content: replaceContent(new File(tempProjectDir, "component-A.component"), ['@group@': 'com.intershop.test', '@module@': 'testcomponentA', '@version@': '1.0.0'])
+                artifact name: 'startscripts', type: 'bin', ext: 'zip', classifier: 'linux', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscriptA1.sh', content: 'interntestA1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscriptA2.sh', content: 'interntestA2.file')
+                ]
+                artifact name: 'startscripts', type: 'bin', ext: 'zip', classifier: 'macos', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscriptA1.sh', content: 'interntestA1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscriptA2.sh', content: 'interntestA2.file')
+                ]
+                artifact name: 'startscripts', type: 'bin', ext: 'zip', classifier: 'win', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscriptA1.bat', content: 'interntestA1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscriptA2.bat', content: 'interntestA2.file')
+                ]}
+            module(org: 'com.intershop.test', name: 'testcomponentB', rev: '1.0.0') {
+                artifact name: 'testcomponentB', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME,
+                        content: replaceContent(new File(tempProjectDir, "component-B.component"), ['@group@': 'com.intershop.test', '@module@': 'testcomponentB', '@version@': '1.0.0'])
+                artifact name: 'startscripts', type: 'bin', ext: 'zip', classifier: 'linux', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscriptB1.sh', content: 'interntestB1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscriptB2.sh', content: 'interntestB2.file')
+                ]
+                artifact name: 'startscripts', type: 'bin', ext: 'zip', classifier: 'macos', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscriptB1.sh', content: 'interntestB1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscriptB2.sh', content: 'interntestB2.file')
+                ]
+                artifact name: 'startscripts', type: 'bin', ext: 'zip', classifier: 'win', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscriptB1.bat', content: 'interntestB1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscriptB2.bat', content: 'interntestB2.file')
+                ]}
 
             module(org: 'com.intershop', name: 'library4', rev: '1.0.0'){
                 artifact name: 'library4', type: 'jar', ext: 'jar', entries: [

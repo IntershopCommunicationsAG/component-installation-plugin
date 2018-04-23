@@ -16,9 +16,11 @@
 package com.intershop.gradle.component.installation.extension
 
 import com.intershop.gradle.component.installation.utils.data.Dependency
+import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.util.ConfigureUtil
 import javax.inject.Inject
 
 /**
@@ -107,7 +109,17 @@ open class Component @Inject constructor(val group: String,
     /**
      * Configures the preserve pattern set.
      *
-     * @param action the configuration action or closure.
+     * @param closure the configuration closure.
+     */
+    @Suppress("unused")
+    fun preserve(closure: Closure<Any>) {
+        ConfigureUtil.configure(closure, preserveProperty)
+    }
+
+    /**
+     * Configures the preserve pattern set.
+     *
+     * @param action the configuration action.
      */
     fun preserve(action: Action<in PatternFilterable>) {
         action.execute(preserveProperty)

@@ -1,0 +1,177 @@
+{
+  "displayName" : "testB",
+  "componentDescription" : "Test component B",
+  "types" : [ "test", "production", "perfTest" ],
+  "classifiers" : [ "linux", "win", "macos", "" ],
+  "modulesTarget" : "",
+  "libsTarget" : "lib/release/libs",
+  "containerTarget" : "",
+  "target" : "testcompB",
+  "descriptorPath" : "component",
+  "modules" : {
+    "testmodule3" : {
+      "name" : "testmodule3",
+      "targetPath" : "testmodule3",
+      "dependency" : {
+        "group" : "com.intershop",
+        "module" : "testmodule3",
+        "version" : "1.0.0"
+      },
+      "itemType" : "",
+      "pkgs" : [ "testmodule3-local-linux", "testmodule3-local-win", "testmodule3-local-macos" ],
+      "jars" : [ ],
+      "jarPath" : "libs",
+      "descriptorPath" : "",
+      "targetIncluded" : false,
+      "contentType" : "IMMUTABLE",
+      "excludes" : [ ],
+      "preserveExcludes" : [ ],
+      "preserveIncludes" : [ ],
+      "updatable" : true,
+      "types" : [ "production" ],
+      "classifiers" : [ "linux", "win", "macos" ]
+    },
+    "testmodule4" : {
+      "name" : "testmodule4",
+      "targetPath" : "testmodule4",
+      "dependency" : {
+        "group" : "com.intershop",
+        "module" : "testmodule4",
+        "version" : "1.0.0"
+      },
+      "itemType" : "",
+      "pkgs" : [ "testmodule4-local-solaris"],
+      "jars" : [ ],
+      "jarPath" : "libs",
+      "descriptorPath" : "",
+      "jarPath" : "libs",
+      "descriptorPath" : "",
+      "targetIncluded" : false,
+      "contentType" : "IMMUTABLE",
+      "excludes" : [ ],
+      "preserveExcludes" : [ ],
+      "preserveIncludes" : [ ],
+      "updatable" : true,
+      "types" : [ "production" ],
+      "classifiers" : [ "solaris" ]
+    },
+    "testmodule5" : {
+      "name" : "testmodule5",
+      "targetPath" : "testmodule5",
+      "dependency" : {
+        "group" : "com.intershop",
+        "module" : "testmodule5",
+        "version" : "1.0.0"
+      },
+      "itemType" : "",
+      "pkgs" : [ "testmodule5-cartridge" ],
+      "jars" : [ "testmodule5" ],
+      "jarPath" : "libs",
+      "descriptorPath" : "",
+      "jarPath" : "libs",
+      "descriptorPath" : "",
+      "targetIncluded" : false,
+      "contentType" : "IMMUTABLE",
+      "excludes" : [ ],
+      "preserveExcludes" : [ ],
+      "preserveIncludes" : [ ],
+      "updatable" : true,
+      "types" : [ "production" ],
+      "classifiers" : [ ]
+    }
+  },
+  "libs" : {
+    "com.intershop:library1:1.0.0" : {
+      "dependency" : {
+        "group" : "com.intershop",
+        "module" : "library1",
+        "version" : "1.0.0"
+      },
+      "targetName" : "com.intershop_library1_1.0.0",
+      "types" : [ "production" ]
+    },
+    "com.intershop:library2:1.0.0" : {
+      "dependency" : {
+        "group" : "com.intershop",
+        "module" : "library2",
+        "version" : "1.0.0"
+      },
+      "targetName" : "com.intershop_library2_1.0.0",
+      "types" : [ "production" ]
+    },
+    "com.intershop:library3:1.0.0" : {
+      "dependency" : {
+        "group" : "com.intershop",
+        "module" : "library3",
+        "version" : "1.0.0"
+      },
+      "targetName" : "com.intershop_library3_1.0.0",
+      "types" : [ "production" ]
+    }
+  },
+  "fileContainers" : [ {
+    "name" : "startscripts",
+    "targetPath" : "bin",
+    "itemType" : "bin",
+    "classifier" : "linux",
+    "targetIncluded" : true,
+    "contentType" : "IMMUTABLE",
+    "excludes" : [ ],
+    "preserveExcludes" : [ ],
+    "preserveIncludes" : [ ],
+    "updatable" : true,
+    "types" : [ "production", "test" ]
+  }, {
+    "name" : "startscripts",
+    "targetPath" : "bin",
+    "itemType" : "bin",
+    "classifier" : "win",
+    "targetIncluded" : true,
+    "contentType" : "IMMUTABLE",
+    "excludes" : [ ],
+    "preserveExcludes" : [ ],
+    "preserveIncludes" : [ ],
+    "updatable" : true,
+    "types" : [ "production", "test" ]
+  }, {
+    "name" : "startscripts",
+    "targetPath" : "bin",
+    "itemType" : "bin",
+    "classifier" : "macos",
+    "targetIncluded" : true,
+    "contentType" : "IMMUTABLE",
+    "excludes" : [ ],
+    "preserveExcludes" : [ ],
+    "preserveIncludes" : [ ],
+    "updatable" : true,
+    "types" : [ "production", "test" ]
+  } ],
+  "fileItems" : [ ],
+  "properties" : [ {
+    "key" : "pkey1",
+    "value" : "pvalues1",
+    "classifier" : "",
+    "contentType" : "IMMUTABLE",
+    "updatable" : true,
+    "types" : [ "perfTest" ]
+  }, {
+    "key" : "pkey2",
+    "value" : "pvalue2",
+    "classifier" : "",
+    "contentType" : "IMMUTABLE",
+    "updatable" : true,
+    "types" : [ "perfTest" ]
+  } ],
+  "excludes" : [ ],
+  "preserveExcludes" : [ ],
+  "preserveIncludes" : [ ],
+  "metadata" : {
+    "creation" : 1523179434565,
+    "version" : "v1",
+    "componentID" : {
+      "group" : "@group@",
+      "module" : "@module@",
+      "version" : "@version@"
+    }
+  }
+}

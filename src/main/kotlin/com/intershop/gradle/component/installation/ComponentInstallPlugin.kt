@@ -57,7 +57,7 @@ import com.intershop.gradle.component.descriptor.Module as ModuleDescr
  * @constructor initialize the plugin with the current model registry.
  */
 @Suppress("unused")
-class ComponentInstallPlugin @Inject constructor(private val modelRegistry: ModelRegistry) : Plugin<Project> {
+class ComponentInstallPlugin @Inject constructor(private val modelRegistry: ModelRegistry?) : Plugin<Project> {
 
     companion object {
         /**
@@ -87,8 +87,8 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
             tasks.maybeCreate(INSTALLTASKNAME).group = INSTALLGROUPNAME
 
-            if(modelRegistry.state(ModelPath.nonNullValidatedPath("installExtension")) == null) {
-                modelRegistry.register(ModelRegistrations.bridgedInstance(
+            if(modelRegistry?.state(ModelPath.nonNullValidatedPath("installExtension")) == null) {
+                modelRegistry?.register(ModelRegistrations.bridgedInstance(
                         ModelReference.of("installExtension", InstallationExtension::class.java), extension)
                         .descriptor("component install configuration").build())
             }
@@ -197,9 +197,6 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
             private fun configExcludesPreserve(spec: InstallTask,
                                                comp: Component,
                                                item: ContainerItem) {
-                spec.exclude(item.excludes)
-                spec.exclude(comp.excludes)
-
                 val preservePatternSet = PatternSet()
 
                 preservePatternSet.include(item.preserveIncludes)
@@ -209,6 +206,9 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
                 spec.preserve.setIncludes(preservePatternSet.includes)
                 spec.preserve.setExcludes(preservePatternSet.excludes)
+
+                spec.exclude(item.excludes)
+                spec.exclude(comp.excludes)
             }
 
             private fun removeDirFromPath(dirName: String,
@@ -310,13 +310,11 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
                         with(pkgTask) {
                             from(project.zipTree(pkgFile))
+
                             configSpec(this, confMgr, pkg.targetIncluded, update, pkg.targetPath)
+                            configExcludesPreserve(this, compToInstall, pkg)
 
                             pkgTask.contentType = ContentType.valueOf(pkg.contentType.toString())
-
-                            if(update) {
-                                configExcludesPreserve(this, compToInstall, pkg)
-                            }
                             destinationDir = confMgr.getTargetDir(mainDescr.containerTarget, pkg.targetPath)
                         }
 
@@ -334,13 +332,12 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                         destinationDir = confMgr.getTargetDir(mainDescr.modulesTarget, entry.key)
 
                         confMgr.configureModuleSpec(this, entry.value)
+
                         configSpec(this, confMgr, entry.value.targetIncluded, update, entry.key)
+                        configExcludesPreserve(this, compToInstall, entry.value)
 
                         install.contentType = ContentType.valueOf(entry.value.contentType.toString())
 
-                        if(update) {
-                            configExcludesPreserve(this, compToInstall, entry.value)
-                        }
                     }
 
                     confMgr.compInstallTask?.dependsOn(taskName)
