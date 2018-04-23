@@ -190,9 +190,9 @@
     "classifier" : "",
     "targetIncluded" : true,
     "contentType" : "DATA",
-    "excludes" : [ ],
+    "excludes" : [ "**/**/.switch" ],
     "preserveExcludes" : [ ],
-    "preserveIncludes" : [ ],
+    "preserveIncludes" : [ "**/**/.switch" ],
     "updatable" : true,
     "types" : [ "production" ]
   } ],

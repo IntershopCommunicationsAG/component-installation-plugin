@@ -307,7 +307,7 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
                 exclude("**/**/test1.properties")
                 // ... but not deleted
                 preserve {
-                    exclude "**/**/test1.properties"
+                    include "**/**/test1.properties"
                 }
             }
             installDir = file('installation')
@@ -325,6 +325,69 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         then:
         result2.task(':installTestcomponent').outcome == TaskOutcome.SUCCESS
         testFile.text == "property1 = value3"
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    @Unroll
+    def 'Test configuration - preserve item configuration - #gradleVersion'(gradleVersion) {
+        given:
+        String projectName = "testdeployment"
+        createSettingsGradle(projectName)
+
+        def repoConfiguration = createRepo(testProjectDir)
+
+        def testFile1 = new File(testProjectDir, 'installation/testcomp/share/sites/org1/.switch')
+        def testFile2 = new File(testProjectDir, 'installation/testcomp/share/sites/org2/.switch')
+
+
+        buildFile << """
+        plugins {
+            id 'com.intershop.gradle.component.installation'
+        }
+
+        group 'com.intershop.test'
+        version = '1.0.0'
+   
+        installation {
+            environment('production')
+
+            add("com.intershop.test:testcomponent:\${project.ext.installv}") {
+            }
+            installDir = file('installation')
+        }
+       
+        ${repoConfiguration}
+
+        """.stripIndent()
+
+        when:
+        List<String> args1 = ['install', '-s', '-i', "-Pinstallv=1.1.0"]
+
+        def result1 = getPreparedGradleRunner()
+                .withArguments(args1)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result1.task(':installTestcomponent').outcome == TaskOutcome.SUCCESS
+        testFile1.text == "1"
+        testFile2.text == "1"
+
+        when:
+        testFile1.text = "2"
+        testFile2.text = "2"
+
+        def result2 = getPreparedGradleRunner()
+                .withArguments(args1)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result2.task(':installTestcomponent').outcome == TaskOutcome.SUCCESS
+        testFile1.text == "2"
+        testFile2.text == "2"
 
         where:
         gradleVersion << supportedGradleVersions
@@ -455,7 +518,9 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
                 artifact name: 'share', type: 'sites', ext: 'zip', entries: [
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/sites/org1/import.properties', content: 'interntest1.file'),
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/sites/org2/import.properties', content: 'interntest2.file'),
-                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/system/config/test1.properties', content: 'changed --- fromZip.file')
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/system/config/test1.properties', content: 'changed --- fromZip.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/sites/org1/.switch', content: '1'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/sites/org2/.switch', content: '1')
                 ]
                 artifact name: 'test1', type: 'properties', ext: 'properties', content: 'property1 = value1'
                 artifact name: 'test2', type: 'properties', ext: 'properties', classifier: 'linux', content: 'property2 = value2'

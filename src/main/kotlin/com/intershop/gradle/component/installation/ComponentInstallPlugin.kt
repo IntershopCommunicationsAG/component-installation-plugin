@@ -195,20 +195,33 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
             }
 
             private fun configExcludesPreserve(spec: InstallTask,
+                                               descr: ComponentDescr,
                                                comp: Component,
-                                               item: ContainerItem) {
+                                               item: ContainerItem,
+                                               update: Boolean) {
                 val preservePatternSet = PatternSet()
 
-                preservePatternSet.include(item.preserveIncludes)
-                preservePatternSet.include(comp.preserve.excludes)
-                preservePatternSet.exclude(item.preserveExcludes)
-                preservePatternSet.exclude(comp.preserve.includes)
+                spec.exclude(comp.excludes)
+
+                if(update) {
+                    spec.exclude(descr.excludes)
+                    spec.exclude(item.excludes)
+                }
+
+                preservePatternSet.exclude(comp.preserve.excludes)
+                preservePatternSet.include(comp.preserve.includes)
+
+                if(update) {
+                    preservePatternSet.exclude(descr.preserveExcludes)
+                    preservePatternSet.include(descr.preserveIncludes)
+                    preservePatternSet.exclude(item.preserveExcludes)
+                    preservePatternSet.include(item.preserveIncludes)
+                }
 
                 spec.preserve.setIncludes(preservePatternSet.includes)
                 spec.preserve.setExcludes(preservePatternSet.excludes)
 
-                spec.exclude(item.excludes)
-                spec.exclude(comp.excludes)
+
             }
 
             private fun removeDirFromPath(dirName: String,
@@ -312,7 +325,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                             from(project.zipTree(pkgFile))
 
                             configSpec(this, confMgr, pkg.targetIncluded, update, pkg.targetPath)
-                            configExcludesPreserve(this, compToInstall, pkg)
+                            configExcludesPreserve(this, mainDescr, compToInstall, pkg, update)
 
                             pkgTask.contentType = ContentType.valueOf(pkg.contentType.toString())
                             destinationDir = confMgr.getTargetDir(mainDescr.containerTarget, pkg.targetPath)
@@ -334,7 +347,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                         confMgr.configureModuleSpec(this, entry.value)
 
                         configSpec(this, confMgr, entry.value.targetIncluded, update, entry.key)
-                        configExcludesPreserve(this, compToInstall, entry.value)
+                        configExcludesPreserve(this, mainDescr, compToInstall, entry.value, update)
 
                         install.contentType = ContentType.valueOf(entry.value.contentType.toString())
 
