@@ -437,12 +437,10 @@ class DescriptorManager(private val repositories: RepositoryHandler,
             }
             is FileURLConnection -> {
                 val dir = File(connection.url.toURI())
-                version = if (descriptor.hasLatestVersion) {
-                    getVersionFromIvyDir(dir, "")
-                } else if (descriptor.hasVersionPattern) {
-                    getVersionFromIvyDir(dir, descriptor.versionPattern)
-                } else {
-                    getVersionFromIvyDir(dir, descriptor.versionPattern)
+                version = when {
+                    descriptor.hasLatestVersion -> getVersionFromIvyDir(dir, "")
+                    descriptor.hasVersionPattern -> getVersionFromIvyDir(dir, descriptor.versionPattern)
+                    else -> getVersionFromIvyDir(dir, descriptor.versionPattern)
                 }
             }
             else -> {

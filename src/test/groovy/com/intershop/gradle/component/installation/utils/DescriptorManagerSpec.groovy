@@ -238,7 +238,6 @@ class DescriptorManagerSpec extends Specification {
 
     def 'test ivy version from latest - file url'() {
         setup:
-        String path = 'com.intershop.test/test'
         String filePath = createIvyFileRepo(testProjectDir).absolutePath
 
         String urlStr =  "file://$filePath"
@@ -288,7 +287,6 @@ class DescriptorManagerSpec extends Specification {
 
     def 'test ivy version from latest with pattern - file url'() {
         setup:
-        String path = 'com.intershop.test/test'
         String filePath = createIvyFileRepo(testProjectDir).absolutePath
 
         String urlStr =  "file://$filePath"
@@ -391,7 +389,6 @@ class DescriptorManagerSpec extends Specification {
         def component = new File(testProjectDir, "build/component.component")
 
         when:
-        def repo = descrMgr.descriptorRepo
         descrMgr.loadDescriptorFile(component)
 
         then:
