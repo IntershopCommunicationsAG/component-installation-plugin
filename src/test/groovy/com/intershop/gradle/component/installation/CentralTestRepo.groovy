@@ -53,6 +53,9 @@ class CentralTestRepo {
         copyResources("descriptors/component-1.component", "component-1.component", dir)
         copyResources("descriptors/component-1.1.component", "component-1.1.component", dir)
         copyResources("descriptors/component-1.2.component", "component-1.2.component", dir)
+        copyResources("descriptors/component-1.3.component", "component-1.3.component", dir)
+        copyResources("descriptors/component-1.4.component", "component-1.4.component", dir)
+        copyResources("descriptors/component-1.5.component", "component-1.5.component", dir)
         copyResources("descriptors/component-A.component", "component-A.component", dir)
         copyResources("descriptors/component-B.component", "component-B.component", dir)
 
@@ -173,7 +176,7 @@ class CentralTestRepo {
             }
             module(org: 'com.intershop.test', name: 'testcomponent', rev: '1.2.0') {
                 artifact name: 'testcomponent', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME,
-                        content: replaceContent(new File(dir, "component-1.2.component"), ['@group@': 'com.intershop.test', '@module@': 'testcomponent', '@version@': '1.1.0'], dir)
+                        content: replaceContent(new File(dir, "component-1.2.component"), ['@group@': 'com.intershop.test', '@module@': 'testcomponent', '@version@': '1.2.0'], dir)
                 artifact name: 'startscripts', type: 'bin', ext: 'zip', classifier: 'linux', entries: [
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript1.sh', content: 'interntest1.file'),
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript2.sh', content: 'interntest2.file')
@@ -196,7 +199,81 @@ class CentralTestRepo {
                 artifact name: 'test1', type: 'properties', ext: 'properties', content: 'property1 = value1'
                 artifact name: 'test2', type: 'properties', ext: 'properties', classifier: 'linux', content: 'property2 = value2'
             }
-
+            module(org: 'com.intershop.test', name: 'testcomponent', rev: '1.3.0') {
+                artifact name: 'testcomponent', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME,
+                        content: replaceContent(new File(dir, "component-1.3.component"), ['@group@': 'com.intershop.test', '@module@': 'testcomponent', '@version@': '1.3.0'], dir)
+                artifact name: 'startscripts', type: 'bin', ext: 'zip', classifier: 'linux', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript1.sh', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript2.sh', content: 'interntest2.file')
+                ]
+                artifact name: 'startscripts', type: 'bin', ext: 'zip', classifier: 'macos', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript1.sh', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript2.sh', content: 'interntest2.file')
+                ]
+                artifact name: 'startscripts', type: 'bin', ext: 'zip', classifier: 'win', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript1.bat', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript2.bat', content: 'interntest2.file')
+                ]
+                artifact name: 'share', type: 'sites', ext: 'zip', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/sites/org1/import.properties', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/sites/org2/import.properties', content: 'interntest2.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/system/config/test1.properties', content: 'changed --- fromZip.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/sites/org1/.switch', content: '1'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/sites/org2/.switch', content: '1')
+                ]
+                artifact name: 'test1', type: 'properties', ext: 'properties', content: 'property1 = value1'
+                artifact name: 'test2', type: 'properties', ext: 'properties', classifier: 'linux', content: 'property2 = value2'
+            }
+            module(org: 'com.intershop.test', name: 'testcomponent', rev: '1.4.0') {
+                artifact name: 'testcomponent', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME,
+                        content: replaceContent(new File(dir, "component-1.4.component"), ['@group@': 'com.intershop.test', '@module@': 'testcomponent', '@version@': '1.4.0'], dir)
+                artifact name: 'startscripts', type: 'bin', ext: 'zip', classifier: 'linux', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript1.sh', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript2.sh', content: 'interntest2.file')
+                ]
+                artifact name: 'startscripts', type: 'bin', ext: 'zip', classifier: 'macos', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript1.sh', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript2.sh', content: 'interntest2.file')
+                ]
+                artifact name: 'startscripts', type: 'bin', ext: 'zip', classifier: 'win', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript1.bat', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript2.bat', content: 'interntest2.file')
+                ]
+                artifact name: 'share', type: 'sites', ext: 'zip', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/sites/org1/import.properties', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/sites/org2/import.properties', content: 'interntest2.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/system/config/test1.properties', content: 'changed --- fromZip.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/sites/org1/.switch', content: '1'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/sites/org2/.switch', content: '1')
+                ]
+                artifact name: 'test1', type: 'properties', ext: 'properties', content: 'property1 = value1'
+                artifact name: 'test2', type: 'properties', ext: 'properties', classifier: 'linux', content: 'property2 = value2'
+            }
+            module(org: 'com.intershop.test', name: 'testcomponent', rev: '1.5.0') {
+                artifact name: 'testcomponent', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME,
+                        content: replaceContent(new File(dir, "component-1.5.component"), ['@group@': 'com.intershop.test', '@module@': 'testcomponent', '@version@': '1.5.0'], dir)
+                artifact name: 'startscripts', type: 'bin', ext: 'zip', classifier: 'linux', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript1.sh', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript2.sh', content: 'interntest2.file')
+                ]
+                artifact name: 'startscripts', type: 'bin', ext: 'zip', classifier: 'macos', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript1.sh', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript2.sh', content: 'interntest2.file')
+                ]
+                artifact name: 'startscripts', type: 'bin', ext: 'zip', classifier: 'win', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript1.bat', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript2.bat', content: 'interntest2.file')
+                ]
+                artifact name: 'share', type: 'sites', ext: 'zip', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/sites/org1/import.properties', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/sites/org2/import.properties', content: 'interntest2.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/system/config/test1.properties', content: 'changed --- fromZip.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/sites/org1/.switch', content: '1'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'share/sites/org2/.switch', content: '1')
+                ]
+                artifact name: 'test1', type: 'properties', ext: 'properties', content: 'property1 = value1'
+                artifact name: 'test2', type: 'properties', ext: 'properties', classifier: 'linux', content: 'property2 = value2'
+            }
             module(org: 'com.intershop.test', name: 'testcomponentA', rev: '1.0.0') {
                 artifact name: 'testcomponentA', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME,
                         content: replaceContent(new File(dir, "component-A.component"), ['@group@': 'com.intershop.test', '@module@': 'testcomponentA', '@version@': '1.0.0'], dir)

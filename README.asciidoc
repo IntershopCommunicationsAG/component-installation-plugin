@@ -5,8 +5,267 @@
 :icons: font
 :toc:
 
+image:https://travis-ci.org/IntershopCommunicationsAG/component-installation-plugin.svg?branch=master["Build Status", link="https://travis-ci.org/IntershopCommunicationsAG/component-installation-plugin"]
+image:https://api.codacy.com/project/badge/Grade/10be1565bc224733aeb2d660374ba726["Codacy code quality", link="https://www.codacy.com/app/IntershopCommunicationsAG/component-installation-plugin?utm_source=github.com&utm_medium=referral&utm_content=IntershopCommunicationsAG/component-installation-plugin&utm_campaign=Badge_Grade"]
+
 NOTE: This library requires Gradle 4 and JDK 8
 
 NOTE: This library is under development and not final released.
 
 == Summary
+This plugin creates an installation from configured component artifacts. This components will be created by the
+component-build-plugin. Each component consists of a descriptor, packages files etc. The descriptor is based on Json.
+The configuration of the plugin includes not only the dependencies of the components. It includes also a type
+configuration to specify the scope of the installation. The target operating system will be also considerd automatically.
+
+== Usage
+To apply the component-installation Gradle plugin to your projects, add the following in your build script:
+
+[source,groovy]
+[subs=+attributes]
+.build.gradle
+----
+plugins {
+    id 'com.intershop.gradle.component.installation' version '{latestRevision}'
+}
+
+installation {
+    environment('production')
+
+    add("com.intershop.test:testcomponent:1.0.0")
+
+    installDir = file('installation')
+}
+----
+
+== Tasks
+
+[cols="25%,30%,45%", width="100%", options="header"]
+|===
+|Task name                              | Type                 | Description
+
+|install                                | Task                 | Starts the whole installation
+|install<common component name>         | Task                 | Starts the installation of a component
+|install<common component name>CleanUp  | CleanUpTask (*)      | Removes or backup directories in the component installation directory,  +
+that are not part of the installation.
+|install<common component name>Libs     | InstallTask (*)      | Installation task of all libraries.
+|install<common component name>Module*  | InstallTask (*)      | Installation tasks of all modules.
+|install<common component name>Pkg*     | InstallTask (*)      | Installation tasks of all file containers.
+|preInstall<common component name>      | Task                 | Starts all tasks before the installation of the component runs.
+|preInstall                             | Task                 | Starts all tasks before the installation runs.
+|===
+
+The group of all tasks with (*) is `com.intershop.gradle.component.installation.tasks`.
+The install task is a sync task, that preserves the modified time of the source files.
+
+The order of the task is
+
+. `preInstall`
+. `preInstall<Common component name>`, eg. `preInstallTestcomponent`
+. `install<Common component name>Cleanup`, `install<Common component name>Libs`, `install<Common component name>Module*`,
+`install<Common component name>Pkg*` are executed in parallel
+. `install<Common component name>`, eg. preInstallTestcomponent
+. `install`
+
+If you run
+----
+./gradlew install
+----
+all installation related tasks will be executed in the correct order.
+
+== Project Extension 'installation'
+
+=== Properties of 'installation'
+[cols="1m,2d" width="100%", options="header"]
+|===
+|Property | Description
+
+|<<installDir, installDir>> |
+|<<installConfig, installConfig>> |
+|<<environment, environment>> |
+|<<components, components>> |
+|===
+
+[[installDir]]
+[source,groovy]
+File installDir
+
+:::
+
+Default:: null
+
+***
+
+[[installConfig]]
+[source,groovy]
+InstallConfiguration installConfig
+
+:::
+
+Default:: an instance of InstallConfiguration
+
+***
+
+[[environment]]
+[source,groovy]
+Set<String> environment
+
+:::
+
+Default:: `[]`
+
+***
+
+[[components]]
+[source,groovy]
+Set<Component> components
+
+:::
+
+Default:: `[]`
+
+***
+
+=== Methods of 'installation'
+
+[cols="1m,1d" width="100%", options="header"]
+|===
+|Method     | Description
+
+|<<add, add>>(component) |
+|<<addpath, add>>(component, path) |
+|<<addaction, add>>(component, action) |
+|<<addclosure, add>>(component, closure) |
+|<<addpathaction, add>>(component, path, action) |
+|<<addpathclosure, add>>(component, path, closure) |
+|===
+
+[[add]]
+[source,groovy]
+Component add(Object component)
+
+:::
+
+Example::
+
+***
+
+[[addpath]]
+[source,groovy]
+Component add(Object component, String path)
+
+:::
+
+Example::
+
+***
+
+[[addaction]]
+[source,groovy]
+Component add(Object component, Action<? super Component> action)
+
+[[addclosure]]
+[source,groovy]
+Component add(Object component, Closure closure)
+
+:::
+
+Example::
+
+***
+
+[[addpathaction]]
+[source,groovy]
+Component add(Object component, String path, Action<? super Component> action)
+
+[[addpathclosure]]
+[source,groovy]
+Component add(Object component, String path, Closure closure)
+
+:::
+
+Example::
+
+***
+
+=== Container 'installConfig'
+
+==== Properties of 'installConfig'
+
+[cols="1m,2d" width="100%", options="header"]
+|===
+|Property | Description
+
+|<<installAdminDir,installAdminDir>> |
+|<<ivyPatterns, ivyPatterns>> |
+|===
+
+[[installAdminDir]]
+[source,groovy]
+File installAdminDir
+
+:::
+
+Default:: `project.buildDir`
+
+***
+
+[[ivyPatterns]]
+[source,groovy]
+Set<String> ivyPatterns
+
+:::
+
+Default:: `["[organisation]/[module]/[revision]/[ext]s/[artifact]-[type](-[classifier])-[revision].[ext]", +
+            "[organisation]/[module]/[revision]/[type]s/ivy-[revision].xml", +
+            "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])", +
+            "[organisation]/[module]/[revision]/[type]s/[artifact](.[ext])"]`
+
+***
+
+==== Methods of 'installConfig'
+
+[cols="1m,1d" width="100%", options="header"]
+|===
+|Method     | Description
+
+|<<addIvyPattern,addIvyPattern>>(pattern) |
+|===
+
+
+
+=== Container 'component'
+
+==== Properties of 'component'
+
+[cols="1m,2d" width="100%", options="header"]
+|===
+|Property | Description
+
+|<<commonName, commonName>> |
+|<<dependency, dependency>> |
+|<<excludes, excludes>> |
+|<<preserve, preserve>> |
+|===
+
+==== Methods of 'component'
+
+[cols="1m,1d" width="100%", options="header"]
+|===
+|Method     | Description
+
+|<<excludep, exclude>>(pattern) |
+|<<excludeps, exclude>>(patterns) |
+|<<preserveaction, preserve>>(action) |
+|<<preserveclosure, preserve>>(closure) |
+|===
+
+== License
+
+Copyright 2014-2018 Intershop Communications.
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.

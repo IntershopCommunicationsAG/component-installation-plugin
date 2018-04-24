@@ -34,6 +34,7 @@ open class InstallConfiguration @Inject constructor(project: Project) {
 
     init {
         ivyPatternSet.add(DescriptorManager.INTERSHOP_PATTERN)
+        ivyPatternSet.add(DescriptorManager.INTERSHOP_IVY_PATTERN)
         ivyPatternSet.add(IvyArtifactRepository.GRADLE_ARTIFACT_PATTERN)
         ivyPatternSet.add(IvyArtifactRepository.IVY_ARTIFACT_PATTERN)
     }

@@ -38,11 +38,16 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         buildFile << """
         plugins {
             id 'com.intershop.gradle.component.installation'
+            id "com.dorongold.task-tree" version "1.3"
         }
 
         group 'com.intershop.test'
         version = '1.0.0'
    
+        taskTree{
+            noRepeat = true
+        }
+
         installation {
             environment('production')
 
@@ -52,6 +57,17 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
        
         ${repoConfig.getRepoConfig()}
         """.stripIndent()
+
+        when:
+        List<String> argsTasks = [ 'taskTree', 'install', "-Pinstallv=1.0.0"]
+
+        def resultTasks = getPreparedGradleRunner()
+                .withArguments(argsTasks)
+                .withGradleVersion(gradleVersion)
+                .build()
+        then:
+        resultTasks.output.contains("\\--- :preInstallTestcomponent")
+        resultTasks.output.contains("\\--- :preInstall")
 
         when:
         List<String> args1 = ['install', '-s', '-i', "-Pinstallv=1.0.0"]
@@ -245,7 +261,7 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def 'Test configuration - preserve - #gradleVersion'(gradleVersion) {
+    def 'Test configuration - exclude and preserve - #gradleVersion'(gradleVersion) {
         given:
         String projectName = "testdeployment"
         createSettingsGradle(projectName)
@@ -325,7 +341,7 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def 'Test configuration - preserve item configuration - #gradleVersion'(gradleVersion) {
+    def 'Test configuration - exclude and preserve item configuration - #gradleVersion'(gradleVersion) {
         given:
         String projectName = "testdeployment"
         createSettingsGradle(projectName)
@@ -385,7 +401,7 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def 'Test configuration - preserve comp configuration - #gradleVersion'(gradleVersion) {
+    def 'Test configuration - exclude and preserve comp configuration - #gradleVersion'(gradleVersion) {
         given:
         String projectName = "testdeployment"
         createSettingsGradle(projectName)
@@ -438,6 +454,223 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         result2.task(':installTestcomponent').outcome == TaskOutcome.SUCCESS
         testFile1.text == "2"
         testFile2.text == "2"
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    @Unroll
+    def 'Test configuration - updatable container - #gradleVersion'(gradleVersion) {
+        given:
+        String projectName = "testdeployment"
+        createSettingsGradle(projectName)
+
+        buildFile << """
+        plugins {
+            id 'com.intershop.gradle.component.installation'
+        }
+
+        group 'com.intershop.test'
+        version = '1.0.0'
+   
+        installation {
+            environment('production')
+
+            add("com.intershop.test:testcomponent:\${project.ext.installv}") {
+            }
+            installDir = file('installation')
+        }
+       
+        ${repoConfig.getRepoConfig()}
+        """.stripIndent()
+
+        when:
+        List<String> args1 = ['install', '-s', '-i', "-Pinstallv=1.3.0"]
+
+        def result1 = getPreparedGradleRunner()
+                .withArguments(args1)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result1.task(':installTestcomponent').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule1').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule2').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule3').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentComponentDescriptor').outcome == TaskOutcome.SUCCESS
+        result1.task(':cleanupTestcomponentCleanUp').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentLibs').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentPkgStartscriptsBin').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentPkgShareSites').outcome == TaskOutcome.SUCCESS
+
+        new File(testProjectDir,'installation/testcomp/share/system/config/test1.properties').exists()
+
+        when:
+        def result2 = getPreparedGradleRunner()
+                .withArguments(args1)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result2.task(':installTestcomponent').outcome == TaskOutcome.SUCCESS
+        result2.task(':installTestcomponentModuleTestmodule1').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentModuleTestmodule2').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentModuleTestmodule3').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentComponentDescriptor').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':cleanupTestcomponentCleanUp').outcome == TaskOutcome.SUCCESS
+        result2.task(':installTestcomponentLibs').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentPkgStartscriptsBin').outcome == TaskOutcome.UP_TO_DATE
+        result2.tasks.find { it.path == ':installTestcomponentPkgShareSites' } == null
+
+        new File(testProjectDir,'installation/testcomp/share/system/config/test1.properties').exists()
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    @Unroll
+    def 'Test configuration - updatable file - #gradleVersion'(gradleVersion) {
+        given:
+        String projectName = "testdeployment"
+        createSettingsGradle(projectName)
+
+        buildFile << """
+        plugins {
+            id 'com.intershop.gradle.component.installation'
+        }
+
+        group 'com.intershop.test'
+        version = '1.0.0'
+   
+        installation {
+            environment('production')
+
+            add("com.intershop.test:testcomponent:\${project.ext.installv}") {
+            }
+            installDir = file('installation')
+        }
+       
+        ${repoConfig.getRepoConfig()}
+        """.stripIndent()
+
+        when:
+        List<String> args1 = ['install', '-s', '-i', "-Pinstallv=1.4.0"]
+
+        def result1 = getPreparedGradleRunner()
+                .withArguments(args1)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result1.task(':installTestcomponent').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule1').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule2').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule3').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentComponentDescriptor').outcome == TaskOutcome.SUCCESS
+        result1.task(':cleanupTestcomponentCleanUp').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentLibs').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentPkgStartscriptsBin').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentPkgShareSites').outcome == TaskOutcome.SUCCESS
+
+        new File(testProjectDir,'installation/testcomp/share/system/config/test1.properties').text == 'property1 = value1'
+
+        when:
+        def result2 = getPreparedGradleRunner()
+                .withArguments(args1)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result2.task(':installTestcomponent').outcome == TaskOutcome.SUCCESS
+        result2.task(':installTestcomponentModuleTestmodule1').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentModuleTestmodule2').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentModuleTestmodule3').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentComponentDescriptor').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':cleanupTestcomponentCleanUp').outcome == TaskOutcome.SUCCESS
+        result2.task(':installTestcomponentLibs').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentPkgStartscriptsBin').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentPkgShareSites').outcome == TaskOutcome.SUCCESS
+
+        new File(testProjectDir,'installation/testcomp/share/system/config/test1.properties').text == 'changed --- fromZip.file'
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    @Unroll
+    def 'Test configuration - updatable module - #gradleVersion'(gradleVersion) {
+        given:
+        String projectName = "testdeployment"
+        createSettingsGradle(projectName)
+
+        def testFile = new File(testProjectDir, 'installation/testcomp/testmodule5/testmodule/testconf/test52.conf')
+
+        buildFile << """
+        plugins {
+            id 'com.intershop.gradle.component.installation'
+        }
+
+        group 'com.intershop.test'
+        version = '1.0.0'
+   
+        installation {
+            environment('production')
+
+            add("com.intershop.test:testcomponent:\${project.ext.installv}") {
+            }
+            installDir = file('installation')
+        }
+       
+        ${repoConfig.getRepoConfig()}
+        """.stripIndent()
+
+        when:
+        List<String> args1 = ['install', '-s', '-i', "-Pinstallv=1.5.0"]
+
+        def result1 = getPreparedGradleRunner()
+                .withArguments(args1)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result1.task(':installTestcomponent').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule1').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule2').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule3').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule5').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentComponentDescriptor').outcome == TaskOutcome.SUCCESS
+        result1.task(':cleanupTestcomponentCleanUp').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentLibs').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentPkgStartscriptsBin').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentPkgShareSites').outcome == TaskOutcome.SUCCESS
+
+        testFile.text == 'test52.conf'
+
+        when:
+        testFile.text = 'changed by other process'
+
+        def result2 = getPreparedGradleRunner()
+                .withArguments(args1)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result2.task(':installTestcomponent').outcome == TaskOutcome.SUCCESS
+        result2.task(':installTestcomponentModuleTestmodule1').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentModuleTestmodule2').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentModuleTestmodule3').outcome == TaskOutcome.UP_TO_DATE
+        result2.tasks.find { it.path == ':installTestcomponentModuleTestmodule5' } == null
+        result2.task(':installTestcomponentComponentDescriptor').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':cleanupTestcomponentCleanUp').outcome == TaskOutcome.SUCCESS
+        result2.task(':installTestcomponentLibs').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentPkgStartscriptsBin').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentPkgShareSites').outcome == TaskOutcome.SUCCESS
+
+        testFile.text == 'changed by other process'
 
         where:
         gradleVersion << supportedGradleVersions

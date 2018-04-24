@@ -21,6 +21,8 @@ import com.intershop.gradle.component.descriptor.Module
 import com.intershop.gradle.component.descriptor.items.DeploymentItem
 import com.intershop.gradle.component.descriptor.items.OSSpecificItem
 import com.intershop.gradle.component.installation.ComponentInstallPlugin
+import com.intershop.gradle.component.installation.ComponentInstallPlugin.Companion.INSTALLTASKNAME
+import com.intershop.gradle.component.installation.ComponentInstallPlugin.Companion.PREINSTALLTASKNAME
 import com.intershop.gradle.component.installation.extension.InstallationExtension
 import com.intershop.gradle.component.installation.extension.OSType.Companion.checkClassifierForOS
 import com.intershop.gradle.component.installation.utils.data.FileItem
@@ -121,6 +123,13 @@ class InstallConfigManager(private val prjext: InstallationExtension,
     var compInstallTask: Task? = null
 
     /**
+     * The name of the component pre installation task. This
+     * task will be executed before a sub installation task
+     * of the compoonent will be started.
+     */
+    var preCompInstallTaskName: String = ""
+
+    /**
      * Get a suffix for tasks and configurations. This is
      * specific for the component and depends from the common name.
      *
@@ -152,7 +161,7 @@ class InstallConfigManager(private val prjext: InstallationExtension,
     init {
         descriptor.modules.forEach { module ->
 
-            if (((module.value.updatable && update) || !update) && checkForType(module.value)) {
+            if ((module.value.updatable || !update) && checkForType(module.value)) {
                 val configSuffix = getSuffixStr("module", module.value.name)
 
                 val depString = module.value.dependency.toString()
@@ -195,7 +204,7 @@ class InstallConfigManager(private val prjext: InstallationExtension,
             commonConf.extendsFrom(conf)
         }
 
-        val taskPrefix = "install".plus(commonName.capitalize())
+        val taskPrefix = INSTALLTASKNAME.plus(commonName.capitalize())
 
         if (tasks.get(taskPrefix) == null) {
             tasks.create(taskPrefix) {
@@ -206,6 +215,18 @@ class InstallConfigManager(private val prjext: InstallationExtension,
             installTask?.dependsOn(taskPrefix)
         }
         compInstallTask = tasks.get(taskPrefix)
+
+        preCompInstallTaskName = PREINSTALLTASKNAME.plus(commonName.capitalize())
+
+        if(tasks.get(preCompInstallTaskName) == null) {
+            tasks.create(preCompInstallTaskName) {
+                it.group = ComponentInstallPlugin.INSTALLGROUPNAME
+                it.description = "Run all tasks before the installation of '$commonName' starts"
+            }
+        }
+        val preCompInstallTask = tasks.get(preCompInstallTaskName)
+
+        preCompInstallTask?.dependsOn(PREINSTALLTASKNAME)
     }
 
     /**
@@ -365,7 +386,6 @@ class InstallConfigManager(private val prjext: InstallationExtension,
 
         val confName = "config".plus(getSuffixStr("libs"))
         val conf = commonConf.extendsFrom.find { it.name ==  confName }
-
 
 
         if(conf != null) {

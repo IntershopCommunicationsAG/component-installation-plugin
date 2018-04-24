@@ -1,0 +1,243 @@
+{
+  "displayName" : "test",
+  "componentDescription" : "Test component 1",
+  "types" : [ "test", "production", "perfTest" ],
+  "classifiers" : [ "linux", "win", "macos", "" ],
+  "modulesTarget" : "",
+  "libsTarget" : "lib/release/libs",
+  "containerTarget" : "",
+  "target" : "testcomp",
+  "descriptorPath" : "component",
+  "modules" : {
+    "testmodule1" : {
+      "name" : "testmodule1",
+      "targetPath" : "testmodule1",
+      "dependency" : {
+        "group" : "com.intershop",
+        "module" : "testmodule1",
+        "version" : "1.0.0"
+      },
+      "itemType" : "",
+      "pkgs" : [ "testmodule1-cartridge" ],
+      "jars" : [ "extlib", "testmodule1" ],
+      "jarPath" : "libs",
+      "descriptorPath" : "",
+      "targetIncluded" : false,
+      "contentType" : "IMMUTABLE",
+      "excludes" : [ ],
+      "preserveExcludes" : [ ],
+      "preserveIncludes" : [ ],
+      "updatable" : true,
+      "types" : [ "production" ],
+      "classifiers" : [ ]
+    },
+    "testmodule2" : {
+      "name" : "testmodule2",
+      "targetPath" : "testmodule2",
+      "dependency" : {
+        "group" : "com.intershop",
+        "module" : "testmodule2",
+        "version" : "1.0.0"
+      },
+      "itemType" : "",
+      "pkgs" : [ "testmodule2-cartridge" ],
+      "jars" : [ "testmodule2" ],
+      "jarPath" : "libs",
+      "descriptorPath" : "",
+      "targetIncluded" : false,
+      "contentType" : "IMMUTABLE",
+      "excludes" : [ ],
+      "preserveExcludes" : [ ],
+      "preserveIncludes" : [ ],
+      "updatable" : true,
+      "types" : [ "production" ],
+      "classifiers" : [ ]
+    },
+    "testmodule3" : {
+      "name" : "testmodule3",
+      "targetPath" : "testmodule3",
+      "dependency" : {
+        "group" : "com.intershop",
+        "module" : "testmodule3",
+        "version" : "1.0.0"
+      },
+      "itemType" : "",
+      "pkgs" : [ "testmodule3-local-linux", "testmodule3-local-win", "testmodule3-local-macos" ],
+      "jars" : [ ],
+      "jarPath" : "libs",
+      "descriptorPath" : "",
+      "targetIncluded" : false,
+      "contentType" : "IMMUTABLE",
+      "excludes" : [ ],
+      "preserveExcludes" : [ ],
+      "preserveIncludes" : [ ],
+      "updatable" : true,
+      "types" : [ "production" ],
+      "classifiers" : [ "linux", "win", "macos" ]
+    },
+    "testmodule4" : {
+      "name" : "testmodule4",
+      "targetPath" : "testmodule4",
+      "dependency" : {
+        "group" : "com.intershop",
+        "module" : "testmodule4",
+        "version" : "1.0.0"
+      },
+      "itemType" : "",
+      "pkgs" : [ "testmodule4-local-solaris"],
+      "jars" : [ ],
+      "jarPath" : "libs",
+      "descriptorPath" : "",
+      "jarPath" : "libs",
+      "descriptorPath" : "",
+      "targetIncluded" : false,
+      "contentType" : "IMMUTABLE",
+      "excludes" : [ ],
+      "preserveExcludes" : [ ],
+      "preserveIncludes" : [ ],
+      "updatable" : true,
+      "types" : [ "production" ],
+      "classifiers" : [ "solaris" ]
+    }
+  },
+  "libs" : {
+    "com.intershop:library1:1.0.0" : {
+      "dependency" : {
+        "group" : "com.intershop",
+        "module" : "library1",
+        "version" : "1.0.0"
+      },
+      "targetName" : "com.intershop_library1_1.0.0",
+      "types" : [ "production" ]
+    },
+    "com.intershop:library2:1.0.0" : {
+      "dependency" : {
+        "group" : "com.intershop",
+        "module" : "library2",
+        "version" : "1.0.0"
+      },
+      "targetName" : "com.intershop_library2_1.0.0",
+      "types" : [ "production" ]
+    },
+    "com.intershop:library3:1.0.0" : {
+      "dependency" : {
+        "group" : "com.intershop",
+        "module" : "library3",
+        "version" : "1.0.0"
+      },
+      "targetName" : "com.intershop_library3_1.0.0",
+      "types" : [ "production" ]
+    },
+    "com.intershop:library4:1.0.0" : {
+      "dependency" : {
+        "group" : "com.intershop",
+        "module" : "library4",
+        "version" : "1.0.0"
+      },
+      "targetName" : "com.intershop_library4_1.0.0",
+      "types" : [ "production" ]
+    },
+    "com.other:library4:1.0.0" : {
+      "dependency" : {
+        "group" : "com.other",
+        "module" : "library4",
+        "version" : "1.0.0"
+      },
+      "targetName" : "com.other_library4_1.0.0",
+      "types" : [ "production" ]
+    }
+  },
+  "fileContainers" : [ {
+    "name" : "startscripts",
+    "targetPath" : "bin",
+    "itemType" : "bin",
+    "classifier" : "linux",
+    "targetIncluded" : true,
+    "contentType" : "IMMUTABLE",
+    "excludes" : [ ],
+    "preserveExcludes" : [ ],
+    "preserveIncludes" : [ ],
+    "updatable" : true,
+    "types" : [ "production", "test" ]
+  }, {
+    "name" : "startscripts",
+    "targetPath" : "bin",
+    "itemType" : "bin",
+    "classifier" : "win",
+    "targetIncluded" : true,
+    "contentType" : "IMMUTABLE",
+    "excludes" : [ ],
+    "preserveExcludes" : [ ],
+    "preserveIncludes" : [ ],
+    "updatable" : true,
+    "types" : [ "production", "test" ]
+  }, {
+    "name" : "startscripts",
+    "targetPath" : "bin",
+    "itemType" : "bin",
+    "classifier" : "macos",
+    "targetIncluded" : true,
+    "contentType" : "IMMUTABLE",
+    "excludes" : [ ],
+    "preserveExcludes" : [ ],
+    "preserveIncludes" : [ ],
+    "updatable" : true,
+    "types" : [ "production", "test" ]
+  }, {
+    "name" : "share",
+    "targetPath" : "share",
+    "itemType" : "sites",
+    "classifier" : "",
+    "targetIncluded" : true,
+    "contentType" : "DATA",
+    "excludes" : [ ],
+    "preserveExcludes" : [ ],
+    "preserveIncludes" : [ ],
+    "updatable" : true,
+    "types" : [ "production" ]
+  } ],
+  "fileItems" : [ {
+    "name" : "test1",
+    "extension" : "properties",
+    "targetPath" : "share/system/config",
+    "classifier" : "",
+    "contentType" : "IMMUTABLE",
+    "updatable" : false,
+    "types" : [ ]
+  }, {
+    "name" : "test2",
+    "extension" : "properties",
+    "targetPath" : "share/system/config",
+    "classifier" : "linux",
+    "contentType" : "IMMUTABLE",
+    "updatable" : true,
+    "types" : [ ]
+  } ],
+  "properties" : [ {
+    "key" : "pkey1",
+    "value" : "pvalues1",
+    "classifier" : "",
+    "contentType" : "IMMUTABLE",
+    "updatable" : true,
+    "types" : [ "perfTest" ]
+  }, {
+    "key" : "pkey2",
+    "value" : "pvalue2",
+    "classifier" : "",
+    "contentType" : "IMMUTABLE",
+    "updatable" : true,
+    "types" : [ "perfTest" ]
+  } ],
+  "excludes" : [ "**/**/.switch" ],
+  "preserveExcludes" : [ ],
+  "preserveIncludes" : [ "**/**/.switch" ],
+  "metadata" : {
+    "creation" : 1523179434565,
+    "version" : "v1",
+    "componentID" : {
+      "group" : "@group@",
+      "module" : "@module@",
+      "version" : "@version@"
+    }
+  }
+}

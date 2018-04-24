@@ -65,6 +65,13 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
          * all install tasks.
          */
         const val INSTALLTASKNAME = "install"
+
+        /**
+         * Task name of the first task before all installation subtasks will
+         * be startet.
+         */
+        const val PREINSTALLTASKNAME = "preInstall"
+
         /**
          * The task group name of all install tasks.
          */
@@ -85,7 +92,13 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                     ?: extensions.create(InstallationExtension.INSTALLATION_EXTENSION_NAME,
                             InstallationExtension::class.java, project)
 
-            tasks.maybeCreate(INSTALLTASKNAME).group = INSTALLGROUPNAME
+            val mainInstallTask = tasks.maybeCreate(INSTALLTASKNAME)
+            mainInstallTask.group = INSTALLGROUPNAME
+            mainInstallTask.description = "Run installation of '${project.name}'"
+
+            val mainPreInstallTask = tasks.maybeCreate(PREINSTALLTASKNAME)
+            mainPreInstallTask.group = INSTALLGROUPNAME
+            mainPreInstallTask.description = "Run all tasks before the installation of '${project.name}' starts"
 
             if(modelRegistry?.state(ModelPath.nonNullValidatedPath("installExtension")) == null) {
                 modelRegistry?.register(ModelRegistrations.bridgedInstance(
@@ -304,6 +317,8 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                     from(project.file(targetFile))
                     contentType = ContentType.IMMUTABLE
                     destinationDir = confMgr.getTargetDir(mainDescr.descriptorPath)
+
+                    dependsOn(confMgr.preCompInstallTaskName)
                 }
                 confMgr.compInstallTask?.dependsOn(descrTaskname)
 
@@ -314,7 +329,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                 mainDescr.fileContainers.forEach { pkg ->
                     val pkgFile = File(compAdminDir, "pkgs/${pkg.name}.zip")
 
-                    if (checkForOS(pkg) && confMgr.checkForType(pkg) && pkg.updatable ) {
+                    if (checkForOS(pkg) && confMgr.checkForType(pkg) && (pkg.updatable || ! update) ) {
                         val artifact = Artifact.getArtifact(pkg.name, pkg.itemType, "zip", pkg.classifier)
                         descriptorMgr.loadArtifactFile(artifact, pkgFile)
 
@@ -327,8 +342,10 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                             configSpec(this, confMgr, pkg.targetIncluded, update, pkg.targetPath)
                             configExcludesPreserve(this, mainDescr, compToInstall, pkg, update)
 
-                            pkgTask.contentType = ContentType.valueOf(pkg.contentType.toString())
+                            contentType = ContentType.valueOf(pkg.contentType.toString())
                             destinationDir = confMgr.getTargetDir(mainDescr.containerTarget, pkg.targetPath)
+
+                            dependsOn(confMgr.preCompInstallTaskName)
                         }
 
                         confMgr.compInstallTask?.dependsOn(taskName)
@@ -338,22 +355,26 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
                 // install modules
                 mainDescr.modules.forEach { entry ->
-                    val taskName = INSTALLTASKNAME.plus(confMgr.getSuffixStr("module", entry.value.name))
 
-                    val install = confMgr.getInstallTask(taskName)
-                    with(install) {
-                        destinationDir = confMgr.getTargetDir(mainDescr.modulesTarget, entry.key)
+                    if(confMgr.checkForType(entry.value) && (entry.value.updatable || ! update)) {
+                        val taskName = INSTALLTASKNAME.plus(confMgr.getSuffixStr("module", entry.value.name))
 
-                        confMgr.configureModuleSpec(this, entry.value)
+                        val install = confMgr.getInstallTask(taskName)
+                        with(install) {
+                            destinationDir = confMgr.getTargetDir(mainDescr.modulesTarget, entry.key)
 
-                        configSpec(this, confMgr, entry.value.targetIncluded, update, entry.key)
-                        configExcludesPreserve(this, mainDescr, compToInstall, entry.value, update)
+                            confMgr.configureModuleSpec(this, entry.value)
 
-                        install.contentType = ContentType.valueOf(entry.value.contentType.toString())
+                            configSpec(this, confMgr, entry.value.targetIncluded, update, entry.key)
+                            configExcludesPreserve(this, mainDescr, compToInstall, entry.value, update)
 
+                            contentType = ContentType.valueOf(entry.value.contentType.toString())
+
+                            dependsOn(confMgr.preCompInstallTaskName)
+                        }
+
+                        confMgr.compInstallTask?.dependsOn(taskName)
                     }
-
-                    confMgr.compInstallTask?.dependsOn(taskName)
                 }
 
                 // install libs
@@ -367,6 +388,8 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
                     confMgr.configureLibsSpec(libInstall, mainDescr.libs)
                     libInstall.contentType = ContentType.IMMUTABLE
+
+                    libInstall.dependsOn(confMgr.preCompInstallTaskName)
 
                     confMgr.compInstallTask?.dependsOn(libTaskName)
                 }
