@@ -36,7 +36,7 @@ import javax.inject.Inject
  *
  * @constructor initialize a simple component without any additional configuration.
  */
-open class Component @Inject constructor(val group: String,
+data class Component @Inject constructor(val group: String,
                                          val module: String,
                                          val version: String,
                                          val path: String = "") {

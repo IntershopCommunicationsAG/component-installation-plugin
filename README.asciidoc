@@ -80,15 +80,20 @@ all installation related tasks will be executed in the correct order.
 |===
 |Property | Description
 
-|<<installDir, installDir>> |
-|<<installConfig, installConfig>> |
-|<<environment, environment>> |
-|<<components, components>> |
+|<<installDir, installDir>> | This is the main installation directory of the project.
+|<<installConfig, installConfig>> | With this configuration it is possible to change default values for installation process.
+|<<environment, environment>> | Specifies the environment type configuration, like 'production', 'test', 'intTest'.
+|<<components, components>> | Set of components to install with this one installation project.
 |===
 
 [[installDir]]
 [source,groovy]
 File installDir
+
+This is the main installation of the project. If this directory is availabe the plugin tries to figure out the status
+of the previous installation. This configuration must be specified.
+
+NOTE: Directories, that are not part of the installation will be deleted!
 
 :::
 
@@ -100,6 +105,9 @@ Default:: null
 [source,groovy]
 InstallConfiguration installConfig
 
+With this configuration it is possible to add additional patterns for Ivy repositories. Furthermore it is possible to change
+the default admin directory of this installation process.
+
 :::
 
 Default:: an instance of InstallConfiguration
@@ -110,15 +118,22 @@ Default:: an instance of InstallConfiguration
 [source,groovy]
 Set<String> environment
 
+This is a list of environment names or types. The elements of this list will be compared with the configuration in the
+descriptor of the component.
+
 :::
 
 Default:: `[]`
+
+Example:: `['test', 'inttest']` - All items with on these configuration elements will be installed.
 
 ***
 
 [[components]]
 [source,groovy]
 Set<Component> components
+
+The set of components will be handled in this variable.
 
 :::
 
@@ -132,21 +147,29 @@ Default:: `[]`
 |===
 |Method     | Description
 
-|<<add, add>>(component) |
-|<<addpath, add>>(component, path) |
-|<<addaction, add>>(component, action) |
-|<<addclosure, add>>(component, closure) |
-|<<addpathaction, add>>(component, path, action) |
-|<<addpathclosure, add>>(component, path, closure) |
+|<<add, add>>(component) | Adds a component through a dependency.
+|<<addpath, add>>(component, path) | Adds a component through a dependency with a special path.
+|<<addaction, add>>(component, action) | Adds a component through a dependency and configures the component with an action.
+|<<addclosure, add>>(component, closure) | Adds a component through a dependency and configures the component with a closure.
+|<<addpathaction, add>>(component, path, action) | Adds a component through a dependency with a special path and configures the component with an action.
+|<<addpathclosure, add>>(component, path, closure) | Adds a component through a dependency with a special path and configures the component with a closure.
 |===
 
 [[add]]
 [source,groovy]
 Component add(Object component)
 
+This method adds a component through a simple dependency to the set of components.
+The new entry is checked. If the component still exists in the list with the same path, an InvalidUserDataException
+will be thrown.
+
 :::
 
 Example::
+`add('com.intershop:testcomp:1.0.0')` +
+`add(group: 'com.intershop', name: 'testcomp', version: '1.0.0')` +
+`add([group: 'com.intershop', name: 'testcomp', version: '1.0.0'])`
+
 
 ***
 
@@ -154,9 +177,15 @@ Example::
 [source,groovy]
 Component add(Object component, String path)
 
+This method adds a component through a simple dependency to the set of components with a special path.
+The new entry is checked. If the component still exists in the list with the same path, an InvalidUserDataException
+will be thrown.
+
 :::
 
 Example::
+`add('com.intershop:testcomp:1.0.0', 'testpath1')` +
+`add([group: 'com.intershop', name: 'testcomp', version: '1.0.0'], 'testpath1')`
 
 ***
 
@@ -168,9 +197,20 @@ Component add(Object component, Action<? super Component> action)
 [source,groovy]
 Component add(Object component, Closure closure)
 
+This method adds a component through a dependency to the set of components and configures the component with an action
+or closure. The new entry is checked. If the component still exists in the list with the same path, an InvalidUserDataException
+will be thrown.
+
 :::
 
 Example::
+[source,groovy]
+add('com.intershop:testcomp:1.0.0') {
+    exclude '**/**/*.jpg'
+    preserve {
+        include '**/**/*.jpg'
+    }
+}
 
 ***
 
@@ -182,9 +222,20 @@ Component add(Object component, String path, Action<? super Component> action)
 [source,groovy]
 Component add(Object component, String path, Closure closure)
 
+This method adds a component through a dependency to the set of components with a path and configures the component with an action
+or closure. The new entry is checked. If the component still exists in the list with the same path, an InvalidUserDataException
+will be thrown.
+
 :::
 
 Example::
+[source,groovy]
+add('com.intershop:testcomp:1.0.0', 'testpath') {
+    exclude '**/**/*.jpg'
+    preserve {
+        include '**/**/*.jpg'
+    }
+}
 
 ***
 
@@ -196,13 +247,15 @@ Example::
 |===
 |Property | Description
 
-|<<installAdminDir,installAdminDir>> |
-|<<ivyPatterns, ivyPatterns>> |
+|<<installAdminDir,installAdminDir>> | This is the main administration directory of the project.
+|<<ivyPatterns, ivyPatterns>> | All available Ivy patterns. This is used for the download of a configured component.
 |===
 
 [[installAdminDir]]
 [source,groovy]
 File installAdminDir
+
+This is the main administration directory of the project.
 
 :::
 
@@ -213,6 +266,8 @@ Default:: `project.buildDir`
 [[ivyPatterns]]
 [source,groovy]
 Set<String> ivyPatterns
+
+All available Ivy patterns. This is used for the download of a configured component.
 
 :::
 
@@ -229,10 +284,21 @@ Default:: `["[organisation]/[module]/[revision]/[ext]s/[artifact]-[type](-[class
 |===
 |Method     | Description
 
-|<<addIvyPattern,addIvyPattern>>(pattern) |
+|<<addIvyPattern,addIvyPattern>>(pattern) | Adds an new Ivy pattern.
 |===
 
+[[addIvyPattern]]
+[source,groovy]
+void add(String pattern)
 
+Adds an new Ivy pattern.
+
+:::
+
+Example::
+addIvyPattern('[organisation]/[module]/[revision]/[ext]s/[artifact]-[type]-[revision].[ext]')
+
+***
 
 === Container 'component'
 
@@ -242,11 +308,62 @@ Default:: `["[organisation]/[module]/[revision]/[ext]s/[artifact]-[type](-[class
 |===
 |Property | Description
 
-|<<commonName, commonName>> |
-|<<dependency, dependency>> |
-|<<excludes, excludes>> |
-|<<preserve, preserve>> |
+|<<commonName, commonName>> | The common name of the component is used for tasks and log output.
+|<<dependency, dependency>> | The dependency object of this component. It must be always an external module dependency.
+|<<excludes, excludes>> | With this Ant pattern set it is possible to exclude files from the installation.
+|<<preserve, preserve>> | With this pattern set it is possible to preserve files from deletion during the installation of a component.
 |===
+
+[[commonName]]
+[source,groovy]
+String commonName
+
+The common name of the component is used for tasks and log output.
+
+:::
+
+Value:: <Name><Path>...<Path>
+
+Example:: `Testcomponent`, `TestcomponentPath`
+
+***
+
+[[dependency]]
+[source,groovy]
+Dependency dependency
+
+The dependency object of this component. It must be always an external module dependency.
+
+:::
+
+Value:: Dependency(<group>, <module>, <version>)
+
+***
+
+[[excludes]]
+[source,groovy]
+Set<String> excludes
+
+With this Ant pattern set it is possible to exclude files from the installation. This files will be not copied to the installation.
+Installed files will be deleted without a correct preserve configuration.
+
+:::
+
+Default:: `[]`
+
+***
+
+[[preserve]]
+[source,groovy]
+PatternFilterable preserve
+
+With this pattern set it is possible to preserve files from deletion during the installation of a component.
+
+:::
+
+Default:: an instance of PatternSet
+
+***
 
 ==== Methods of 'component'
 
@@ -254,11 +371,62 @@ Default:: `["[organisation]/[module]/[revision]/[ext]s/[artifact]-[type](-[class
 |===
 |Method     | Description
 
-|<<excludep, exclude>>(pattern) |
-|<<excludeps, exclude>>(patterns) |
-|<<preserveaction, preserve>>(action) |
-|<<preserveclosure, preserve>>(closure) |
+|<<excludep, exclude>>(pattern) | Adds an exclude Ant pattern to the exclude set.
+|<<excludeps, exclude>>(patterns) | Adds a set of exclude Ant pattern to the exclude set.
+|<<preserveaction, preserve>>(action) | Configures the preserve pattern set with an action.
+|<<preserveclosure, preserve>>(closure) | Configures the preserve pattern set with a closure.
 |===
+
+[[excludep]]
+[source,groovy]
+void exclude(String pattern)
+
+Adds an exclude Ant pattern to the exclude set.
+
+:::
+
+Example::
+`exclude('**/**/*.pdf')`
+
+***
+
+[[excludeps]]
+[source,groovy]
+void exclude(Set<String> patterns)
+
+Adds a set of exclude Ant pattern to the exclude set. This files will be not copied to the installation.
+Installed files are deleted without a correct preserve configuration.
+
+:::
+
+Example::
+`exclude(['**/**/*.pdf', '**/**/*.doc', '**/**/*.jpg'])`
+
+***
+
+[[preserveaction]]
+[source,groovy]
+preserve(Action<? super PatternFilterable> action)
+
+[[preserveclosure]]
+[source,groovy]
+void preserve(Closure closure)
+
+Configures the preserve pattern set with a closure or action. Files and directories that be satified by this filter,
+are not deleted from the install task.
+
+:::
+
+Example::
+[source,groovy]
+add('com.intershop:testcomp:1.0.0', 'testpath') {
+    exclude '**/**/*.jpg'
+    preserve {
+        include '**/**/*.jpg'
+    }
+}
+
+***
 
 == License
 

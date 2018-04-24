@@ -18,6 +18,8 @@ package com.intershop.gradle.component.installation.extension
 import com.intershop.gradle.component.installation.utils.getValue
 import com.intershop.gradle.component.installation.utils.setValue
 import org.gradle.api.Action
+import org.gradle.api.GradleException
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
 import org.gradle.api.provider.Provider
@@ -125,9 +127,18 @@ open class InstallationExtension @Inject constructor(val project: Project) {
      *
      * @param component a dependency of a component.
      */
+    @Throws(GradleException::class)
     fun add(component: Any): Component {
         val dependency = project.dependencies.create(component)
         val componentExt = Component(dependency.group ?: "", dependency.name, dependency.version ?: "", "")
+
+        with(componentExt) {
+            if (componentSet.any { it.group == group && it.module == module && it.path == path }) {
+                throw InvalidUserDataException("It is not possible to install the same component twice " +
+                        "in the same path. Verify the configuration of '${this.dependency}'")
+            }
+        }
+
         componentSet.add(componentExt)
         return componentExt
     }
@@ -142,6 +153,14 @@ open class InstallationExtension @Inject constructor(val project: Project) {
     fun add(component: Any, path: String): Component {
         val dependency = project.dependencies.create(component)
         val componentExt = Component(dependency.group ?: "", dependency.name, dependency.version ?: "", path)
+
+        with(componentExt) {
+            if (componentSet.any { it.group == group && it.module == module && it.path == path }) {
+                throw InvalidUserDataException("It is not possible to install the same component twice " +
+                        "in the same path. Verify the configuration of '${this.dependency}'")
+            }
+        }
+
         componentSet.add(componentExt)
         return componentExt
     }
