@@ -24,7 +24,7 @@ import com.intershop.gradle.component.installation.ComponentInstallPlugin
 import com.intershop.gradle.component.installation.ComponentInstallPlugin.Companion.INSTALLTASKNAME
 import com.intershop.gradle.component.installation.ComponentInstallPlugin.Companion.PREINSTALLTASKNAME
 import com.intershop.gradle.component.installation.extension.InstallationExtension
-import com.intershop.gradle.component.installation.extension.OSType.Companion.checkClassifierForOS
+import com.intershop.gradle.component.installation.utils.OSType.Companion.checkClassifierForOS
 import com.intershop.gradle.component.installation.utils.data.FileItem
 import org.gradle.api.GradleException
 import org.gradle.api.Task

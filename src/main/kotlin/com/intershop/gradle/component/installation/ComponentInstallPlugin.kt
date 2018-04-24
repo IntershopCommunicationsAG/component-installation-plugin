@@ -19,7 +19,7 @@ import com.intershop.gradle.component.descriptor.items.ContainerItem
 import com.intershop.gradle.component.descriptor.util.ComponentUtil
 import com.intershop.gradle.component.installation.extension.Component
 import com.intershop.gradle.component.installation.extension.InstallationExtension
-import com.intershop.gradle.component.installation.extension.OSType
+import com.intershop.gradle.component.installation.utils.OSType
 import com.intershop.gradle.component.installation.tasks.InstallConfigManager
 import com.intershop.gradle.component.installation.tasks.InstallConfigManager.Companion.checkForOS
 import com.intershop.gradle.component.installation.tasks.InstallTask
@@ -122,10 +122,10 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
     class InstallRule : RuleSource() {
 
         companion object {
-            val LOGGER = LoggerFactory.getLogger(InstallRule::class.java)
+            private val LOGGER = LoggerFactory.getLogger(InstallRule::class.java)
 
-            const val CHECKCONF = "Check your configuration!"
-            const val DOCUTEXT = "Consult documentation for next steps."
+            private const val CHECKCONF = "Check your configuration!"
+            private const val DOCUTEXT = "Consult documentation for next steps."
 
             private fun getComponentDir(installDir: File,
                                         comp: Component,

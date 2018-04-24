@@ -281,6 +281,11 @@ class DescriptorManager(private val repositories: RepositoryHandler,
         }
     }
 
+    /**
+     * Repository that includes the component with a descriptor.
+     *
+     * @property descriptorRepo repository object with component descriptor.
+     */
     lateinit var descriptorRepo: Repository
 
     init {

@@ -19,6 +19,12 @@ package com.intershop.gradle.component.installation.utils.data
  * Enumaration for repository types - Maven or IVY.
  */
 enum class RepositoryType {
+    /**
+     * Repository type is Maven.
+     */
     MAVEN,
+    /**
+     * Repository type is Ivy.
+     */
     IVY
 }

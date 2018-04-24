@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intershop.gradle.component.installation.extension
+package com.intershop.gradle.component.installation.utils
 
 import java.util.*
 
@@ -22,9 +22,21 @@ import java.util.*
  * installation process.
  */
 enum class OSType {
+    /**
+     * OS type is windows.
+     */
     WINDOWS,
+    /**
+     * OS type is a linux.
+     */
     LINUX,
+    /**
+     * OS type is MacOS.
+     */
     MACOS,
+    /**
+     * OS type is unknown.
+     */
     OTHER;
 
     companion object {
@@ -38,10 +50,10 @@ enum class OSType {
         fun from(osKey: String): OSType {
             val internalOSKey = osKey.toLowerCase(Locale.ENGLISH)
             return when {
-                (internalOSKey.indexOf("mac") >= 0 || internalOSKey.indexOf("darwin") >= 0) -> OSType.MACOS
-                (internalOSKey.indexOf("win") >= 0) -> OSType.WINDOWS
-                (internalOSKey.indexOf("nux") >= 0) -> OSType.LINUX
-                else -> OSType.OTHER
+                (internalOSKey.indexOf("mac") >= 0 || internalOSKey.indexOf("darwin") >= 0) -> MACOS
+                (internalOSKey.indexOf("win") >= 0) -> WINDOWS
+                (internalOSKey.indexOf("nux") >= 0) -> LINUX
+                else -> OTHER
             }
         }
 
@@ -64,7 +76,7 @@ enum class OSType {
          * @return true it the classifier matches to the current OS.
          */
         fun checkClassifierForOS(classifier: String): Boolean {
-            return classifier.isNotBlank() && OSType.from(classifier) == detectedOS() || classifier.isBlank()
+            return classifier.isNotBlank() && from(classifier) == detectedOS() || classifier.isBlank()
         }
     }
 }

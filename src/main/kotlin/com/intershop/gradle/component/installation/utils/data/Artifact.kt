@@ -15,7 +15,7 @@
  */
 package com.intershop.gradle.component.installation.utils.data
 
-import com.intershop.gradle.component.installation.extension.OSType.Companion.checkClassifierForOS
+import com.intershop.gradle.component.installation.utils.OSType.Companion.checkClassifierForOS
 
 /**
  * Data class for artifacts.
