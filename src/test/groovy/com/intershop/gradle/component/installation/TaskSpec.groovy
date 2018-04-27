@@ -17,11 +17,11 @@ package com.intershop.gradle.component.installation
 
 import com.intershop.gradle.test.AbstractIntegrationSpec
 import org.gradle.testkit.runner.TaskOutcome
-import org.junit.Ignore
+
+import java.nio.file.Files
 
 class TaskSpec extends AbstractIntegrationSpec {
 
-    @Ignore
     def "Test install task"() {
         setup:
         copyResources("startscripts.zip", "startscripts.zip")
@@ -71,5 +71,337 @@ class TaskSpec extends AbstractIntegrationSpec {
 
         then:
         result2.task(":installTest").outcome == TaskOutcome.UP_TO_DATE
+    }
+
+    def "Test link task"() {
+        setup:
+
+        def target = new File(testProjectDir, "targetDir")
+        target.mkdirs()
+
+        def linkName = new File(testProjectDir, "linkName")
+
+        buildFile << """
+        plugins {
+            id 'com.intershop.gradle.component.installation'
+        }
+        
+        import com.intershop.gradle.component.installation.tasks.LinkTask
+
+        task linkTest(type: LinkTask) {
+            addLink("${linkName.absolutePath}", "${target.absolutePath}")
+        }
+        """.stripIndent()
+
+        when:
+        List<String> args = ['linkTest', '-s']
+
+        def result1 = getPreparedGradleRunner()
+                .withArguments(args)
+                .build()
+
+        then:
+        result1.task(":linkTest").outcome == TaskOutcome.SUCCESS
+        linkName.exists()
+        Files.readSymbolicLink(linkName.toPath()).equals(target.toPath())
+
+        when:
+        def result2 = getPreparedGradleRunner()
+                .withArguments(args)
+                .build()
+
+        then:
+        result2.task(":linkTest").outcome == TaskOutcome.SUCCESS
+    }
+
+    def "Test link task - link exists"() {
+        setup:
+
+        def target = new File(testProjectDir, "targetDir")
+        target.mkdirs()
+
+        def linkName = new File(testProjectDir, "linkName")
+
+        Files.createSymbolicLink(linkName.toPath(), target.toPath())
+
+        buildFile << """
+        plugins {
+            id 'com.intershop.gradle.component.installation'
+        }
+        
+        import com.intershop.gradle.component.installation.tasks.LinkTask
+
+        task linkTest(type: LinkTask) {
+            addLink("${linkName.absolutePath}", "${target.absolutePath}")
+        }
+        """.stripIndent()
+
+        when:
+        List<String> args = ['linkTest', '-s']
+
+        def result1 = getPreparedGradleRunner()
+                .withArguments(args)
+                .build()
+
+        then:
+        result1.task(":linkTest").outcome == TaskOutcome.SUCCESS
+        linkName.exists()
+        Files.readSymbolicLink(linkName.toPath()).equals(target.toPath())
+
+        when:
+        def result2 = getPreparedGradleRunner()
+                .withArguments(args)
+                .build()
+
+        then:
+        result2.task(":linkTest").outcome == TaskOutcome.SUCCESS
+    }
+
+    def "Test link task - link exists, with different target"() {
+        setup:
+
+        def target = new File(testProjectDir, "targetDir")
+        target.mkdirs()
+
+        def target2 = new File(testProjectDir, "targetDir2")
+        target2.mkdirs()
+
+        def linkName = new File(testProjectDir, "linkName")
+
+        Files.createSymbolicLink(linkName.toPath(), target2.toPath())
+
+        buildFile << """
+        plugins {
+            id 'com.intershop.gradle.component.installation'
+        }
+        
+        import com.intershop.gradle.component.installation.tasks.LinkTask
+
+        task linkTest(type: LinkTask) {
+            addLink("${linkName.absolutePath}", "${target.absolutePath}")
+        }
+        """.stripIndent()
+
+        when:
+        List<String> args = ['linkTest', '-s']
+
+        def result1 = getPreparedGradleRunner()
+                .withArguments(args)
+                .build()
+
+        then:
+        result1.task(":linkTest").outcome == TaskOutcome.SUCCESS
+        linkName.exists()
+        Files.readSymbolicLink(linkName.toPath()).equals(target.toPath())
+
+        when:
+        def result2 = getPreparedGradleRunner()
+                .withArguments(args)
+                .build()
+
+        then:
+        result2.task(":linkTest").outcome == TaskOutcome.SUCCESS
+    }
+
+    def "Test link task - link exists, with different target, target does not exists"() {
+        setup:
+
+        def target = new File(testProjectDir, "targetDir")
+        target.mkdirs()
+
+        def target2 = new File(testProjectDir, "targetDir2")
+
+        def linkName = new File(testProjectDir, "linkName")
+
+        Files.createSymbolicLink(linkName.toPath(), target2.toPath())
+
+        buildFile << """
+        plugins {
+            id 'com.intershop.gradle.component.installation'
+        }
+        
+        import com.intershop.gradle.component.installation.tasks.LinkTask
+
+        task linkTest(type: LinkTask) {
+            addLink("${linkName.absolutePath}", "${target.absolutePath}")
+        }
+        """.stripIndent()
+
+        when:
+        List<String> args = ['linkTest', '-s']
+
+        def result1 = getPreparedGradleRunner()
+                .withArguments(args)
+                .build()
+
+        then:
+        result1.task(":linkTest").outcome == TaskOutcome.SUCCESS
+        linkName.exists()
+        Files.readSymbolicLink(linkName.toPath()).equals(target.toPath())
+
+        when:
+        def result2 = getPreparedGradleRunner()
+                .withArguments(args)
+                .build()
+
+        then:
+        result2.task(":linkTest").outcome == TaskOutcome.SUCCESS
+    }
+
+    def "Test directory task"() {
+        setup:
+
+        def target = new File(testProjectDir, "targetDir")
+
+        buildFile << """
+        plugins {
+            id 'com.intershop.gradle.component.installation'
+        }
+        
+        import com.intershop.gradle.component.installation.tasks.DirectoryTask
+
+        task directoryTest(type: DirectoryTask) {
+            directoryPath = "${target.absolutePath}"
+        }
+        """.stripIndent()
+
+        when:
+        List<String> args = ['directoryTest', '-s']
+
+        def result1 = getPreparedGradleRunner()
+                .withArguments(args)
+                .build()
+
+        then:
+        result1.task(":directoryTest").outcome == TaskOutcome.SUCCESS
+        target.exists() && target.isDirectory()
+
+        when:
+        def result2 = getPreparedGradleRunner()
+                .withArguments(args)
+                .build()
+
+        then:
+        result2.task(":directoryTest").outcome == TaskOutcome.UP_TO_DATE
+    }
+
+    def "Test directory task - content changed"() {
+        setup:
+
+        def target = new File(testProjectDir, "targetDir")
+
+        buildFile << """
+        plugins {
+            id 'com.intershop.gradle.component.installation'
+        }
+        
+        import com.intershop.gradle.component.installation.tasks.DirectoryTask
+
+        task directoryTest(type: DirectoryTask) {
+            directoryPath = "${target.absolutePath}"
+        }
+        """.stripIndent()
+
+        when:
+        List<String> args = ['directoryTest', '-s']
+
+        def result1 = getPreparedGradleRunner()
+                .withArguments(args)
+                .build()
+
+        then:
+        result1.task(":directoryTest").outcome == TaskOutcome.SUCCESS
+        target.exists() && target.isDirectory()
+
+        when:
+        def content = new File(target, "new.file")
+        content.createNewFile()
+        content << "content"
+
+        def result2 = getPreparedGradleRunner()
+                .withArguments(args)
+                .build()
+
+        then:
+        result2.task(":directoryTest").outcome == TaskOutcome.UP_TO_DATE
+    }
+
+    def "Test directory task - install file removed"() {
+        setup:
+
+        def target = new File(testProjectDir, "targetDir")
+
+        buildFile << """
+        plugins {
+            id 'com.intershop.gradle.component.installation'
+        }
+        
+        import com.intershop.gradle.component.installation.tasks.DirectoryTask
+
+        task directoryTest(type: DirectoryTask) {
+            directoryPath = "${target.absolutePath}"
+        }
+        """.stripIndent()
+
+        when:
+        List<String> args = ['directoryTest', '-s']
+
+        def result1 = getPreparedGradleRunner()
+                .withArguments(args)
+                .build()
+
+        then:
+        result1.task(":directoryTest").outcome == TaskOutcome.SUCCESS
+        target.exists() && target.isDirectory()
+
+        when:
+        def installFile = new File(target, ".install")
+        installFile.delete()
+
+        def result2 = getPreparedGradleRunner()
+                .withArguments(args)
+                .build()
+
+        then:
+        result2.task(":directoryTest").outcome == TaskOutcome.SUCCESS
+    }
+
+    def "Test directory task - directory removed"() {
+        setup:
+
+        def target = new File(testProjectDir, "targetDir")
+
+        buildFile << """
+        plugins {
+            id 'com.intershop.gradle.component.installation'
+        }
+        
+        import com.intershop.gradle.component.installation.tasks.DirectoryTask
+
+        task directoryTest(type: DirectoryTask) {
+            directoryPath = "${target.absolutePath}"
+        }
+        """.stripIndent()
+
+        when:
+        List<String> args = ['directoryTest', '-s']
+
+        def result1 = getPreparedGradleRunner()
+                .withArguments(args)
+                .build()
+
+        then:
+        result1.task(":directoryTest").outcome == TaskOutcome.SUCCESS
+        target.exists() && target.isDirectory()
+
+        when:
+        target.deleteDir()
+
+        def result2 = getPreparedGradleRunner()
+                .withArguments(args)
+                .build()
+
+        then:
+        result2.task(":directoryTest").outcome == TaskOutcome.SUCCESS
     }
 }

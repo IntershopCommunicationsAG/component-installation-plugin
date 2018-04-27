@@ -53,7 +53,7 @@ data class Component @Inject constructor(val group: String,
         get() {
             val sb = StringBuilder(module)
             if(path.isNotBlank()) {
-                path.split("/").last().capitalize()
+                sb.append(path.split("/").joinToString("") { it.capitalize() })
             }
             return sb.toString()
         }

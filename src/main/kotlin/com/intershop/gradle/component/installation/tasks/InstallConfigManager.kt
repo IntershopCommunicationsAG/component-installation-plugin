@@ -105,6 +105,14 @@ class InstallConfigManager(private val prjext: InstallationExtension,
         fun checkForOS(item: OSSpecificItem): Boolean {
             return checkClassifierForOS(item.classifier)
         }
+
+        private fun pathToName(path: String): String {
+            val sb = StringBuilder()
+            if(path.isNotBlank()) {
+                sb.append(path.split("/").joinToString("") { it.capitalize() })
+            }
+            return sb.toString()
+        }
     }
 
     private val dependencyHandler = prjext.project.dependencies
@@ -277,6 +285,51 @@ class InstallConfigManager(private val prjext: InstallationExtension,
     }
 
     /**
+     * Adds a directory task to the task list.
+     *
+     * @param path the directory path
+     *
+     * @return configured directory task
+     */
+    @Throws(GradleException::class)
+    fun getDirectoryTask(path: String): DirectoryTask {
+        val taskName = INSTALLTASKNAME.plus(getSuffixStr("dir", pathToName(path)))
+        var task = tasks.get(taskName)
+
+        if(task == null) {
+            tasks.create(taskName, DirectoryTask::class.java)
+            task = tasks.get(taskName)
+        }
+        if(task != null && task is DirectoryTask) {
+            return task
+        } else {
+            throw GradleException("Task '$taskName exists, but it has the wrong type!")
+        }
+    }
+
+    /**
+     * Add a link task for the component
+     * to the task list.
+     *
+     * @return link task of the component.
+     */
+    @Throws(GradleException::class)
+    fun getLinkTask(): LinkTask {
+        val taskName = INSTALLTASKNAME.plus(getSuffixStr("links"))
+        var task = tasks.get(taskName)
+
+        if(task == null) {
+            tasks.create(taskName, LinkTask::class.java)
+            task = tasks.get(taskName)
+        }
+        if(task != null && task is LinkTask) {
+            return task
+        } else {
+            throw GradleException("Task '$taskName exists, but it has the wrong type!")
+        }
+    }
+
+    /**
      * It initialezes the clean up task for the
      * component installation. Unused items will be removed
      * or moved to a backup directory.
@@ -297,11 +350,13 @@ class InstallConfigManager(private val prjext: InstallationExtension,
             task.installDir = compInstallDir
             task.backupDir = backupDir
             task.descriptorPath = descriptor.descriptorPath
-            task.containersPath = descriptor.containerTarget
-            task.modulesPath = descriptor.modulesTarget
+            task.containersPath = descriptor.containerPath
+            task.modulesPath = descriptor.modulesPath
             task.modulePaths = descriptor.modules.keys
             task.containerPaths = descriptor.fileContainers.map { it.targetPath }.toSet()
-            task.libsPath = descriptor.libsTarget
+            task.libsPath = descriptor.libsPath
+            task.linkNames = descriptor.linkItems.map { it.name }.toSet()
+            task.directoryPaths = descriptor.directoryItems.map { it.targetPath }.toSet()
 
             compInstallTask?.dependsOn(taskName)
         } else {

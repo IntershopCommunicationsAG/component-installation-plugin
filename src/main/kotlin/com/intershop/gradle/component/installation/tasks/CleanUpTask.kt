@@ -55,6 +55,12 @@ open class CleanUpTask: DefaultTask() {
     // package directories
     private val containerPathsSetProperty = project.objects.setProperty(String::class.java)
 
+    // link names
+    private val linksSetProperty = project.objects.setProperty(String::class.java)
+
+    // directories
+    private val directoriesSetProperty = project.objects.setProperty(String::class.java)
+
     /**
      * Backup directory of this task. It is used for special or unknown directories and files.
      *
@@ -181,6 +187,36 @@ open class CleanUpTask: DefaultTask() {
     fun provideContainerPaths(containerPaths: Provider<Set<String>>) = containerPathsSetProperty.set(containerPaths)
 
     /**
+     * Set of of all link names of the component.
+     *
+     * @property linkNames name set of all links from the descriptor.
+     */
+    @get:Internal
+    var linkNames: Set<String> by linksSetProperty
+
+    /**
+     * Set the provider for the link set property.
+     *
+     * @param linkNames provider for the link set property.
+     */
+    fun provideLinkNames(linkNames: Provider<Set<String>>) = linksSetProperty.set(linkNames)
+
+    /**
+     * Set of of all directory paths of the component.
+     *
+     * @property directoryPaths path set of all directories from the descriptor.
+     */
+    @get:Internal
+    var directoryPaths: Set<String> by directoriesSetProperty
+
+    /**
+     * Set the provider for the directory set property.
+     *
+     * @param directoryPaths provider for the directory set property.
+     */
+    fun provideDirectoryPaths(directoryPaths: Provider<Set<String>>) = directoriesSetProperty.set(directoryPaths)
+
+    /**
      * The task action of the task. Delete not configured directories or move these files or
      * directories to the backup directory.
      */
@@ -201,6 +237,14 @@ open class CleanUpTask: DefaultTask() {
 
         containerPaths.forEach {
             containerNode.addPath(it).target = true
+        }
+
+        linkNames.forEach {
+            root.addPath(it)
+        }
+
+        directoryPaths.forEach {
+            root.addPath(it)
         }
 
         doCheck(root, installDir)
