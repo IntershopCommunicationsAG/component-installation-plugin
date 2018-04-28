@@ -84,10 +84,8 @@ open class LinkTask: DefaultTask() {
         }
 
         if(! Files.exists(targetFilePath)) {
-            throw GradleException("The target '$targetPath' of link '$namePath' does not exists!")
-        }
-
-        if(! Files.exists(fileFilePath, LinkOption.NOFOLLOW_LINKS)) {
+            project.logger.warn("The target '{}' of link '{}' does not exists!", targetPath, namePath)
+        } else if(! Files.exists(fileFilePath, LinkOption.NOFOLLOW_LINKS)) {
             Files.createSymbolicLink(fileFilePath, targetFilePath)
         }
     }
