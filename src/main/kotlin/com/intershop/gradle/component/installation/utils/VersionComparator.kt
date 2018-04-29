@@ -29,29 +29,29 @@ class VersionComparator : Comparator<String> {
             val arr1 = version1.split(".").dropLastWhile { it.isEmpty() }.map { d -> d.toInt() }
             val arr2 = version2.split(".").dropLastWhile { it.isEmpty() }.map { d -> d.toInt() }
 
-            var i = 0
-            while (i < arr1.size || i < arr2.size) {
-                if (i < arr1.size && i < arr2.size) {
-                    val r1 = arr1[i].compareTo(arr2[i])
-                    if(r1 != 0) {
-                        return r1
+            var pos = 0
+            while (pos < arr1.size || pos < arr2.size) {
+                if (pos < arr1.size && pos < arr2.size) {
+                    val returnValue = arr1[pos].compareTo(arr2[pos])
+                    if(returnValue != 0) {
+                        return returnValue
                     } else {
                         val result = specialCompare(arr1, arr2)
                         if (result != 0) {
                             return result
                         }
                     }
-                } else if (i < arr1.size) {
-                    if (arr1[i] != 0) {
+                } else if (pos < arr1.size) {
+                    if (arr1[pos] != 0) {
                         return 1
                     }
-                } else if (i < arr2.size) {
-                    if (arr2[i] != 0) {
+                } else if (pos < arr2.size) {
+                    if (arr2[pos] != 0) {
                         return -1
                     }
                 }
 
-                i++
+                pos++
             }
 
             return 0

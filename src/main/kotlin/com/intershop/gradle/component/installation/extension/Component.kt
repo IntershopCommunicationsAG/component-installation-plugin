@@ -51,11 +51,11 @@ data class Component @Inject constructor(val group: String,
      */
     val commonName: String
         get() {
-            val sb = StringBuilder(module)
+            val commonSB = StringBuilder(module)
             if(path.isNotBlank()) {
-                sb.append(path.split("/").joinToString("") { it.capitalize() })
+                commonSB.append(path.split("/").joinToString("") { it.capitalize() })
             }
-            return sb.toString()
+            return commonSB.toString()
         }
 
     /**

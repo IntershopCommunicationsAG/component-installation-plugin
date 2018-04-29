@@ -281,9 +281,9 @@ open class CleanUpTask: DefaultTask() {
 
         node.intersectFiles(dir).forEach {
             if(! node.isTarget(it)) {
-                val n = node.getChild(it.name)
-                if(n != null) {
-                    doCheck(n, it)
+                val childNode = node.getChild(it.name)
+                if(childNode != null) {
+                    doCheck(childNode, it)
                 }
             }
         }
