@@ -107,11 +107,11 @@ class InstallConfigManager(private val prjext: InstallationExtension,
         }
 
         private fun pathToName(path: String): String {
-            val sb = StringBuilder()
+            val pathSB = StringBuilder()
             if(path.isNotBlank()) {
-                sb.append(path.split("/").joinToString("") { it.capitalize() })
+                pathSB.append(path.split("/").joinToString("") { it.capitalize() })
             }
-            return sb.toString()
+            return pathSB.toString()
         }
     }
 
