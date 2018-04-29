@@ -19,12 +19,12 @@ import com.intershop.gradle.component.descriptor.items.ContainerItem
 import com.intershop.gradle.component.descriptor.util.ComponentUtil
 import com.intershop.gradle.component.installation.extension.Component
 import com.intershop.gradle.component.installation.extension.InstallationExtension
-import com.intershop.gradle.component.installation.utils.OSType
 import com.intershop.gradle.component.installation.tasks.InstallConfigManager
 import com.intershop.gradle.component.installation.tasks.InstallConfigManager.Companion.checkForOS
 import com.intershop.gradle.component.installation.tasks.InstallTask
 import com.intershop.gradle.component.installation.utils.ContentType
 import com.intershop.gradle.component.installation.utils.DescriptorManager
+import com.intershop.gradle.component.installation.utils.OSType
 import com.intershop.gradle.component.installation.utils.data.Artifact
 import com.intershop.gradle.component.installation.utils.data.FileItem
 import org.gradle.api.GradleException
@@ -76,6 +76,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
          * The task group name of all install tasks.
          */
         const val INSTALLGROUPNAME = "Component Installation"
+
     }
 
     /**
@@ -343,7 +344,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                             configExcludesPreserve(this, mainDescr, compToInstall, pkg, update)
 
                             contentType = ContentType.valueOf(pkg.contentType.toString())
-                            destinationDir = confMgr.getTargetDir(mainDescr.containerTarget, pkg.targetPath)
+                            destinationDir = confMgr.getTargetDir(mainDescr.containerPath, pkg.targetPath)
 
                             dependsOn(confMgr.preCompInstallTaskName)
                         }
@@ -361,7 +362,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
                         val install = confMgr.getInstallTask(taskName)
                         with(install) {
-                            destinationDir = confMgr.getTargetDir(mainDescr.modulesTarget, entry.key)
+                            destinationDir = confMgr.getTargetDir(mainDescr.modulesPath, entry.key)
 
                             confMgr.configureModuleSpec(this, entry.value)
 
@@ -383,7 +384,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
                     val libInstall = confMgr.getInstallTask(libTaskName)
 
-                    libInstall.destinationDir = confMgr.getTargetDir(mainDescr.libsTarget)
+                    libInstall.destinationDir = confMgr.getTargetDir(mainDescr.libsPath)
                     libInstall.duplicatesStrategy = DuplicatesStrategy.FAIL
 
                     confMgr.configureLibsSpec(libInstall, mainDescr.libs)
@@ -392,6 +393,39 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                     libInstall.dependsOn(confMgr.preCompInstallTaskName)
 
                     confMgr.compInstallTask?.dependsOn(libTaskName)
+                }
+
+                if(mainDescr.directoryItems.isNotEmpty()) {
+                    mainDescr.directoryItems.forEach {
+                        if(confMgr.checkForType(it) && (it.updatable || ! update)) {
+                            with(confMgr.getDirectoryTask(it.targetPath)) {
+                                directoryPath = confMgr.getTargetDir(it.targetPath).absolutePath
+                                contentType = ContentType.valueOf(it.contentType.toString())
+
+                                dependsOn(confMgr.preCompInstallTaskName)
+                                confMgr.compInstallTask?.dependsOn(name)
+                            }
+                        }
+                    }
+                }
+
+                if(mainDescr.linkItems.isNotEmpty()) {
+                    with(confMgr.getLinkTask()) {
+                        mainDescr.linkItems.forEach { link ->
+                            if(confMgr.checkForType(link) && (link.updatable || ! update)) {
+                                addLink(confMgr.getTargetDir(link.name).absolutePath,
+                                        confMgr.getTargetDir(link.targetPath).absolutePath)
+                            }
+                        }
+
+                        val compInstallTask = confMgr.compInstallTask
+                        if(compInstallTask != null) {
+                            mustRunAfter(compInstallTask.path)
+                        }
+
+                        val installTask = tasks.get(INSTALLTASKNAME)
+                        installTask?.dependsOn(this.name)
+                    }
                 }
 
                 confMgr.initCleanupTask(backupDir)

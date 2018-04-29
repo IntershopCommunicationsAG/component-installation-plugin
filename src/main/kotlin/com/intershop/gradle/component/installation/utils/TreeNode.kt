@@ -118,11 +118,11 @@ class TreeNode(val name: String) {
     fun getPath(): String {
         val reversPath =  mutableListOf<String>()
         reversPath.add(name)
-        var p = parent
+        var intParent = parent
 
-        while(p != null) {
-            reversPath.add(p.toString())
-            p = p.parent
+        while(intParent != null) {
+            reversPath.add(intParent.toString())
+            intParent = intParent.parent
         }
         reversPath.reverse()
         return reversPath.joinToString("/")

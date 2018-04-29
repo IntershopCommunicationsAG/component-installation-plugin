@@ -3,9 +3,9 @@
   "componentDescription" : "Test component 1",
   "types" : [ "test", "production", "perfTest" ],
   "classifiers" : [ "linux", "win", "macos", "" ],
-  "modulesTarget" : "",
-  "libsTarget" : "lib/release/libs",
-  "containerTarget" : "",
+  "modulesPath" : "",
+  "libsPath" : "lib/release/libs",
+  "containerPath" : "",
   "target" : "testcomp",
   "descriptorPath" : "component",
   "modules" : {
@@ -215,6 +215,21 @@
     "extension" : "properties",
     "targetPath" : "share/system/config",
     "classifier" : "linux",
+    "contentType" : "IMMUTABLE",
+    "updatable" : true,
+    "types" : [ ]
+  } ],
+  "linkItems" : [ {
+    "name" : "log",
+    "targetPath" : "system/log",
+    "classifier" : "",
+    "contentType" : "IMMUTABLE",
+    "updatable" : true,
+    "types" : [ ]
+  } ],
+  "directoryItems" : [ {
+    "targetPath" : "system/log",
+    "classifier" : "",
     "contentType" : "IMMUTABLE",
     "updatable" : true,
     "types" : [ ]

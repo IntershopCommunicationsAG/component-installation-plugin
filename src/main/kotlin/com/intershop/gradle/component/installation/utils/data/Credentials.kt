@@ -37,13 +37,13 @@ data class Credentials(val username: String, val password: String) {
         @JvmStatic
         fun initFrom(repo: AuthenticationSupported) : Credentials {
 
-            var rc = Credentials("", "")
+            var tempCred = Credentials("", "")
 
             if(repo is AuthenticationSupportedInternal && repo.configuredCredentials != null) {
-                rc = Credentials(repo.credentials.username ?: "", repo.credentials.password ?: "")
+                tempCred = Credentials(repo.credentials.username ?: "", repo.credentials.password ?: "")
             }
 
-            return rc
+            return tempCred
         }
     }
 
