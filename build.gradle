@@ -17,7 +17,7 @@ plugins {
     // project plugins
     id 'java-gradle-plugin'
     id 'groovy'
-    id 'nebula.kotlin' version '1.2.40'
+    id 'nebula.kotlin' version '1.2.41'
 
     // documentation
     id "org.jetbrains.dokka" version "0.9.16"
@@ -62,6 +62,12 @@ gradlePlugin {
         componentDeployPlugin {
             id = 'com.intershop.gradle.component.installation'
             implementationClass = 'com.intershop.gradle.component.installation.ComponentInstallPlugin'
+        }
+    }
+    plugins {
+        componentFilterPlugin {
+            id = 'com.intershop.gradle.component.installation.filter'
+            implementationClass = 'com.intershop.gradle.component.installation.filter.FilterPlugin'
         }
     }
 }

@@ -16,6 +16,7 @@
 package com.intershop.gradle.component.installation.extension
 
 import com.intershop.gradle.component.installation.ComponentInstallPlugin
+import com.intershop.gradle.component.installation.filter.FilterContainer
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
@@ -118,5 +119,10 @@ class InstallationExtensionSpec extends Specification {
 
         then:
         extension.components.size() == 2
+    }
+
+    def 'filters configuration is correct configured'() {
+        expect:
+        extension.filters instanceof FilterContainer
     }
 }
