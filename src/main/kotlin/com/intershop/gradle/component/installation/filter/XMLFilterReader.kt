@@ -37,6 +37,7 @@ import java.io.StringWriter
 class XMLFilterReader (reader: Reader) : FilterReader(DeferringReader(reader)) {
 
     init {
+        @Suppress("UnsafeCast")
         (`in` as DeferringReader).parent = this
     }
 
@@ -92,7 +93,7 @@ class XMLFilterReader (reader: Reader) : FilterReader(DeferringReader(reader)) {
                 delegate = parent.filterReader(source)
             }
 
-            return delegate!!.read(cbuf, off, len)
+            return delegate?.read(cbuf, off, len) ?: -1
         }
 
         override fun close() {

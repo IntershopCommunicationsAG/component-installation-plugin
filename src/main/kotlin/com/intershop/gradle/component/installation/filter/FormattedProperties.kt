@@ -25,6 +25,12 @@ import java.io.Reader
 import java.io.Writer
 import java.util.*
 
+/**
+ * This class provides a properties class that also take comments into account.
+ * E.g. Properties are commented without removing them directly.
+ *
+ * @constructor initialize an empty properties class
+ */
 class FormattedProperties(): Properties() {
 
     private val serialVersionUID = 1L
@@ -32,28 +38,29 @@ class FormattedProperties(): Properties() {
     private val delimiters = HashMap<String, Char>()
 
     companion object {
-        /**
+        /*
          * These are the hexadecimal digits.
          */
-        private val hexDigit = charArrayOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F')
+        private val hexDigit = charArrayOf('0', '1', '2', '3', '4', '5', '6', '7', '8',
+                '9', 'A', 'B', 'C', 'D', 'E', 'F')
 
         /**
          * The equal sign character.
          */
-        val CHAR_EQUAL_SIGN = '='
+        const val CHAR_EQUAL_SIGN = '='
 
         /**
          * The colon character.
          */
-        val CHAR_COLON = ':'
+        const val CHAR_COLON = ':'
     }
 
-    /**
+    /*
      * The default delimiter character.
      */
     private var defaultCharacter: Char = CHAR_EQUAL_SIGN
 
-    /**
+    /*
      * This member holds the lines of the properties file.
      */
     private val lines = ArrayList<Line>()
@@ -63,7 +70,7 @@ class FormattedProperties(): Properties() {
         FileReader(propertiesFile).use { r -> load(r) }
     }
 
-    /**
+    /*
      * This method checks whether the given line continues on the next one (line
      * continuation with "\\").
      *
@@ -162,7 +169,7 @@ class FormattedProperties(): Properties() {
                     }
 
                     val i = line.length
-                    var j: Int = 0
+                    var j = 0
                     while (j < i) {
                         if (" \t\r\n".indexOf(line[j]) == -1)
                             break
@@ -234,7 +241,7 @@ class FormattedProperties(): Properties() {
         } while (true)
     }
 
-    /**
+    /*
      * This method does the conversion of strings during loading of the
      * properties. This means replacing unicode literals by their original form.
      *
@@ -242,11 +249,12 @@ class FormattedProperties(): Properties() {
      *
      * @return The converted string.
      */
+    @Suppress("MagicNumber")
     private fun loadConvert(aString: String): String {
 
         // Initialization.
-        var length = aString.length
-        var result = StringBuffer(length)
+        val length = aString.length
+        val result = StringBuffer(length)
 
         // Process each character.
         var j = 0
@@ -265,14 +273,11 @@ class FormattedProperties(): Properties() {
                     for (l in 0..3) {
                         c = aString[j++]
                         // Depending on the character:
-                        k = if (c in '0'..'9') {
-                            (k shl 4) + c.toInt() - '0'.toInt()
-                        } else if (c in 'a'..'f') {
-                            (k shl 4) + 10 + c.toInt() - 'a'.toInt()
-                        } else if (c in 'A'..'F') {
-                            (k shl 4) + 10 + c.toInt() - 'A'.toInt()
-                        } else {
-                            throw IllegalArgumentException("Malformed \\uxxxx encoding.")
+                        k = when (c) {
+                            in '0'..'9' -> (k shl 4) + c.toInt() - '0'.toInt()
+                            in 'a'..'f' -> (k shl 4) + 10 + c.toInt() - 'a'.toInt()
+                            in 'A'..'F' -> (k shl 4) + 10 + c.toInt() - 'A'.toInt()
+                            else -> throw IllegalArgumentException("Malformed \\uxxxx encoding.")
                         }
                     }
 
@@ -305,7 +310,7 @@ class FormattedProperties(): Properties() {
     @Synchronized
     fun put(aKey: String, aValue: String): Any? {
         // Call super.
-        var result = super.put(aKey, aValue)
+        val result = super.put(aKey, aValue)
 
         var searchResult: PropertyLine? = null
 
@@ -351,14 +356,23 @@ class FormattedProperties(): Properties() {
      *
      * @return The previous value for the key.
      */
-
     @Synchronized
     override fun setProperty(aKey: String, aValue: String): Any? {
         return put(aKey, aValue)
     }
 
     /**
-     * use custom [.put] method also for other types
+     * Maps the specified <code>key</code> to the specified
+     * <code>value</code> in this hashtable. Neither the key nor the
+     * value can be <code>null</code>. <p>
+     *
+     * The value can be retrieved by calling the <code>get</code> method
+     * with a key that is equal to the original key.
+     *
+     * @param      key     the hashtable key
+     * @param      value   the value
+     * @return     the previous value of the specified key in this hashtable,
+     *             or <code>null</code> if it did not have one
      */
     override fun put(key: Any, value: Any?): Any? {
         return if (value != null)
@@ -379,7 +393,6 @@ class FormattedProperties(): Properties() {
      *
      * @return The previous value for the key.
      */
-
     @Synchronized
     fun setProperty(aKey: String, aValue: String, comments: Array<String>): Any? {
         val result = setProperty(aKey, aValue)
@@ -387,14 +400,28 @@ class FormattedProperties(): Properties() {
         return result
     }
 
-    fun addComment(aKey: String, comment: Array<String>) {
-        addComment(aKey, null, comment, false)
+    /**
+     * Add a commented property without a value.
+     *
+     * @param key The key of a property.
+     * @param comment Comment of a property.
+     */
+    fun addComment(key: String, comment: Array<String>) {
+        addComment(key, null, comment, false)
     }
 
-    fun addComment(aKey: String, aValue: String?, comment: Array<String>, changeValue: Boolean) {
+    /**
+     * Add a commented property with a value.
+     *
+     * @param key The key of a property.
+     * @param value The value of the property. (It is also possible to set a null value.)
+     * @param comment This string array is used for the comment.
+     * @param changeValue The value of an existing property will be changed.
+     */
+    fun addComment(key: String, value: String?, comment: Array<String>, changeValue: Boolean) {
         var changed = false
         for (i in lines.indices) {
-            changed = changed || changeLine(lines, aKey, aValue, i, comment, changeValue)
+            changed = changed || changeLine(lines, key, value, i, comment, changeValue)
         }
 
         if (!changed) {
@@ -402,11 +429,15 @@ class FormattedProperties(): Properties() {
                 lines.add(CommentLine("# " + comment[j]))
             }
 
-            lines.add(CommentPropertyLine("#", aKey, "", '='))
+            lines.add(CommentPropertyLine("#", key, "", '='))
         }
     }
 
-    private fun changeLine(linesVector: MutableList<Line>, aKey: String, aValue: String?, pos: Int, comment: Array<String>?,
+    private fun changeLine(linesVector: MutableList<Line>,
+                           aKey: String,
+                           aValue: String?,
+                           pos: Int,
+                           comment: Array<String>?,
                            changeValue: Boolean): Boolean {
         val line = linesVector[pos]
 
@@ -418,8 +449,8 @@ class FormattedProperties(): Properties() {
                     var addComment = true
                     if (pos - comment.size > 0) {
                         for (i in pos - comment.size until pos) {
-                            if (linesVector[i] is CommentLine) {
-                                val cl = linesVector[i] as CommentLine
+                            val cl = linesVector[i]
+                            if (cl is CommentLine) {
                                 addComment = addComment && cl.comment != "# " + comment[i - pos + comment.size]
                             }
                         }
@@ -439,6 +470,13 @@ class FormattedProperties(): Properties() {
         return false
     }
 
+    /**
+     * This method save this properties to the given output stream.
+     *
+     * @param originalWriter The writer to save the properties to.
+     *
+     * @exception java.io.IOException if the stream could not be written.
+     */
     @Throws(IOException::class)
     fun store(outputFile: File) {
         FileWriter(outputFile).use { w -> store(w) }
@@ -463,8 +501,8 @@ class FormattedProperties(): Properties() {
             var pos = -1
             for (i in lines.indices) {
                 if (lines[i] is CommentLine) {
-                    val cl = lines[i] as CommentLine
-                    if (cl.comment == "# " + aHeader[0]) {
+                    val cl = lines[i]
+                    if (cl is CommentLine && cl.comment == "# " + aHeader[0]) {
                         pos = i
                     }
                     break
@@ -499,8 +537,7 @@ class FormattedProperties(): Properties() {
                 if (line.comment.trim() != "") {
                     buf.append(line.comment.trim()).append(" ")
                 }
-                buf.append(storeConvert(line.key)).append(line.delimiter)
-                        .append(storeConvert(line.value!!))
+                buf.append(storeConvert(line.key)).append(line.delimiter).append(storeConvert(line.value ?: ""))
                 writeln(writer, buf.toString())
             }
             is PropertyLine -> {
@@ -521,7 +558,7 @@ class FormattedProperties(): Properties() {
         }
     }
 
-    /**
+    /*
      * This method does the conversion of strings during storing of the
      * properties. This means replacing special characters with unicode
      * literals.
@@ -530,10 +567,11 @@ class FormattedProperties(): Properties() {
      *
      * @return The converted string.
      */
+    @Suppress("MagicNumber")
     private fun storeConvert(aString: String): String {
         // Initialization.
-        var length = aString.length
-        var result = StringBuffer(length * 2)
+        val length = aString.length
+        val result = StringBuffer(length * 2)
 
         // For each character...
         var j = 0
@@ -569,10 +607,9 @@ class FormattedProperties(): Properties() {
     /**
      * Removes the mapping specified by the given key from the property set.
      *
-     *
      * Note: Comment lines belonging to a property will not be deleted.
      *
-     * @param aKey The key of the property to remove.
+     * @param key The key of the property to remove.
      *
      * @return The value for the key.
      */
@@ -588,7 +625,7 @@ class FormattedProperties(): Properties() {
                 // Is it a property line?
                 if (line is PropertyLine) {
                     if (line.key == key) {
-                        var delimiter: Char = delimiters[line.key] ?: defaultCharacter
+                        val delimiter: Char = delimiters[line.key] ?: defaultCharacter
 
                         // Key found -> remove the corresponding line
                         lines[i] = CommentPropertyLine("#", line.key, line.value ?: "", delimiter)
@@ -600,6 +637,16 @@ class FormattedProperties(): Properties() {
         return value
     }
 
+    /**
+     * Removes the mapping specified by the given key from the property set.
+     *
+     * Note: Comment lines belonging to a property will not be deleted.
+     *
+     * @param key The key of the property to remove.
+     * @param comment This string array is used for the comment.
+     *
+     * @return The value for the key.
+     */
     @Synchronized
     fun remove(aKey: Any, comment: Array<String>): Any? {
         if (super.containsKey(aKey)) {
@@ -609,7 +656,7 @@ class FormattedProperties(): Properties() {
         return remove(aKey)
     }
 
-    /**
+    /*
      * This helper method converts a given integer to a hex digit.
      *
      * @param anInt The integer to convert.
@@ -620,7 +667,7 @@ class FormattedProperties(): Properties() {
         return hexDigit[anInt and 0xf]
     }
 
-    /**
+    /*
      * This method writes the given string to the given writer, followed by a
      * newline.
      *
@@ -643,13 +690,8 @@ class FormattedProperties(): Properties() {
      * This inner class represents an empty line in a properties file.
      */
     internal open inner class EmptyLine : Line() {
-        override fun equals(other: Any?): Boolean {
-            return true
-        }
-
-        override fun hashCode(): Int {
-            return javaClass.hashCode()
-        }
+        override fun equals(other: Any?): Boolean = if(other is EmptyLine) true else false
+        override fun hashCode(): Int = javaClass.hashCode()
     }
 
     /**
@@ -685,6 +727,7 @@ class FormattedProperties(): Properties() {
             return false
         }
 
+        @Suppress("MagicNumber")
         override fun hashCode(): Int {
             var result = key.hashCode()
             result = 31 * result + (value?.hashCode() ?: 0)
@@ -709,6 +752,7 @@ class FormattedProperties(): Properties() {
             return false
         }
 
+        @Suppress("MagicNumber")
         override fun hashCode(): Int {
             var result = comment.hashCode()
             result = 31 * result + aKey.hashCode()

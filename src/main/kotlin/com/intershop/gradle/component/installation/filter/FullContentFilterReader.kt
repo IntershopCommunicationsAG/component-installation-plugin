@@ -31,6 +31,7 @@ import java.io.StringReader
 class FullContentFilterReader (reader: Reader) : FilterReader(DeferringReader(reader)) {
 
     init {
+        @Suppress("UnsafeCast")
         (`in` as DeferringReader).parent = this
     }
 
@@ -67,7 +68,7 @@ class FullContentFilterReader (reader: Reader) : FilterReader(DeferringReader(re
                 delegate = parent.filterReader(source)
             }
 
-            return delegate!!.read(cbuf, off, len)
+            return delegate?.read(cbuf, off, len) ?: -1
         }
 
         override fun close() {

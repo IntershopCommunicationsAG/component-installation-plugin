@@ -32,6 +32,7 @@ import java.io.StringWriter
 class PropertiesFilterReader (reader: Reader) : FilterReader(DeferringReader(reader)) {
 
     init {
+        @Suppress("UnsafeCast")
         (`in` as DeferringReader).parent = this
     }
 
@@ -50,7 +51,7 @@ class PropertiesFilterReader (reader: Reader) : FilterReader(DeferringReader(rea
      */
     fun filterReader(source: Reader): Reader {
 
-        val properties: FormattedProperties = FormattedProperties()
+        val properties = FormattedProperties()
         properties.load(source)
 
         action.execute(properties)
@@ -75,7 +76,7 @@ class PropertiesFilterReader (reader: Reader) : FilterReader(DeferringReader(rea
                 delegate = parent.filterReader(source)
             }
 
-            return delegate!!.read(cbuf, off, len)
+            return delegate?.read(cbuf, off, len) ?: -1
         }
 
         override fun close() {

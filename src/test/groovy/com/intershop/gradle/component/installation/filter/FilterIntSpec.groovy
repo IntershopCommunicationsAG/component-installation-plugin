@@ -17,6 +17,7 @@ package com.intershop.gradle.component.installation.filter
 
 import com.intershop.gradle.test.AbstractIntegrationSpec
 import org.gradle.testkit.runner.TaskOutcome
+import spock.lang.Unroll
 
 class FilterIntSpec extends AbstractIntegrationSpec {
 
@@ -27,7 +28,7 @@ class FilterIntSpec extends AbstractIntegrationSpec {
 
         import org.gradle.api.internal.project.ProjectInternal
         import org.gradle.internal.reflect.Instantiator 
-        import com.intershop.gradle.component.installation.tasks.InstallTask
+        import com.intershop.gradle.component.installation.tasks.InstallMutableTask
         import com.intershop.gradle.component.installation.filter.FilterContainer
         import org.w3c.dom.Element
         
@@ -65,14 +66,17 @@ class FilterIntSpec extends AbstractIntegrationSpec {
             }
         }
         
-        task installTest(type: InstallTask) {
+        task installTest(type: InstallMutableTask) {
             from 'test'
             into 'install'
+            
+            contentType = 'CONFIGURATION'
         }
         
         """.stripIndent()
 
-    def 'filter test overrideProperties'() {
+    @Unroll
+    def 'filter test overrideProperties - #gradleVersion'(gradleVersion) {
         setup:
 
         def setupFile = new File(testProjectDir, 'test/file.properties')
@@ -123,7 +127,8 @@ class FilterIntSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'filter test xmlContent'() {
+    @Unroll
+    def 'filter test xmlContent - #gradleVersion'(gradleVersion) {
         setup:
 
         def setupFile = new File(testProjectDir, 'test/file.xml')
@@ -178,7 +183,8 @@ class FilterIntSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'filter test fullContent'() {
+    @Unroll
+    def 'filter test fullContent - #gradleVersion'(gradleVersion) {
         setup:
 
         def setupFile = new File(testProjectDir, 'test/file.text')
@@ -230,7 +236,8 @@ class FilterIntSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'filter test replacePlaceholders'() {
+    @Unroll
+    def 'filter test replacePlaceholders - #gradleVersion'(gradleVersion) {
         setup:
 
         def setupFile = new File(testProjectDir, 'test/file.text')
@@ -289,7 +296,8 @@ class FilterIntSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
-    def 'filter test closure'() {
+    @Unroll
+    def 'filter test closure - #gradleVersion'(gradleVersion) {
         setup:
 
         def setupFile = new File(testProjectDir, 'test/file.closure')

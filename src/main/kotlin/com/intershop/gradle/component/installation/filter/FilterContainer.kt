@@ -131,9 +131,9 @@ class FilterContainer @Inject constructor(private val project: Project,  instant
 
     // adds the 'OverrideProperties' filter to the task
     private fun addOverridePropertiesEditor(pattern: PatternSet, properties: Action<in Properties>) {
-        project.tasks.withType(InstallTask::class.java) { cp ->
-            cp.eachFile { fc ->
-                if(pattern.asSpec.isSatisfiedBy(fc)) {
+        project.tasks.withType(InstallTask::class.java) { installTask ->
+            installTask.eachFile { fc ->
+                if (pattern.asSpec.isSatisfiedBy(fc)) {
                     fc.filter<PropertiesFilterReader>("action" to properties)
                 }
             }
@@ -218,9 +218,9 @@ class FilterContainer @Inject constructor(private val project: Project,  instant
 
     // adds the 'XMLContent' filter to the task
     private fun addXmlContentEditor(pattern: PatternSet, xml: Action<in XmlProvider>) {
-        project.tasks.withType(InstallTask::class.java) { cp ->
-            cp.eachFile { fc ->
-                if(pattern.asSpec.isSatisfiedBy(fc)) {
+        project.tasks.withType(InstallTask::class.java) { installTask ->
+            installTask.eachFile { fc ->
+                if (pattern.asSpec.isSatisfiedBy(fc)) {
                     fc.filter<XMLFilterReader>("action" to xml)
                 }
             }
@@ -305,9 +305,9 @@ class FilterContainer @Inject constructor(private val project: Project,  instant
 
     // adds the 'FullContent' filter to the task
     private fun addFullContentEditor(pattern: PatternSet, content: Action<in StringBuilder>) {
-        project.tasks.withType(InstallTask::class.java) { cp ->
-            cp.eachFile { fc ->
-                if(pattern.asSpec.isSatisfiedBy(fc)) {
+        project.tasks.withType(InstallTask::class.java) { installTask ->
+            installTask.eachFile { fc ->
+                if (pattern.asSpec.isSatisfiedBy(fc)) {
                     fc.filter<FullContentFilterReader>("action" to content)
                 }
             }
@@ -329,8 +329,8 @@ class FilterContainer @Inject constructor(private val project: Project,  instant
 
         spec.copyFrom(filter)
 
-        project.tasks.withType(InstallTask::class.java) { cp ->
-            cp.eachFile { fc ->
+        project.tasks.withType(InstallTask::class.java) { installTask ->
+            installTask.eachFile { fc ->
                 if (spec.asSpec.isSatisfiedBy(fc)) {
                     fc.filter(filter)
                 }
@@ -379,8 +379,8 @@ class FilterContainer @Inject constructor(private val project: Project,  instant
 
     // add the transformer to the task.
     private fun addTransformerEditor(pattern: PatternSet, transformer: Transformer<String, String>) {
-        project.tasks.withType(InstallTask::class.java) { cp ->
-            cp.eachFile { fc ->
+        project.tasks.withType(InstallTask::class.java) { installTask ->
+            installTask.eachFile { fc ->
                 if (pattern.asSpec.isSatisfiedBy(fc)) {
                     fc.filter(transformer)
                 }
@@ -405,9 +405,9 @@ class FilterContainer @Inject constructor(private val project: Project,  instant
      * @param includes set of file filters for included files in ANT file filter style.
      * @param closure specifies the closure.
      */
-    fun addClosure(name: String, include: Set<String>, closure: Closure<*>) {
+    fun addClosure(name: String, includes: Set<String>, closure: Closure<*>) {
         val spec = addFilterSpec(FilterSpec(name))
-        spec.include(include)
+        spec.include(includes)
 
         addClosureEditor(spec, closure)
     }
@@ -429,8 +429,8 @@ class FilterContainer @Inject constructor(private val project: Project,  instant
 
     // add the closure to the task.
     private fun addClosureEditor(pattern: PatternSet, closure: Closure<*>) {
-        project.tasks.withType(InstallTask::class.java) { cp ->
-            cp.eachFile { fc ->
+        project.tasks.withType(InstallTask::class.java) { installTask ->
+            installTask.eachFile { fc ->
                 if (pattern.asSpec.isSatisfiedBy(fc)) {
                     fc.filter(closure)
                 }
