@@ -55,12 +55,12 @@ class FormattedProperties(): Properties() {
         const val CHAR_COLON = ':'
     }
 
-    /**
+    /*
      * The default delimiter character.
      */
     private var defaultCharacter: Char = CHAR_EQUAL_SIGN
 
-    /**
+    /*
      * This member holds the lines of the properties file.
      */
     private val lines = ArrayList<Line>()
