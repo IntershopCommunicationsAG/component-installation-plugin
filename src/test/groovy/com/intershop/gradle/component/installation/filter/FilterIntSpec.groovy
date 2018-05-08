@@ -58,7 +58,7 @@ class FilterIntSpec extends AbstractIntegrationSpec {
         
         apply plugin: FilterPlugin
         
-        def localDirectory = "dirReplacment"
+        def localDirectory = "dirReplacement"
         
         filter {
             filters {
@@ -281,7 +281,7 @@ class FilterIntSpec extends AbstractIntegrationSpec {
         targetFile.exists()
         targetFile.text.contains('That is an test replacement1')
         targetFile.text.contains('replacement2 will be replaced')
-        targetFile.text.contains('dir = dirReplacment')
+        targetFile.text.contains('dir = dirReplacement')
 
         when:
         def result2 = getPreparedGradleRunner()

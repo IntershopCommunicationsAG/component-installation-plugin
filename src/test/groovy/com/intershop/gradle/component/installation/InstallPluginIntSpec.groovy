@@ -152,7 +152,7 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def 'Test plugin - poduction environment with two components - #gradleVersion'(gradleVersion){
+    def 'Test plugin - production environment with two components - #gradleVersion'(gradleVersion){
         given:
         String projectName = "testdeployment"
         createSettingsGradle(projectName)

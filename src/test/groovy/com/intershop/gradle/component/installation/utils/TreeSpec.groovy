@@ -96,7 +96,7 @@ class TreeSpec extends Specification {
         child1.children.size() == 1
     }
 
-    def "test tree add dublicates"() {
+    def "test tree add duplicates"() {
         setup:
         def root = new TreeNode('root')
 

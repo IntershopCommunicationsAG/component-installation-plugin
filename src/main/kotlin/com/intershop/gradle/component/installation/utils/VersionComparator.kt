@@ -17,8 +17,8 @@ package com.intershop.gradle.component.installation.utils
 
 /**
  * Comparator for version strings.
- * As long the version follow semantiv version scheme
- * and all parts must be digits.
+ * As long as the version follows semantic version scheme
+ * All parts must be digits.
  */
 class VersionComparator : Comparator<String> {
 

@@ -73,7 +73,7 @@ class InstallConfigManager(private val prjext: InstallationExtension,
         }
 
         /**
-         * Get the target dir from a base dir and addional path elements.
+         * Get the target dir from a base dir and additional path elements.
          * The path elements will be filtered and adapted. Empty elements or elements with
          * forbidden characters will be removed, spaces replaced with an underscore.
          *
@@ -125,7 +125,7 @@ class InstallConfigManager(private val prjext: InstallationExtension,
 
     /**
      * The main installation task of the component.
-     * It will be initiazed in the init method of the class.
+     * It will be initialized in the init method of the class.
      *
      * @property compInstallTask the task object or null
      */
@@ -134,7 +134,7 @@ class InstallConfigManager(private val prjext: InstallationExtension,
     /**
      * The name of the component pre installation task. This
      * task will be executed before a sub installation task
-     * of the compoonent will be started.
+     * of the component will be started.
      */
     var preCompInstallTaskName: String = ""
 
@@ -166,7 +166,7 @@ class InstallConfigManager(private val prjext: InstallationExtension,
         }
     }
 
-    // initialiazition of the class
+    // initialization of the class
     init {
         descriptor.modules.forEach { module ->
 
@@ -240,7 +240,7 @@ class InstallConfigManager(private val prjext: InstallationExtension,
 
     /**
      * This is a set of file items for the installation.
-     * File items will replace existing files dependend
+     * File items will replace existing files depending
      * on the OS or the environment type.
      * File items can be added from outside.
      *
@@ -250,7 +250,7 @@ class InstallConfigManager(private val prjext: InstallationExtension,
 
     /**
      * Get a target dir from path elements for this
-     * secial component.
+     * specific component.
      *
      * See also the static method getTargetDir.
      *
@@ -336,7 +336,7 @@ class InstallConfigManager(private val prjext: InstallationExtension,
     }
 
     /**
-     * It initialezes the clean up task for the
+     * It initializes the clean up task for the
      * component installation. Unused items will be removed
      * or moved to a backup directory.
      *

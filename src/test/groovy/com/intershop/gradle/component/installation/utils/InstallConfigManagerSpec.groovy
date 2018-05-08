@@ -18,19 +18,19 @@ package com.intershop.gradle.component.installation.utils
 import com.intershop.gradle.component.installation.tasks.InstallConfigManager
 import spock.lang.Specification
 
-class InstallconfigManager extends Specification {
+class InstallConfigManagerSpec extends Specification {
     
     def "Test path calculation"() {
         when:
         File  f = InstallConfigManager.getTargetDir(new File("test"), input)
-        
+
         then:
-        f.path == output
+        f.path.replace('\\', '/') == output
 
         where:
-        input | output
-        ["test1", "", null, "test2", ""] as String[] | "test/test1/test2"
-        ["test1", "", null, "test2"] as String[] | "test/test1/test2"
+        input                                         | output
+        ["test1", "", null, "test2", ""] as String[]  | "test/test1/test2"
+        ["test1", "", null, "test2"] as String[]      | "test/test1/test2"
         ["test1", "", "bla bla", "test2"] as String[] | "test/test1/bla_bla/test2"
     }
 }

@@ -101,7 +101,7 @@ class DescriptorManager(private val repositories: RepositoryHandler,
         }
 
         @JvmStatic
-        private fun getUrlconnection(urlString: String, credentials: Credentials) : URLConnection {
+        private fun getUrlConnection(urlString: String, credentials: Credentials) : URLConnection {
             val urlInternal = URL(urlString)
 
             val scheme = urlInternal.protocol
@@ -338,7 +338,7 @@ class DescriptorManager(private val repositories: RepositoryHandler,
                 throw GradleException("The file '${target.absolutePath} can not be recreated.")
             }
 
-            val conn = getUrlconnection(path, descriptorRepo.credentials)
+            val conn = getUrlConnection(path, descriptorRepo.credentials)
             target.copyInputStreamToFile(conn.getInputStream())
         }
     }
@@ -378,7 +378,7 @@ class DescriptorManager(private val repositories: RepositoryHandler,
             logger.info("Descriptor '{}' found in '{}'.", descriptor, url)
         } catch(ex: UninitializedPropertyAccessException) {
             throw GradleException("Descriptor '$descriptor' not found in the configured repositories! " +
-                    "Please check your logfiles!")
+                    "Please check your log files!")
         }
     }
 
@@ -427,7 +427,7 @@ class DescriptorManager(private val repositories: RepositoryHandler,
                 descriptor.group, descriptor.module, descriptor.version,
                 descriptor.module, "", ""))
 
-        val connection = getUrlconnection(urlPath.toString(), repo.credentials)
+        val connection = getUrlConnection(urlPath.toString(), repo.credentials)
 
         when(connection) {
             is HttpURLConnection -> {
@@ -449,7 +449,7 @@ class DescriptorManager(private val repositories: RepositoryHandler,
                 }
             }
             else -> {
-                throw GradleException("This kind of repository configuration for '${repo.url}'" +
+                throw GradleException("This kind of repository configuration for '${repo.url}' ($connection)" +
                         " is not supported by the 'component-install-plugin' - wrong connection.")
             }
         }
@@ -474,15 +474,15 @@ class DescriptorManager(private val repositories: RepositoryHandler,
 
         version = when {
             descriptor.hasLatestVersion -> {
-                val connection = getUrlconnection("$path/maven-metadata.xml", repo.credentials)
+                val connection = getUrlConnection("$path/maven-metadata.xml", repo.credentials)
                 getVersionFromMaven(connection.inputStream)
             }
             descriptor.hasVersionPattern -> {
-                val connection = getUrlconnection("$path/maven-metadata.xml", repo.credentials)
+                val connection = getUrlConnection("$path/maven-metadata.xml", repo.credentials)
                 getVersionFromMaven(connection.inputStream, descriptor.versionPattern)
             }
             else -> {
-                val connection = getUrlconnection("$path/maven-metadata.xml", repo.credentials)
+                val connection = getUrlConnection("$path/maven-metadata.xml", repo.credentials)
                 getVersionFromMaven(connection.inputStream, descriptor.versionPattern)
             }
         }
@@ -490,7 +490,7 @@ class DescriptorManager(private val repositories: RepositoryHandler,
         var updateStr = ""
 
         if(version.endsWith("-SNAPSHOT")) {
-            val connection = getUrlconnection("$path/$version/maven-metadata.xml", repo.credentials)
+            val connection = getUrlConnection("$path/$version/maven-metadata.xml", repo.credentials)
             updateStr = getSnapshotVersionFromMaven(connection.inputStream, descriptor.version)
         }
 
@@ -522,7 +522,7 @@ class DescriptorManager(private val repositories: RepositoryHandler,
         val metadata = ComponentUtil.metadataFromFile(targetFile)
 
         if(metadata.version != ComponentUtil.version) {
-            throw GradleException("The component desriptor '${descriptor.getDependencyString()}'" +
+            throw GradleException("The component descriptor '${descriptor.getDependencyString()}'" +
                     "was created by an other version (Descriptor version is '${metadata.version}', " +
                     "but the used framework has '${ComponentUtil.version}').")
         }

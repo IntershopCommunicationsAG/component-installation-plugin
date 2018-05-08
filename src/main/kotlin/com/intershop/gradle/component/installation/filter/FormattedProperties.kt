@@ -473,7 +473,7 @@ class FormattedProperties(): Properties() {
     /**
      * This method save this properties to the given output stream.
      *
-     * @param originalWriter The writer to save the properties to.
+     * @param outputFile The file to save the properties to.
      *
      * @exception java.io.IOException if the stream could not be written.
      */
@@ -642,7 +642,7 @@ class FormattedProperties(): Properties() {
      *
      * Note: Comment lines belonging to a property will not be deleted.
      *
-     * @param key The key of the property to remove.
+     * @param aKey The key of the property to remove.
      * @param comment This string array is used for the comment.
      *
      * @return The value for the key.

@@ -144,8 +144,8 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
             }
 
             private fun initFileItems(confMgr: InstallConfigManager,
-                                     descrMgr: DescriptorManager,
-                                     adminDir: File) {
+                                      descrMgr: DescriptorManager,
+                                      adminDir: File) {
 
                 confMgr.fileItemSet.clear()
 
@@ -159,13 +159,13 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                         descrMgr.loadArtifactFile(artifact, localFile)
 
                         confMgr.fileItemSet.add(FileItem(localFile,
-                                calculatFilePath(file.targetPath, file.name, file.extension),
+                                calculateFilePath(file.targetPath, file.name, file.extension),
                                 file.targetPath, ContentType.valueOf(file.contentType.toString()), file.updatable))
                     }
                 }
             }
 
-            private fun calculatFilePath(fileTarget: String, fileName: String, fileExtension: String): String {
+            private fun calculateFilePath(fileTarget: String, fileName: String, fileExtension: String): String {
                 val path = StringBuilder(fileTarget)
                 if (!path.endsWith("/")) {
                     path.append("/")
@@ -264,7 +264,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
         fun installTasksRule(tasks: ModelMap<Task>, installExtension: InstallationExtension) {
 
             if(OSType.detectedOS() == OSType.OTHER) {
-                throw GradleException("The operating system is not suppported by the component install plugin!")
+                throw GradleException("The operating system is not supported by the component install plugin!")
             }
 
             val repoHandler = installExtension.project.repositories
@@ -286,7 +286,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                 descriptorMgr.loadDescriptorFile(targetFile)
 
                 // get and verify metadata
-                val metadData = descriptorMgr.getDescriptorMetadata(targetFile)
+                val metaData = descriptorMgr.getDescriptorMetadata(targetFile)
 
                 // read configuration
                 val mainDescr = ComponentUtil.componentFromFile(targetFile)
@@ -300,7 +300,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                 if(instDescrFile.exists()) {
                     val prevID = ComponentUtil.metadataFromFile(targetFile).componentID
 
-                    if(prevID.group != metadData.componentID.group || prevID.module != metadData.componentID.module) {
+                    if(prevID.group != metaData.componentID.group || prevID.module != metaData.componentID.module) {
                         throw GradleException("The previous installed component was '$prevID'. $CHECKCONF $DOCUTEXT ")
                     }
 

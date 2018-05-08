@@ -28,7 +28,7 @@ class CentralTestRepo {
     private String intRepoconfig
 
     CentralTestRepo(String path) {
-        repoDir = new File(path)
+        repoDir = new File(path as String)
 
         if(repoDir.exists()) {
             repoDir.deleteDir()
@@ -423,7 +423,7 @@ class CentralTestRepo {
                 jcenter()
                 ivy {
                     name 'ivyLocal'
-                    url "file://${repoDir.absolutePath.replace('\\', '/')}"
+                    url "${repoDir.toURI().toURL()}"
                     layout('pattern') {
                         ivy "${DescriptorManager.INTERSHOP_IVY_PATTERN}"
                         artifact "${DescriptorManager.INTERSHOP_PATTERN}"
@@ -431,7 +431,7 @@ class CentralTestRepo {
                     }
                 }
                 maven {
-                    url "file://${repoDir.absolutePath.replace('\\', '/')}"
+                    url "${repoDir.toURI().toURL()}"
                 }
             }""".stripIndent()
 

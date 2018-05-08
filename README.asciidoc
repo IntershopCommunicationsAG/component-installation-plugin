@@ -16,7 +16,7 @@ NOTE: This library is under development and not final released.
 This plugin creates an installation from configured component artifacts. This components will be created by the
 component-build-plugin. Each component consists of a descriptor, packages files etc. The descriptor is based on Json.
 The configuration of the plugin includes not only the dependencies of the components. It includes also a type
-configuration to specify the scope of the installation. The target operating system will be also considerd automatically.
+configuration to specify the scope of the installation. The target operating system will be also considered automatically.
 
 == Usage
 To apply the component-installation Gradle plugin to your projects, add the following in your build script:
@@ -37,6 +37,15 @@ installation {
     installDir = file('installation')
 }
 ----
+
+=== Prerequisites
+To be able to create symlinks on Windows the user executing the task has to have the appropriate permissions to do that.
+In order to check or grant that permission make sure the users group or the user itself is listed in the local security policy.
+
+- Open "Local Security Policy" (secpol.msc)
+- Navigate to "Security Settings" -> "User Rights Assignment" -> "Create symbolic links"
+- Check if the user is present or adjust accordingly
+- Log off and on again
 
 == Tasks
 
@@ -454,7 +463,7 @@ preserve(Action<? super PatternFilterable> action)
 [source,groovy]
 void preserve(Closure closure)
 
-Configures the preserve pattern set with a closure or action. Files and directories that be satified by this filter,
+Configures the preserve pattern set with a closure or action. Files and directories that be satisfied by this filter,
 are not deleted from the install task.
 
 :::

@@ -19,7 +19,7 @@ import spock.lang.Specification
 
 class VersionComparatorSpec extends Specification {
 
-    def 'Test comparator for correct sematic versions'() {
+    def 'Test comparator for correct semantic versions'() {
         given:
         def versionList = ["1.2.0", "1.1.1", "1.0.0", "2.0.0"]
 
@@ -30,7 +30,7 @@ class VersionComparatorSpec extends Specification {
         versionList == ["1.0.0", "1.1.1", "1.2.0", "2.0.0"]
     }
 
-    def 'Test comparator for sematic versions'() {
+    def 'Test comparator for semantic versions'() {
         given:
         def versionList = ["1.2", "1.1.1", "1", "2"]
 

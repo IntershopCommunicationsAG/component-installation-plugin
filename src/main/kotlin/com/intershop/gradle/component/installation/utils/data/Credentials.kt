@@ -32,7 +32,7 @@ data class Credentials(val username: String, val password: String) {
         /**
          * Initialize the credentials object from a Gradle repository.
          *
-         * @param repo  repository with authentication support.
+         * @param repo repository with authentication support.
          */
         @JvmStatic
         fun initFrom(repo: AuthenticationSupported) : Credentials {

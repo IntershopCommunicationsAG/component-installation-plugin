@@ -43,7 +43,7 @@ open class InstallConfiguration @Inject constructor(project: Project) {
      * Specifies the admin installation directory.
      * The default value is the build directory of the project.
      *
-     * @property installAdminDir base directory for all admin artifacty.
+     * @property installAdminDir base directory for all admin artifacts.
      */
     var installAdminDir: File = project.buildDir
 

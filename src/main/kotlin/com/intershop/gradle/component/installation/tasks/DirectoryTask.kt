@@ -40,7 +40,7 @@ open class DirectoryTask: DefaultTask() {
     private val directoryPathProperty: Property<String> = project.objects.property(String::class.java)
 
     /**
-     * The contentype will be stored in the specified component or module.
+     * The content type will be stored in the specified component or module.
      * Possible values are
      *  - IMMUTABLE/STATIC
      *  - DATA
@@ -57,7 +57,7 @@ open class DirectoryTask: DefaultTask() {
     /**
      * This will set the content type property from a string value.
      *
-     * @param type string representation of a contenty type.
+     * @param type string representation of a content type.
      */
     fun setContentType(type: String) {
         contentTypeProperty.set(ContentType.valueOf(type))
