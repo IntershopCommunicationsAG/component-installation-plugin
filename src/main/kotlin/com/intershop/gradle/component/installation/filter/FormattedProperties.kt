@@ -70,7 +70,7 @@ class FormattedProperties(): Properties() {
         FileReader(propertiesFile).use { r -> load(r) }
     }
 
-    /**
+    /*
      * This method checks whether the given line continues on the next one (line
      * continuation with "\\").
      *
@@ -241,7 +241,7 @@ class FormattedProperties(): Properties() {
         } while (true)
     }
 
-    /**
+    /*
      * This method does the conversion of strings during loading of the
      * properties. This means replacing unicode literals by their original form.
      *
@@ -558,7 +558,7 @@ class FormattedProperties(): Properties() {
         }
     }
 
-    /**
+    /*
      * This method does the conversion of strings during storing of the
      * properties. This means replacing special characters with unicode
      * literals.
@@ -656,7 +656,7 @@ class FormattedProperties(): Properties() {
         return remove(aKey)
     }
 
-    /**
+    /*
      * This helper method converts a given integer to a hex digit.
      *
      * @param anInt The integer to convert.
@@ -667,7 +667,7 @@ class FormattedProperties(): Properties() {
         return hexDigit[anInt and 0xf]
     }
 
-    /**
+    /*
      * This method writes the given string to the given writer, followed by a
      * newline.
      *
