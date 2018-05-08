@@ -216,7 +216,7 @@ open class InstallationExtension @Inject constructor(val project: Project) {
      *
      * @param action this can be an closure or action to configure the container.
      */
-    fun filters(action: Action<in FilterContainer>) {
+    fun filters(action:Action<in FilterContainer>) {
         action.execute(filtersContainer)
     }
 }
