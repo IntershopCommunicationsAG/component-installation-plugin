@@ -38,6 +38,15 @@ installation {
 }
 ----
 
+=== Prerequisites
+To be able to create symlinks on Windows the user executing the task has to have the appropriate permissions to do that.
+In order to check or grant that permission make sure the users group or the user itself is listed in the local security policy.
+
+- Open "Local Security Policy" (secpol.msc)
+- Navigate to "Security Settings" -> "User Rights Assignment" -> "Create symbolic links"
+- Check if the user is present or adjust accordingly
+- Log off and on again
+
 == Tasks
 
 [cols="25%,30%,45%", width="100%", options="header"]

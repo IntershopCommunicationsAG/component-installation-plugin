@@ -103,7 +103,7 @@ class TaskSpec extends AbstractIntegrationSpec {
         then:
         result1.task(":linkTest").outcome == TaskOutcome.SUCCESS
         linkName.exists()
-        Files.readSymbolicLink(linkName.toPath()).equals(target.toPath())
+        Files.readSymbolicLink(linkName.toPath()) == target.toPath()
 
         when:
         def result2 = getPreparedGradleRunner()
@@ -146,7 +146,7 @@ class TaskSpec extends AbstractIntegrationSpec {
         then:
         result1.task(":linkTest").outcome == TaskOutcome.SUCCESS
         linkName.exists()
-        Files.readSymbolicLink(linkName.toPath()).equals(target.toPath())
+        Files.readSymbolicLink(linkName.toPath()) == target.toPath()
 
         when:
         def result2 = getPreparedGradleRunner()
@@ -192,7 +192,7 @@ class TaskSpec extends AbstractIntegrationSpec {
         then:
         result1.task(":linkTest").outcome == TaskOutcome.SUCCESS
         linkName.exists()
-        Files.readSymbolicLink(linkName.toPath()).equals(target.toPath())
+        Files.readSymbolicLink(linkName.toPath()) == target.toPath()
 
         when:
         def result2 = getPreparedGradleRunner()
@@ -237,7 +237,7 @@ class TaskSpec extends AbstractIntegrationSpec {
         then:
         result1.task(":linkTest").outcome == TaskOutcome.SUCCESS
         linkName.exists()
-        Files.readSymbolicLink(linkName.toPath()).equals(target.toPath())
+        Files.readSymbolicLink(linkName.toPath()) == target.toPath()
 
         when:
         def result2 = getPreparedGradleRunner()
