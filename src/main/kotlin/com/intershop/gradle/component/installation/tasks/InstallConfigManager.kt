@@ -24,6 +24,7 @@ import com.intershop.gradle.component.installation.ComponentInstallPlugin
 import com.intershop.gradle.component.installation.ComponentInstallPlugin.Companion.INSTALLTASKNAME
 import com.intershop.gradle.component.installation.ComponentInstallPlugin.Companion.PREINSTALLTASKNAME
 import com.intershop.gradle.component.installation.extension.InstallationExtension
+import com.intershop.gradle.component.installation.utils.ContentType
 import com.intershop.gradle.component.installation.utils.OSType.Companion.checkClassifierForOS
 import com.intershop.gradle.component.installation.utils.data.FileItem
 import org.gradle.api.GradleException
@@ -270,14 +271,19 @@ class InstallConfigManager(private val prjext: InstallationExtension,
      * @return a preconfigured installation task
      */
     @Throws(GradleException::class)
-    fun getInstallTask(taskName: String): InstallTask {
+    fun getInstallTask(taskName: String, contentType: ContentType = ContentType.UNSPECIFIED): InstallTask {
         var task = tasks.get(taskName)
 
         if(task == null) {
-            tasks.create(taskName, InstallTask::class.java)
+            if(contentType == ContentType.IMMUTABLE) {
+                tasks.create(taskName, InstallTask::class.java)
+            } else {
+                tasks.create(taskName, InstallMutableTask::class.java)
+            }
             task = tasks.get(taskName)
         }
         if(task != null && task is InstallTask) {
+            task.contentType = contentType
             return task
         } else {
             throw GradleException("Task '$taskName exists, but it has the wrong type!")

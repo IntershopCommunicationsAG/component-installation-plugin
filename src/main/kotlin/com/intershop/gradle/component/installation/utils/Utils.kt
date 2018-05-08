@@ -15,10 +15,12 @@
  */
 package com.intershop.gradle.component.installation.utils
 
+import org.gradle.api.file.ContentFilterable
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
 import java.io.File
+import java.io.FilterReader
 import java.io.InputStream
 import kotlin.reflect.KProperty
 
@@ -55,3 +57,28 @@ fun File.copyInputStreamToFile(inputStream: InputStream) {
         }
     }
 }
+
+/**
+ * Adds a content filter to be used during the copy.
+ * Multiple calls add additional filters to the filter chain.
+ * Each filter should implement [FilterReader].
+ * Import `org.apache.tools.ant.filters.*` for access to all the standard Ant filters.
+ *
+ * Examples:
+ *
+ * ```
+ * filter<StripJavaComments>()
+ * filter<com.mycompany.project.CustomFilter>()
+ * filter<HeadFilter>("lines" to 25, "skip" to 2)
+ * filter<ReplaceTokens>("tokens" to mapOf("copyright" to "2009", "version" to "2.3.1"))
+ * ```
+ *
+ * @param T type of the filter to add
+ * @param properties map of filter properties
+ * @return this
+ */
+inline
+fun <reified T : FilterReader> ContentFilterable.filter(vararg properties: Pair<String, Any?>): ContentFilterable =
+        if (properties.isEmpty()) filter(T::class.java)
+        else filter(mapOf(*properties), T::class.java)
+

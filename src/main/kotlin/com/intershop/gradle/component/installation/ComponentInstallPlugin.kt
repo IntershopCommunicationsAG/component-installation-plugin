@@ -312,11 +312,11 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
                 // copy descriptor file for documentation
                 val descrTaskname = INSTALLTASKNAME.plus(confMgr.getSuffixStr("componentDescriptor"))
-                val descrInstall = confMgr.getInstallTask(descrTaskname)
+
+                val descrInstall = confMgr.getInstallTask(descrTaskname, ContentType.IMMUTABLE)
 
                 with(descrInstall) {
                     from(project.file(targetFile))
-                    contentType = ContentType.IMMUTABLE
                     destinationDir = confMgr.getTargetDir(mainDescr.descriptorPath)
 
                     dependsOn(confMgr.preCompInstallTaskName)
@@ -328,14 +328,14 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
                 // install file containers
                 mainDescr.fileContainers.forEach { pkg ->
-                    val pkgFile = File(compAdminDir, "pkgs/${pkg.name}.zip")
+                    val pkgFile = File(compAdminDir, "pkgs/${pkg.name}-${pkg.itemType}.zip")
 
                     if (checkForOS(pkg) && confMgr.checkForType(pkg) && (pkg.updatable || ! update) ) {
                         val artifact = Artifact.getArtifact(pkg.name, pkg.itemType, "zip", pkg.classifier)
                         descriptorMgr.loadArtifactFile(artifact, pkgFile)
 
                         val taskName = INSTALLTASKNAME.plus(confMgr.getSuffixStr("pkg", pkg.name, pkg.itemType))
-                        val pkgTask = confMgr.getInstallTask(taskName)
+                        val pkgTask = confMgr.getInstallTask(taskName, ContentType.valueOf(pkg.contentType.toString()))
 
                         with(pkgTask) {
                             from(project.zipTree(pkgFile))
@@ -343,7 +343,6 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                             configSpec(this, confMgr, pkg.targetIncluded, update, pkg.targetPath)
                             configExcludesPreserve(this, mainDescr, compToInstall, pkg, update)
 
-                            contentType = ContentType.valueOf(pkg.contentType.toString())
                             destinationDir = confMgr.getTargetDir(mainDescr.containerPath, pkg.targetPath)
 
                             dependsOn(confMgr.preCompInstallTaskName)
@@ -360,7 +359,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                     if(confMgr.checkForType(entry.value) && (entry.value.updatable || ! update)) {
                         val taskName = INSTALLTASKNAME.plus(confMgr.getSuffixStr("module", entry.value.name))
 
-                        val install = confMgr.getInstallTask(taskName)
+                        val install = confMgr.getInstallTask(taskName, ContentType.valueOf(entry.value.contentType.toString()))
                         with(install) {
                             destinationDir = confMgr.getTargetDir(mainDescr.modulesPath, entry.key)
 
@@ -368,8 +367,6 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
                             configSpec(this, confMgr, entry.value.targetIncluded, update, entry.key)
                             configExcludesPreserve(this, mainDescr, compToInstall, entry.value, update)
-
-                            contentType = ContentType.valueOf(entry.value.contentType.toString())
 
                             dependsOn(confMgr.preCompInstallTaskName)
                         }
@@ -382,13 +379,12 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                 if(mainDescr.libs.isNotEmpty()) {
                     val libTaskName = INSTALLTASKNAME.plus(confMgr.getSuffixStr("libs"))
 
-                    val libInstall = confMgr.getInstallTask(libTaskName)
+                    val libInstall = confMgr.getInstallTask(libTaskName, ContentType.IMMUTABLE)
 
                     libInstall.destinationDir = confMgr.getTargetDir(mainDescr.libsPath)
                     libInstall.duplicatesStrategy = DuplicatesStrategy.FAIL
 
                     confMgr.configureLibsSpec(libInstall, mainDescr.libs)
-                    libInstall.contentType = ContentType.IMMUTABLE
 
                     libInstall.dependsOn(confMgr.preCompInstallTaskName)
 

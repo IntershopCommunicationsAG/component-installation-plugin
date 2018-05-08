@@ -49,8 +49,12 @@ installation {
 |install<common component name>CleanUp  | CleanUpTask (*)      | Removes or backup directories in the component installation directory,  +
 that are not part of the installation.
 |install<common component name>Libs     | InstallTask (*)      | Installation task of all libraries.
-|install<common component name>Module*  | InstallTask (*)      | Installation tasks of all modules.
-|install<common component name>Pkg*     | InstallTask (*)      | Installation tasks of all file containers.
+|install<common component name>Module*  | InstallTask (\*) +
+   InstallMutableTask (*) | Installation tasks of all modules. InstallTask is used for all modules, that are not changeable.
+   For modules with content type: 'DATA' and 'CONFIGURATION' InstallMutableTask is used.
+|install<common component name>Pkg*     | InstallTask (\*) +
+InstallMutableTask (*) | Installation tasks of all containers. InstallTask is used for all containers, that are not changeable.
+   For packages with content type: 'DATA' and 'CONFIGURATION' InstallMutableTask is used.
 |install<common component name>Dir<path elements>| DirectoryTask (*)    | This task creates a directory with installation information.
 |install<common component name>Links    | LinkTask (*)         | This task creates links of a component.
 |preInstall<common component name>      | Task                 | Starts all tasks before the installation of the component runs.
@@ -87,6 +91,8 @@ all installation related tasks will be executed in the correct order.
 |<<installConfig, installConfig>> | With this configuration it is possible to change default values for installation process.
 |<<environment, environment>> | Specifies the environment type configuration, like 'production', 'test', 'intTest'.
 |<<components, components>> | Set of components to install with this one installation project.
+|<<filters, filters>> | Container for all filter configurations. These filter configurations will help to adapt file
+content of all changable containers and modules.
 |===
 
 [[installDir]]
@@ -144,6 +150,19 @@ Default:: `[]`
 
 ***
 
+[[filters]]
+[source,groovy]
+FilterContainer filters
+
+The configuration container for all filter configurations.
+
+:::
+
+Default:: `[]`
+
+***
+
+
 === Methods of 'installation'
 
 [cols="1m,1d" width="100%", options="header"]
@@ -156,6 +175,7 @@ Default:: `[]`
 |<<addclosure, add>>(component, closure) | Adds a component through a dependency and configures the component with a closure.
 |<<addpathaction, add>>(component, path, action) | Adds a component through a dependency with a special path and configures the component with an action.
 |<<addpathclosure, add>>(component, path, closure) | Adds a component through a dependency with a special path and configures the component with a closure.
+|<<conffilters, filters>>(action) | Configures a preconfigured filter container.
 |===
 
 [[add]]
@@ -237,6 +257,25 @@ add('com.intershop:testcomp:1.0.0', 'testpath') {
     exclude '**/**/*.jpg'
     preserve {
         include '**/**/*.jpg'
+    }
+}
+
+***
+
+[[conffilters]]
+[source,groovy]
+void filters(Action<? super FilterContainer> action)
+
+This method configures the filter container for all InstallMutableTasks.
+
+:::
+
+Example::
+[source,groovy]
+filters {
+    overrideProperties("test1", "**/**/test1file.properties") {
+        setProperty("test3.test", "test3")
+        setProperty("test4.test", "test4")
     }
 }
 
@@ -428,6 +467,413 @@ add('com.intershop:testcomp:1.0.0', 'testpath') {
         include '**/**/*.jpg'
     }
 }
+
+***
+
+=== Container 'filters'
+
+==== Methods of 'filters'
+
+[cols="1m,1d" width="100%", options="header"]
+|===
+|Method     | Description
+
+|<<overrideProperties1, overrideProperties>>(name, include, properties) | This method add a filter for an include pattern with a configuration in properties for FormattedProperties.
+|<<overrideProperties2, overrideProperties>>(name, includes, properties) | This method add a filter for an include pattern set with a configuration in properties for FormattedProperties.
+|<<overrideProperties3, overrideProperties>>(name, pattern, properties) | This method add a filter for pattern set with a configuration in properties for FormattedProperties.
+|<<xmlContent1, xmlContent>>(name, include, xml) | This method add a filter for an include pattern with a configuration in xml for XmlProvider.
+|<<xmlContent2, xmlContent>>(name, includes, xml) | This method add a filter for an include pattern set with a configuration in xml for XmlProvider.
+|<<xmlContent3, xmlContent>>(name, pattern, xml) | This method add a filter for pattern set with a configuration in xml for XmlProvider.
+|<<fullContent1, fullContent>>(name, include, content) | This method add a filter for an include pattern with a configuration in content for StringBuilder.
+|<<fullContent2, fullContent>>(name, includes, content) | This method add a filter for an include pattern set with a configuration in content for StringBuilder.
+|<<fullContent3, fullContent>>(name, pattern, content) | This method add a filter for pattern set with a configuration in content for StringBuilder.
+|<<replacePlaceholders,replacePlaceholders>>(name, replacePlaceHolder) | This method add a filter that replaces placeholders per line for files specified in the pattern set.
+|<<transformer1, addTransformer>>(name, include, transformer) | This method add a Transformer for an include pattern to edit files based on lines.
+|<<transformer2, addTransformer>>(name, includes, transformer) | This method add a Transformer for an include pattern set to edit files based on lines.
+|<<transformer3, addTransformer>>(name, pattern, transformer) | This method add a Transformer for pattern set to edit files based on lines.
+|<<closure1, addClosure>>(name, include, closure) | This method add a Closure for an include pattern to edit files based on lines.
+|<<closure2, addClosure>>(name, includes, closure) | This method add a Closure for an include pattern set to edit files based on lines.
+|<<closure3, addClosure>>(name, pattern, closure) | This method add a Closure for pattern set to edit files based on lines.
+|===
+
+[[overrideProperties1]]
+[source,groovy]
+void overrideProperties(String name, String include, Action<? super FormattedProperties> properties)
+
+[source,groovy]
+void overrideProperties(String name, String include, Closure<FormattedProperties> properties)
+
+This method add a filter for an include pattern with a configuration in properties for FormattedProperties.
+
+:::
+
+Example::
+[source,groovy]
+----
+overrideProperties("propname", "**/webadapter/webadapter.properties") {
+    setProperty("errorlog.level", "INFO")
+    setProperty("webadapterAgent.pageCache.expiredFiles.deletionDelay", "60")
+
+    remove("property.key.remove")
+    addComment("property.key", [ "This is a comment for property.key" ])
+}
+----
+
+***
+
+[[overrideProperties2]]
+[source,groovy]
+void overrideProperties(String name, Set<String> includes, Action<? super FormattedProperties> properties)
+
+[source,groovy]
+void overrideProperties(String name, Set<String> includes, Closure<FormattedProperties> properties)
+
+This method add a filter for an include pattern set with a configuration in properties for FormattedProperties.
+
+:::
+
+Example::
+[source,groovy]
+----
+overrideProperties("propname", ["**/webadapter1/webadapter.properties", "**/webadapter2/webadapter.properties"] ) {
+    setProperty("errorlog.level", "INFO")
+    setProperty("webadapterAgent.pageCache.expiredFiles.deletionDelay", "60")
+
+    remove("property.key.remove")
+    addComment("property.key", [ "This is a comment for property.key" ])
+}
+----
+
+***
+
+[[overrideProperties3]]
+[source,groovy]
+void overrideProperties(String name, PatternSet patternset, Action<? super FormattedProperties> properties)
+
+[source,groovy]
+void overrideProperties(String name, PatternSet patternset, Closure<FormattedProperties> properties)
+
+This method add a filter for an include pattern set with a configuration in properties for FormattedProperties.
+
+:::
+
+Example::
+[source,groovy]
+----
+def patternset = new PatternSet()
+patternset.exclude("**/webadapter1/webadapter.properties")
+patternset.include("**/**/webadapter.properties")
+
+overrideProperties("propname", patternset ) {
+    setProperty("errorlog.level", "INFO")
+    setProperty("webadapterAgent.pageCache.expiredFiles.deletionDelay", "60")
+
+    remove("property.key.remove")
+    addComment("property.key", [ "This is a comment for property.key" ])
+}
+----
+
+***
+
+[[xmlContent1]]
+[source,groovy]
+void xmlContent(String name, String include, Action<? super XmlProvider> properties)
+
+[source,groovy]
+void xmlContent(String name, String include, Closure<XmlProvider> closure)
+
+This method add a filter for an include pattern with a configuration in xml for XmlProvider.
+
+:::
+
+Example::
+[source,groovy]
+----
+xmlContent("xmlname", "**/cluster/configuration.xml") { XmlProvider provider ->
+    def sets = provider.asNode().sets.first().children()
+    def lastDomainSpecificSet = sets.findAll {it.@scope=='domain'}.last()
+    def newSet = new Node(null, 'set', [finder:'property', scope:'cluster,server,domain', fileName:'/etc/config/intershop7.properties'])
+    sets.add(sets.indexOf(lastDomainSpecificSet)+1, newSet)
+}
+----
+
+***
+
+[[xmlContent2]]
+[source,groovy]
+void xmlContent(String name, Set<String> includes, Action<? super XmlProvider> properties)
+
+[source,groovy]
+void xmlContent(String name, Set<String> includes, Closure<XmlProvider> closure)
+
+This method add a filter for an include pattern set with a configuration in xml for XmlProvider.
+
+:::
+
+Example::
+[source,groovy]
+----
+xmlContent("xmlname", ["**/cluster1/configuration.xml", "**/cluster2/configuration.xml"]) { XmlProvider provider ->
+    def sets = provider.asNode().sets.first().children()
+    def lastDomainSpecificSet = sets.findAll {it.@scope=='domain'}.last()
+    def newSet = new Node(null, 'set', [finder:'property', scope:'cluster,server,domain', fileName:'/etc/config/intershop7.properties'])
+    sets.add(sets.indexOf(lastDomainSpecificSet)+1, newSet)
+}
+----
+
+***
+
+[[xmlContent3]]
+[source,groovy]
+void xmlContent(String name, PatternSet patternset, Action<? super XmlProvider> properties)
+
+[source,groovy]
+void xmlContent(String name, PatternSet patternset, Closure<XmlProvider> closure)
+
+This method add a filter for pattern set with a configuration in xml for XmlProvider.
+
+:::
+
+Example::
+[source,groovy]
+----
+def patternset = new PatternSet()
+patternset.exclude("**/cluster1/configuration.xml")
+patternset.include("**/**/configuration.xml")
+
+xmlContent("xmlname", ["**/cluster1/configuration.xml", "**/cluster2/configuration.xml"]) { XmlProvider provider ->
+    def sets = provider.asNode().sets.first().children()
+    def lastDomainSpecificSet = sets.findAll {it.@scope=='domain'}.last()
+    def newSet = new Node(null, 'set', [finder:'property', scope:'cluster,server,domain', fileName:'/etc/config/intershop7.properties'])
+    sets.add(sets.indexOf(lastDomainSpecificSet)+1, newSet)
+}
+----
+
+***
+
+[[fullContent1]]
+[source,groovy]
+void fullContent(String name, String include, Action<? super StringBuilder> content)
+
+[source,groovy]
+void fullContent(String name, String include, Closure<StringBuilder> closure)
+
+This method add a filter for an include pattern with a configuration in content for StringBuilder.
+
+:::
+
+Example::
+[source,groovy]
+----
+fullContent("contentName", "**/httpd/conf/httpd.conf") { StringBuilder content ->
+     content.append(System.lineSeparator + '# MyModule configuration' + System.lineSeparator + "Include ${target.localDirectory}/etc/httpd/extra/my-module.conf")
+ }
+----
+
+***
+
+[[fullContentt2]]
+[source,groovy]
+void fullContent(String name, Set<String> includes, Action<? super StringBuilder> content)
+
+[source,groovy]
+void fullContent(String name, Set<String> includes, Closure<StringBuilder> closure)
+
+This method add a filter for an include pattern set with a configuration in content for StringBuilder.
+
+:::
+
+Example::
+[source,groovy]
+----
+fullContent("contentName", ["**/httpd1/conf/httpd.conf", "**/httpd2/conf/httpd.conf"]) { StringBuilder content ->
+     content.append(System.lineSeparator + '# MyModule configuration' + System.lineSeparator + "Include ${target.localDirectory}/etc/httpd/extra/my-module.conf")
+ }
+----
+
+***
+
+[[fullContent3]]
+[source,groovy]
+void fullContent(String name, PatternSet patternset, Action<? super StringBuilder> content)
+
+[source,groovy]
+void fullContent(String name, PatternSet patternset, Closure<StringBuilder> closure)
+
+This method add a filter for pattern set with a configuration in content for StringBuilder.
+
+:::
+
+Example::
+[source,groovy]
+----
+def patternset = new PatternSet()
+patternset.exclude("**/httpd2/configuration.xml")
+patternset.include("**/**/conf/httpd.conf")
+
+fullContent("contentName", patternset) { StringBuilder content ->
+     content.append(System.lineSeparator + '# MyModule configuration' + System.lineSeparator + "Include ${target.localDirectory}/etc/httpd/extra/my-module.conf")
+ }
+----
+
+***
+
+[[replacePlaceholders]]
+[source,groovy]
+void replacePlaceholders(String name, Closure<PlaceholderReplacementFilter> replacePlaceHolder)
+
+This method add a filter that replaces placeholders per line for files specified in the pattern set.
+
+:::
+
+Example::
+[source,groovy]
+----
+replacePlaceholders("placeholders") {
+    include '**/bin/*.sh'
+
+    add("IS.HOME", localDirectoryVar)
+
+    placeholders['IS.SHARE'] = shareDirectoryVar
+}
+----
+
+***
+
+[[transformer1]]
+[source,groovy]
+void addTransformer(String name, String include, Transformer<String, String> transformer)
+
+This method add a Transformer for an include pattern to edit files based on lines.
+
+:::
+
+Example::
+[source,groovy]
+----
+addTransformer("ownTransformer", "**/**/file.conf", new Transformer<String, String>() {
+    @Override
+    public String transform(String inStr) {
+        if(inStr.startsWidth("#")) {
+            return "comment: ".concat(inStr)
+        } else {
+            return inStr
+        }
+    }
+})
+----
+
+***
+
+[[transformer2]]
+[source,groovy]
+void addTransformer(String name, Set<String> includes, Transformer<String, String> transformer)
+
+This method add a Transformer for an include pattern set to edit files based on lines.
+
+:::
+
+Example::
+[source,groovy]
+----
+addTransformer("ownTransformer", ["**/folder1/file.conf", "**/folder2/file.conf"], new Transformer<String, String>() {
+    @Override
+    public String transform(String inStr) {
+        if(inStr.startsWidth("#")) {
+            return "comment: ".concat(inStr)
+        } else {
+            return inStr
+        }
+    }
+})
+----
+
+***
+
+[[transformer3]]
+[source,groovy]
+void addTransformer(String name, PatternSet patternset, Transformer<String, String> transformer)
+
+This method add a Transformer for pattern set to edit files based on lines.
+
+:::
+
+Example::
+[source,groovy]
+----
+def patternset = new PatternSet()
+patternset.exclude("**/folder2/file.conf")
+patternset.include("**/**/file.conf")
+
+addTransformer("ownTransformer", patternset, new Transformer<String, String>() {
+    @Override
+    public String transform(String inStr) {
+        if(inStr.startsWidth("#")) {
+            return "comment: ".concat(inStr)
+        } else {
+            return inStr
+        }
+    }
+})
+----
+
+***
+
+[[closure1]]
+[source,groovy]
+void addClosure(String name, String include, Closure closure)
+
+This method add a Closure for an include pattern to edit files based on lines.
+
+:::
+
+Example::
+[source,groovy]
+----
+addClosure("editLine", "**/folder/file.conf") {
+    String line -> line =~ /^\\w*ServerAdmin/ ? 'ServerAdmin admin@customer.com' : line
+}
+----
+
+***
+
+[[closure2]]
+[source,groovy]
+void addClosure(String name, Set<String> includes, Closure closure)
+
+This method add a Closure for an include pattern set to edit files based on lines.
+
+:::
+
+Example::
+[source,groovy]
+----
+addClosure("editLine", ["**/folder1/file.conf", "**/folder2/file.conf"]) {
+    String line -> line =~ /^\\w*ServerAdmin/ ? 'ServerAdmin admin@customer.com' : line
+}
+----
+
+***
+
+[[closure3]]
+[source,groovy]
+void addClosure(String name, PatternSet patternset,  Closure closure)
+
+This method add a Closure for pattern set to edit files based on lines.
+
+:::
+
+Example::
+[source,groovy]
+----
+def patternset = new PatternSet()
+patternset.exclude("**/folder2/file.conf")
+patternset.include("**/**/file.conf")
+
+addClosure("editLine", patternset) {
+    String line -> line =~ /^\\w*ServerAdmin/ ? 'ServerAdmin admin@customer.com' : line
+}
+----
 
 ***
 

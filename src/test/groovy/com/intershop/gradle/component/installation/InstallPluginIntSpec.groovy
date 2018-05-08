@@ -676,6 +676,182 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         gradleVersion << supportedGradleVersions
     }
 
+    @Unroll
+    def 'Test configuration - change file content - #gradleVersion'(gradleVersion) {
+        given:
+        String projectName = "testdeployment"
+        createSettingsGradle(projectName)
+
+        def configurationConfFile = new File(testProjectDir, 'installation/testcomp/share/system/conf/configuration.conf')
+        def configurationXmlFile = new File(testProjectDir, 'installation/testcomp/share/system/conf/configuration.xml')
+        def replacementTextFile = new File(testProjectDir, 'installation/testcomp/share/system/conf/replacement.text')
+        def specialTextFile = new File(testProjectDir, 'installation/testcomp/share/system/conf/special.text')
+        def test1PropertiesFile = new File(testProjectDir, 'installation/testcomp/share/system/conf/test1file.properties')
+        def test2PropertiesFile = new File(testProjectDir, 'installation/testcomp/share/system/conf/test2file.properties')
+        def textClosureFile = new File(testProjectDir, 'installation/testcomp/share/system/conf/text.closure')
+
+        buildFile << """
+        plugins {
+            id 'com.intershop.gradle.component.installation'
+        }
+
+        group 'com.intershop.test'
+        version = '1.0.0'
+   
+        import org.w3c.dom.Element
+
+        installation {
+            environment('production')
+            installDir = file('installation')
+
+            add("com.intershop.test:testcomponentConf:\${project.ext.installv}") { }
+          
+            filters {
+                overrideProperties("test1", "**/**/test1file.properties") {
+                    setProperty("test3.test", "test3")
+                    setProperty("test4.test", "test4")
+                }
+                overrideProperties("test2", "**/**/test2file.properties") {
+                    setProperty("test3.test", "test5")
+                    setProperty("test4.test", "test6")
+                }
+                xmlContent("test3", "**/**/configuration.xml") {
+                    Element root = asElement()
+                    root.setAttribute("fizz", "baz")
+                    Element e = root.ownerDocument.createElement("baz")
+                    e.textContent = "fiz"
+                    root.appendChild(e)
+                }
+                fullContent("test4", "**/**/*.text") {
+                    append('bar')
+                } 
+                fullContent("test5", "**/**/configuration.conf") {
+                    append('bar')
+                } 
+                replacePlaceholders("test6") {
+                    include("**/**/*.text")
+                            
+                    add("TEST1", "replacement1")
+                    add("TEST2", "replacement2")
+                            
+                    placeholders['TEST3'] = "testDirectory"
+                }
+                addClosure("test7", "**/**/*.closure") {
+                    String line -> line =~ /^\\w*ServerAdmin/ ? 'ServerAdmin admin@customer.com' : line
+                }
+            }
+        }
+       
+        ${repoConfig.getRepoConfig()}
+        """.stripIndent()
+
+        when:
+        List<String> args1 = ['install', '-s', '-i', "-Pinstallv=1.0.0"]
+
+        def result1 = getPreparedGradleRunner()
+                .withArguments(args1)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result1.task(':installTestcomponentConfPkgShareConf').outcome == TaskOutcome.SUCCESS
+
+        configurationConfFile.exists()
+        configurationXmlFile.exists()
+        replacementTextFile.exists()
+        specialTextFile.exists()
+        test1PropertiesFile.exists()
+        test2PropertiesFile.exists()
+        textClosureFile.exists()
+
+        makeList(configurationConfFile.text) == makeList("""
+                <configuration file>
+                    test = 3
+                </configuration file>
+                #content text
+                bar
+                """.stripIndent())
+        makeList(configurationXmlFile.text) == makeList(
+                """\
+                <?xml version="1.0"?>
+                <foo fizz="baz">
+                  <bar/>
+                  <baz>fiz</baz>
+                </foo>
+                """.stripIndent())
+        makeList(replacementTextFile.text) == makeList("""
+                ----
+                That is an additional test replacement1
+                replacement2 will be replaced
+                dir = testDirectory
+                ----
+                bar
+                """.stripIndent())
+        makeList(specialTextFile.text) == makeList("""
+                ----
+                That is an test replacement1
+                replacement2 will be replaced
+                dir = testDirectory
+                ----
+                bar
+                """.stripIndent())
+        makeList(test1PropertiesFile.text) == makeList("""
+                test1.1.test = test1
+                test2.1.test = test2
+                test3.test = test3
+                test4.test = test4
+                """.stripIndent())
+        makeList(test2PropertiesFile.text) == makeList("""
+                test1.2.test = test1
+                test2.2.test = test2
+                test3.test = test5
+                test4.test = test6
+                """.stripIndent())
+        makeList(textClosureFile.text) == makeList("""
+                foo
+                bar
+                ServerAdmin admin@customer.com
+                baz
+                """.stripIndent())
+
+        when:
+        def result2 = getPreparedGradleRunner()
+                .withArguments(args1)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result2.task(':installTestcomponentConfPkgShareConf').outcome == TaskOutcome.SUCCESS
+
+        configurationConfFile.exists()
+        configurationXmlFile.exists()
+        replacementTextFile.exists()
+        specialTextFile.exists()
+        test1PropertiesFile.exists()
+        test2PropertiesFile.exists()
+        textClosureFile.exists()
+
+        when:
+        def result3 = getPreparedGradleRunner()
+                .withArguments(args1)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result3.task(':installTestcomponentConfPkgShareConf').outcome == TaskOutcome.UP_TO_DATE
+
+        configurationConfFile.exists()
+        configurationXmlFile.exists()
+        replacementTextFile.exists()
+        specialTextFile.exists()
+        test1PropertiesFile.exists()
+        test2PropertiesFile.exists()
+        textClosureFile.exists()
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
     File createSettingsGradle(String projectName) {
         File settingsFile = new File(testProjectDir, 'settings.gradle')
         settingsFile << """
@@ -683,5 +859,13 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         """.stripIndent()
 
         return settingsFile
+    }
+
+    def makeList(list) {
+        List created = new ArrayList()
+        list.eachLine { line ->
+            created.add(line)
+        }
+        return created
     }
 }

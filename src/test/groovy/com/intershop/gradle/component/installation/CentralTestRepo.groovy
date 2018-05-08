@@ -59,6 +59,8 @@ class CentralTestRepo {
         copyResources("descriptors/component-A.component", "component-A.component", dir)
         copyResources("descriptors/component-B.component", "component-B.component", dir)
 
+        copyResources("descriptors/component-1-conf.component", "component-1-conf.component", dir)
+
         new TestIvyRepoBuilder().repository( ivyPattern: DescriptorManager.INTERSHOP_IVY_PATTERN, artifactPattern: DescriptorManager.INTERSHOP_PATTERN ) {
             module(org: 'com.intershop', name: 'testmodule1', rev: '1.0.0') {
                 artifact name: 'testmodule1', type: 'cartridge', ext: 'zip', entries: [
@@ -304,6 +306,80 @@ class CentralTestRepo {
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscriptB1.bat', content: 'interntestB1.file'),
                         TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscriptB2.bat', content: 'interntestB2.file')
                 ]}
+
+            module(org: 'com.intershop.test', name: 'testcomponentConf', rev: '1.0.0') {
+                artifact name: 'testcomponentConf', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME,
+                        content: replaceContent(new File(dir, "component-1-conf.component"), ['@group@': 'com.intershop.test', '@module@': 'testcomponentConf', '@version@': '1.0.0'], dir)
+                artifact name: 'startscripts', type: 'bin', ext: 'zip', classifier: 'linux', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript1.sh', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript2.sh', content: 'interntest2.file')
+                ]
+                artifact name: 'startscripts', type: 'bin', ext: 'zip', classifier: 'macos', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript1.sh', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript2.sh', content: 'interntest2.file')
+                ]
+                artifact name: 'startscripts', type: 'bin', ext: 'zip', classifier: 'win', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript1.bat', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'bin/startscript2.bat', content: 'interntest2.file')
+                ]
+                artifact name: 'share', type: 'sites', ext: 'zip', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'org1/import.properties', content: 'interntest1.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'org2/import.properties', content: 'interntest2.file'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'org1/.switch', content: '1'),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'org2/.switch', content: '1')
+                ]
+                artifact name: 'share', type: 'conf', ext: 'zip', entries: [
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'conf/test1file.properties',
+                                content: """
+                                test1.1.test = test1
+                                test2.1.test = test2
+                                """.stripIndent()),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'conf/test2file.properties',
+                                content: """
+                                test1.2.test = test1
+                                test2.2.test = test2
+                                """.stripIndent()),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'conf/configuration.xml',
+                                content: """
+                                <foo fizz="buzz">
+                                    <bar />
+                                </foo>
+                                """.stripIndent()),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'conf/special.text',
+                                content: """
+                                ----
+                                That is an test <@TEST1@>
+                                <@TEST2@> will be replaced
+                                dir = <@TEST3@>
+                                ----
+                                """.stripIndent()),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'conf/configuration.conf',
+                                content: """
+                                <configuration file>
+                                    test = 3
+                                </configuration file>
+                                #content text
+                                """.stripIndent()),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'conf/text.closure',
+                                content: """
+                                foo
+                                bar
+                                ServerAdmin
+                                baz
+                                """.stripIndent()),
+                        TestIvyRepoBuilder.ArchiveFileEntry.newInstance(path: 'conf/replacement.text',
+                                content: """
+                                ----
+                                That is an additional test <@TEST1@>
+                                <@TEST2@> will be replaced
+                                dir = <@TEST3@>
+                                ----
+                                """.stripIndent())
+                ]
+                artifact name: 'test1', type: 'properties', ext: 'properties', content: 'property1 = value1'
+                artifact name: 'test2', type: 'properties', ext: 'properties', classifier: 'linux', content: 'property2 = value2'
+            }
+
 
             module(org: 'com.intershop', name: 'library4', rev: '1.0.0'){
                 artifact name: 'library4', type: 'jar', ext: 'jar', entries: [

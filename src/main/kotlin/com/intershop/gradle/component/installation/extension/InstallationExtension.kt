@@ -15,6 +15,7 @@
  */
 package com.intershop.gradle.component.installation.extension
 
+import com.intershop.gradle.component.installation.filter.FilterContainer
 import com.intershop.gradle.component.installation.utils.getValue
 import com.intershop.gradle.component.installation.utils.setValue
 import org.gradle.api.Action
@@ -22,7 +23,10 @@ import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.provider.Provider
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.service.ServiceRegistry
 import java.io.File
 import javax.inject.Inject
 
@@ -51,6 +55,11 @@ open class InstallationExtension @Inject constructor(val project: Project) {
 
     private val environmentProperty = project.objects.setProperty(String::class.java)
     private val componentSet: MutableSet<Component> = mutableSetOf()
+
+    private val services: ServiceRegistry = if(project is ProjectInternal) project.services else
+        throw GradleException("Project ${project.name} is not correct initialized!")
+
+    private val filtersContainer = FilterContainer(project, services.get(Instantiator::class.java))
 
     /**
      * Provider for the installation directory property.
@@ -191,5 +200,23 @@ open class InstallationExtension @Inject constructor(val project: Project) {
         val componentExt = add(component, path)
         action.execute(componentExt)
         return componentExt
+    }
+
+    /**
+     * This is the filter configuration container. It contains
+     * all file filter to adapt an installation.
+     *
+     * @property filters the instance of the configuration container.
+     */
+    val filters: FilterContainer
+        get() = filtersContainer
+
+    /**
+     * This method configures the filter container.
+     *
+     * @param action this can be an closure or action to configure the container.
+     */
+    fun filters(action:Action<in FilterContainer>) {
+        action.execute(filtersContainer)
     }
 }

@@ -23,6 +23,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskAction
+import org.gradle.internal.impldep.org.bouncycastle.asn1.cms.CMSAttributes.contentType
 import org.gradle.util.GFileUtils
 import java.io.File
 
