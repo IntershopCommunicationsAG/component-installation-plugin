@@ -64,7 +64,7 @@ class DescriptorManagerSpec extends Specification {
             jcenter()
             ivy {
                 name 'ivyLocal'
-                url "file://${repoDir.absolutePath.replace('\\', '/')}"
+                url "${repoDir.toURI().toURL()}"
                 layout('pattern') {
                     ivy "${DescriptorManager.INTERSHOP_IVY_PATTERN}"
                     artifact "${DescriptorManager.INTERSHOP_PATTERN}"
@@ -72,7 +72,7 @@ class DescriptorManagerSpec extends Specification {
                 }
             }
             maven {
-                url "file://${repoDir.absolutePath.replace('\\\\', '/')}"
+                url "${repoDir.toURI().toURL()}"
             }
 
         }
@@ -238,9 +238,9 @@ class DescriptorManagerSpec extends Specification {
 
     def 'test ivy version from latest - file url'() {
         setup:
-        String filePath = createIvyFileRepo(testProjectDir).absolutePath
+        File file = createIvyFileRepo(testProjectDir)
 
-        String urlStr =  "file://$filePath"
+        String urlStr = file.toURI().toURL()
         Repository repo = new Repository(RepositoryType.IVY, urlStr.toURI(), emptyCredentials, DescriptorManager.INTERSHOP_PATTERN)
         Dependency dependency = new Dependency("com.intershop.test", "test", "+")
 
@@ -287,9 +287,9 @@ class DescriptorManagerSpec extends Specification {
 
     def 'test ivy version from latest with pattern - file url'() {
         setup:
-        String filePath = createIvyFileRepo(testProjectDir).absolutePath
+        File file = createIvyFileRepo(testProjectDir)
 
-        String urlStr =  "file://$filePath"
+        String urlStr =  file.toURI().toURL()
 
         Repository repo = new Repository(RepositoryType.IVY, urlStr.toURI(), emptyCredentials, DescriptorManager.INTERSHOP_PATTERN)
         Dependency dependency = new Dependency("com.intershop.test", "test", "1.+")

@@ -91,7 +91,7 @@ class FormattedPropertiesSpec extends Specification
         propertiesFile.readLines().find { it =~ /^StringBuilder\W*=\W*bar$/ }
     }
 
-    def "Double quotes will be not esacaped"()
+    def "Double quotes will be not escaped"()
     {
         given:
         File propertiesFile = new File(testDir, 'test.properties')

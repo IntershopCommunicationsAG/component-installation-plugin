@@ -67,7 +67,7 @@ class TreeNode(val name: String) {
     }
 
     /**
-     * Add path to the current node. The path seperator is a slash.
+     * Add path to the current node. The path separator is a slash.
      * If path is an empty string, no new node is added.
      *
      * @param path string with slashes

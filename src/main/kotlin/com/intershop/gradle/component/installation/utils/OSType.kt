@@ -18,7 +18,7 @@ package com.intershop.gradle.component.installation.utils
 import java.util.*
 
 /**
- * Enumaration for the OS type of an #
+ * Enumeration for the OS type of an #
  * installation process.
  */
 enum class OSType {
@@ -45,7 +45,7 @@ enum class OSType {
          *
          * @param osKey OS type string
          *
-         * @return OS type enumaration object
+         * @return OS type enumeration object
          */
         fun from(osKey: String): OSType {
             val internalOSKey = osKey.toLowerCase(Locale.ENGLISH)
@@ -60,7 +60,7 @@ enum class OSType {
         /**
          * Get the OSType enumeration object of the current OS.
          *
-         * @return OS type enumaration object
+         * @return OS type enumeration object
          */
         fun detectedOS(): OSType {
             return from(System.getProperty("os.name", "generic"))

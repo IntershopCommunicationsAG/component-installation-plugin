@@ -22,8 +22,8 @@ import java.io.StringReader
 import java.io.StringWriter
 
 /**
- * Properties filter reader edits a file based on the formated properties.
- * The content of all the file is represented by a formated properties instance.
+ * Properties filter reader edits a file based on the formatted properties.
+ * The content of all the file is represented by a formatted properties instance.
  *
  * @property reader class for reading character streams
  *
@@ -38,7 +38,7 @@ class PropertiesFilterReader (reader: Reader) : FilterReader(DeferringReader(rea
 
     /**
      * Action to change the content of the file stored
-     * in the FormatedPropertis instance.
+     * in the FormattedProperties instance.
      *
      * @property action changes the content
      */

@@ -89,7 +89,7 @@ class TaskSpec extends AbstractIntegrationSpec {
         import com.intershop.gradle.component.installation.tasks.LinkTask
 
         task linkTest(type: LinkTask) {
-            addLink("${linkName.absolutePath}", "${target.absolutePath}")
+            addLink("${toJavaPath(linkName)}", "${toJavaPath(target)}")
         }
         """.stripIndent()
 
@@ -132,7 +132,7 @@ class TaskSpec extends AbstractIntegrationSpec {
         import com.intershop.gradle.component.installation.tasks.LinkTask
 
         task linkTest(type: LinkTask) {
-            addLink("${linkName.absolutePath}", "${target.absolutePath}")
+            addLink("${toJavaPath(linkName)}", "${toJavaPath(target)}")
         }
         """.stripIndent()
 
@@ -178,7 +178,7 @@ class TaskSpec extends AbstractIntegrationSpec {
         import com.intershop.gradle.component.installation.tasks.LinkTask
 
         task linkTest(type: LinkTask) {
-            addLink("${linkName.absolutePath}", "${target.absolutePath}")
+            addLink("${toJavaPath(linkName)}", "${toJavaPath(target)}")
         }
         """.stripIndent()
 
@@ -223,7 +223,7 @@ class TaskSpec extends AbstractIntegrationSpec {
         import com.intershop.gradle.component.installation.tasks.LinkTask
 
         task linkTest(type: LinkTask) {
-            addLink("${linkName.absolutePath}", "${target.absolutePath}")
+            addLink("${toJavaPath(linkName)}", "${toJavaPath(target)}")
         }
         """.stripIndent()
 
@@ -261,7 +261,7 @@ class TaskSpec extends AbstractIntegrationSpec {
         import com.intershop.gradle.component.installation.tasks.DirectoryTask
 
         task directoryTest(type: DirectoryTask) {
-            directoryPath = "${target.absolutePath}"
+            directoryPath = "${toJavaPath(target)}"
         }
         """.stripIndent()
 
@@ -298,7 +298,7 @@ class TaskSpec extends AbstractIntegrationSpec {
         import com.intershop.gradle.component.installation.tasks.DirectoryTask
 
         task directoryTest(type: DirectoryTask) {
-            directoryPath = "${target.absolutePath}"
+            directoryPath = "${toJavaPath(target)}"
         }
         """.stripIndent()
 
@@ -339,7 +339,7 @@ class TaskSpec extends AbstractIntegrationSpec {
         import com.intershop.gradle.component.installation.tasks.DirectoryTask
 
         task directoryTest(type: DirectoryTask) {
-            directoryPath = "${target.absolutePath}"
+            directoryPath = "${toJavaPath(target)}"
         }
         """.stripIndent()
 
@@ -379,7 +379,7 @@ class TaskSpec extends AbstractIntegrationSpec {
         import com.intershop.gradle.component.installation.tasks.DirectoryTask
 
         task directoryTest(type: DirectoryTask) {
-            directoryPath = "${target.absolutePath}"
+            directoryPath = "${toJavaPath(target)}"
         }
         """.stripIndent()
 
@@ -403,5 +403,9 @@ class TaskSpec extends AbstractIntegrationSpec {
 
         then:
         result2.task(":directoryTest").outcome == TaskOutcome.SUCCESS
+    }
+
+    private static String toJavaPath(File file) {
+        return "${file.absolutePath.replace('\\', '/')}"
     }
 }

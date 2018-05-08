@@ -32,7 +32,7 @@ import java.io.File
 import java.util.*
 
 /**
- * This class is a fork or the orginal Gradle SyncCopyActionDecorator.
+ * This class is a fork or the original Gradle SyncCopyActionDecorator.
  * It extends the functionality to set the last modified time from
  * source file.
  *
@@ -56,7 +56,7 @@ class SyncCopyActionDecorator(private val baseDestDir: File,
      *
      * @param stream the copy action stream
      *
-     * @return the work result of this copy aciton
+     * @return the work result of this copy action
      */
     override fun execute(stream: CopyActionProcessingStream) : WorkResult {
         val visited = HashMap<RelativePath,Long>()

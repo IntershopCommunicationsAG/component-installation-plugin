@@ -26,7 +26,7 @@ import javax.inject.Inject
 /**
  * This is the configuration container of a components.
  * It is initialized with the dependency and the installation
- * path. If the path is not spezified the information is taken
+ * path. If the path is not specified the information is taken
  * from the descriptor.
  *
  * @property group the group or organization of the component dependency.
@@ -101,7 +101,7 @@ data class Component @Inject constructor(val group: String,
      * Preserve patterns will used be excluded or included files.
      * Installed files will preserved.
      *
-     * @property preserve pattern set configuratiuon (read only)
+     * @property preserve pattern set configuration (read only)
      */
     val preserve: PatternFilterable
         get() = preserveProperty
