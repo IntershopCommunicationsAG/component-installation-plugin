@@ -20,7 +20,7 @@ import org.gradle.api.tasks.util.PatternSet
 
 /**
  * PlaceholderReplacement filter reader edits each line of a line.
- * It replacess placeholders with a specified value. The placeholder
+ * It replaces placeholders with a specified value. The placeholder
  * and replacements are stored in a map. The begin and end tokens
  * for the placeholders can be configured. The default values are
  * "<@" and "@>".
