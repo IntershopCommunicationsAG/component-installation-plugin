@@ -272,7 +272,7 @@ task sendCoverageToCodacy(type: JavaExec, dependsOn: jacocoTestReport) {
 }
 
 dependencies {
-    compile 'com.intershop.gradle.component:component-descriptor:1.0.0-dev.15'
+    compile 'com.intershop.gradle.component:component-descriptor:1.0.0-dev.17'
 
     compile 'org.apache.ivy:ivy:2.4.0'
     compile 'org.apache.maven:maven-model-builder:3.5.3'

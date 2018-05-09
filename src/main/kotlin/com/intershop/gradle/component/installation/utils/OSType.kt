@@ -78,5 +78,14 @@ enum class OSType {
         fun checkClassifierForOS(classifier: String): Boolean {
             return classifier.isNotBlank() && from(classifier) == detectedOS() || classifier.isBlank()
         }
+
+        fun checkClassifierForOS(classifiers: Set<String>): Boolean {
+            var returnValue = classifiers.isEmpty()
+            val os = detectedOS()
+            classifiers.forEach {
+                returnValue = returnValue || from(it) == os
+            }
+            return returnValue
+        }
     }
 }

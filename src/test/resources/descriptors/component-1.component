@@ -222,7 +222,7 @@
   "linkItems" : [ {
     "name" : "log",
     "targetPath" : "system/log",
-    "classifier" : "",
+    "classifiers" : [ "linux", "macos" ],
     "contentType" : "IMMUTABLE",
     "updatable" : true,
     "types" : [ ]
@@ -237,6 +237,7 @@
   "properties" : [ {
     "key" : "pkey1",
     "value" : "pvalues1",
+    "pattern" : "**/**/appserver.properties",
     "classifier" : "",
     "contentType" : "IMMUTABLE",
     "updatable" : true,
@@ -244,6 +245,7 @@
   }, {
     "key" : "pkey2",
     "value" : "pvalue2",
+    "pattern" : "**/**/appserver.properties",
     "classifier" : "",
     "contentType" : "IMMUTABLE",
     "updatable" : true,

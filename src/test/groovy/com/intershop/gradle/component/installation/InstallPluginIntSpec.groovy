@@ -82,7 +82,7 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         result1.task(':installTestcomponentModuleTestmodule1').outcome == TaskOutcome.SUCCESS
         result1.task(':installTestcomponentModuleTestmodule2').outcome == TaskOutcome.SUCCESS
         result1.task(':installTestcomponentModuleTestmodule3').outcome == TaskOutcome.SUCCESS
-        result1.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.NO_SOURCE
         result1.task(':installTestcomponentModuleTestmodule5').outcome == TaskOutcome.SUCCESS
         result1.task(':installTestcomponentComponentDescriptor').outcome == TaskOutcome.SUCCESS
         result1.task(':cleanupTestcomponentCleanUp').outcome == TaskOutcome.SUCCESS
@@ -95,7 +95,6 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         new File(testProjectDir, 'installation/testcomp/testmodule1/.install').text == 'IMMUTABLE'
         new File(testProjectDir, 'installation/testcomp/testmodule2/.install').text == 'IMMUTABLE'
         new File(testProjectDir, 'installation/testcomp/testmodule3/.install').text == 'IMMUTABLE'
-        new File(testProjectDir, 'installation/testcomp/testmodule4/.install').text == 'IMMUTABLE'
         new File(testProjectDir, 'installation/testcomp/testmodule5/.install').text == 'IMMUTABLE'
 
         new File(testProjectDir, 'installation/testcomp/lib/release/libs/com.intershop_library1_1.0.0.jar').exists()
@@ -118,7 +117,7 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         result2.task(':installTestcomponentModuleTestmodule1').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':installTestcomponentModuleTestmodule2').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':installTestcomponentModuleTestmodule3').outcome == TaskOutcome.UP_TO_DATE
-        result2.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.NO_SOURCE
         result2.tasks.find { it.path == ':installTestcomponentModuleTestmodule5'} == null
         result2.task(':installTestcomponentComponentDescriptor').outcome == TaskOutcome.SUCCESS
         result2.task(':cleanupTestcomponentCleanUp').outcome == TaskOutcome.SUCCESS
@@ -140,7 +139,7 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         result3.task(':installTestcomponentModuleTestmodule1').outcome == TaskOutcome.UP_TO_DATE
         result3.task(':installTestcomponentModuleTestmodule2').outcome == TaskOutcome.UP_TO_DATE
         result3.task(':installTestcomponentModuleTestmodule3').outcome == TaskOutcome.UP_TO_DATE
-        result3.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.UP_TO_DATE
+        result3.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.NO_SOURCE
         result3.task(':installTestcomponentComponentDescriptor').outcome == TaskOutcome.UP_TO_DATE
         result3.task(':cleanupTestcomponentCleanUp').outcome == TaskOutcome.SUCCESS
         result3.task(':installTestcomponentLibs').outcome == TaskOutcome.UP_TO_DATE
@@ -205,7 +204,7 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         result2.task(':installTestcomponentALibs').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':installTestcomponentBLibs').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':installTestcomponentBModuleTestmodule3').outcome == TaskOutcome.UP_TO_DATE
-        result2.task(':installTestcomponentBModuleTestmodule4').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentBModuleTestmodule4').outcome == TaskOutcome.NO_SOURCE
         result2.task(':installTestcomponentBModuleTestmodule5').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':installTestcomponentBPkgStartscriptsBin').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':installTestcomponentAComponentDescriptor').outcome == TaskOutcome.UP_TO_DATE
@@ -497,7 +496,7 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         result1.task(':installTestcomponentModuleTestmodule1').outcome == TaskOutcome.SUCCESS
         result1.task(':installTestcomponentModuleTestmodule2').outcome == TaskOutcome.SUCCESS
         result1.task(':installTestcomponentModuleTestmodule3').outcome == TaskOutcome.SUCCESS
-        result1.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.NO_SOURCE
         result1.task(':installTestcomponentComponentDescriptor').outcome == TaskOutcome.SUCCESS
         result1.task(':cleanupTestcomponentCleanUp').outcome == TaskOutcome.SUCCESS
         result1.task(':installTestcomponentLibs').outcome == TaskOutcome.SUCCESS
@@ -517,7 +516,7 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         result2.task(':installTestcomponentModuleTestmodule1').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':installTestcomponentModuleTestmodule2').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':installTestcomponentModuleTestmodule3').outcome == TaskOutcome.UP_TO_DATE
-        result2.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.NO_SOURCE
         result2.task(':installTestcomponentComponentDescriptor').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':cleanupTestcomponentCleanUp').outcome == TaskOutcome.SUCCESS
         result2.task(':installTestcomponentLibs').outcome == TaskOutcome.UP_TO_DATE
@@ -568,7 +567,7 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         result1.task(':installTestcomponentModuleTestmodule1').outcome == TaskOutcome.SUCCESS
         result1.task(':installTestcomponentModuleTestmodule2').outcome == TaskOutcome.SUCCESS
         result1.task(':installTestcomponentModuleTestmodule3').outcome == TaskOutcome.SUCCESS
-        result1.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.NO_SOURCE
         result1.task(':installTestcomponentComponentDescriptor').outcome == TaskOutcome.SUCCESS
         result1.task(':cleanupTestcomponentCleanUp').outcome == TaskOutcome.SUCCESS
         result1.task(':installTestcomponentLibs').outcome == TaskOutcome.SUCCESS
@@ -588,7 +587,7 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         result2.task(':installTestcomponentModuleTestmodule1').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':installTestcomponentModuleTestmodule2').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':installTestcomponentModuleTestmodule3').outcome == TaskOutcome.UP_TO_DATE
-        result2.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.NO_SOURCE
         result2.task(':installTestcomponentComponentDescriptor').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':cleanupTestcomponentCleanUp').outcome == TaskOutcome.SUCCESS
         result2.task(':installTestcomponentLibs').outcome == TaskOutcome.UP_TO_DATE

@@ -69,6 +69,8 @@ data class Component @Inject constructor(val group: String,
             return Dependency(group, module, version)
         }
 
+    val fileItems: LocalFileContainer = LocalFileContainer()
+
     /**
      * Exclude patterns will be used to exclude special files
      * from the installation or update. Please note, that excluded

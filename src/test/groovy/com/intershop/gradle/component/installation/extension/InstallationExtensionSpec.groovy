@@ -121,6 +121,16 @@ class InstallationExtensionSpec extends Specification {
         extension.components.size() == 2
     }
 
+    def 'add component with local files'() {
+        when:
+        extension.add("com.test:testcomp:1.0.0", {
+            it.fileItems.add(new File("test.file"), "installPath")
+        })
+
+        then:
+        extension.components.first().fileItems.localFileItems.size() == 1
+    }
+
     def 'filters configuration is correct configured'() {
         expect:
         extension.filters instanceof FilterContainer

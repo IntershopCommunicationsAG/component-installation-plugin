@@ -19,19 +19,27 @@ import com.intershop.gradle.component.descriptor.items.ContainerItem
 import com.intershop.gradle.component.descriptor.util.ComponentUtil
 import com.intershop.gradle.component.installation.extension.Component
 import com.intershop.gradle.component.installation.extension.InstallationExtension
+import com.intershop.gradle.component.installation.extension.LocalFileItem
+import com.intershop.gradle.component.installation.filter.PropertiesFilterReader
 import com.intershop.gradle.component.installation.tasks.InstallConfigManager
 import com.intershop.gradle.component.installation.tasks.InstallConfigManager.Companion.checkForOS
+import com.intershop.gradle.component.installation.tasks.InstallMutableTask
 import com.intershop.gradle.component.installation.tasks.InstallTask
 import com.intershop.gradle.component.installation.utils.ContentType
 import com.intershop.gradle.component.installation.utils.DescriptorManager
 import com.intershop.gradle.component.installation.utils.OSType
+import com.intershop.gradle.component.installation.utils.OSType.Companion.checkClassifierForOS
 import com.intershop.gradle.component.installation.utils.data.Artifact
 import com.intershop.gradle.component.installation.utils.data.FileItem
+import com.intershop.gradle.component.installation.utils.data.PropertyConfiguration
+import com.intershop.gradle.component.installation.utils.filter
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.file.FileTreeElement
+import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.model.Defaults
 import org.gradle.model.ModelMap
@@ -145,10 +153,12 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
             private fun initFileItems(confMgr: InstallConfigManager,
                                       descrMgr: DescriptorManager,
+                                      fileItems: Set<LocalFileItem>,
                                       adminDir: File) {
 
                 confMgr.fileItemSet.clear()
 
+                // add files form descriptor
                 confMgr.descriptor.fileItems.forEach { file ->
                     val localFile = File(adminDir, "files/${file.name}.${file.extension}")
                     val classifier = file.classifier
@@ -161,6 +171,17 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                         confMgr.fileItemSet.add(FileItem(localFile,
                                 calculateFilePath(file.targetPath, file.name, file.extension),
                                 file.targetPath, ContentType.valueOf(file.contentType.toString()), file.updatable))
+                    }
+                }
+
+                // add local file items for installation
+                fileItems.forEach { item ->
+                    val classifier = item.classifier
+
+                    if(checkClassifierForOS(classifier) && confMgr.checkForType(item.types)) {
+                        confMgr.fileItemSet.add(FileItem(item.file,
+                                calculateFilePath(item.targetPath, item.file.nameWithoutExtension, item.file.extension),
+                                item.targetPath, ContentType.valueOf(item.contentType), item.updatable))
                     }
                 }
             }
@@ -252,6 +273,11 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                 }
             }
 
+            private fun getSpecFrom (include: String): Spec<FileTreeElement> {
+                val patternSet = PatternSet()
+                patternSet.include(include)
+                return patternSet.asSpec
+            }
         }
 
         /**
@@ -323,8 +349,24 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                 }
                 confMgr.compInstallTask?.dependsOn(descrTaskname)
 
+
+                val propertyMap = mutableMapOf<String, PropertyConfiguration>()
+
+                mainDescr.properties.forEach { prop ->
+                    if(checkForOS(prop) && confMgr.checkForType(prop) && (prop.updatable || ! update) ) {
+                        val mapEntry = propertyMap[prop.pattern]
+                        if(mapEntry != null) {
+                            mapEntry.properties[prop.key] = prop.value
+                        } else {
+                            val pconf = PropertyConfiguration()
+                            pconf.properties[prop.key] = prop.value
+                            propertyMap[prop.pattern] = pconf
+                        }
+                    }
+                }
+
                 // load files from desc
-                initFileItems(confMgr, descriptorMgr, compAdminDir)
+                initFileItems(confMgr, descriptorMgr, compToInstall.fileItems.localFileItems , compAdminDir)
 
                 // install file containers
                 mainDescr.fileContainers.forEach { pkg ->
@@ -345,6 +387,16 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
                             destinationDir = confMgr.getTargetDir(mainDescr.containerPath, pkg.targetPath)
 
+                            if(this is InstallMutableTask) {
+                                propertyMap.forEach {
+                                    eachFile { fc ->
+                                        if (getSpecFrom(it.key).isSatisfiedBy(fc)) {
+                                            fc.filter<PropertiesFilterReader>("action" to it.value.getAction())
+                                        }
+                                    }
+                                }
+                            }
+
                             dependsOn(confMgr.preCompInstallTaskName)
                         }
 
@@ -359,7 +411,9 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                     if(confMgr.checkForType(entry.value) && (entry.value.updatable || ! update)) {
                         val taskName = INSTALLTASKNAME.plus(confMgr.getSuffixStr("module", entry.value.name))
 
-                        val install = confMgr.getInstallTask(taskName, ContentType.valueOf(entry.value.contentType.toString()))
+                        val install = confMgr.getInstallTask(taskName,
+                                ContentType.valueOf(entry.value.contentType.toString()))
+
                         with(install) {
                             destinationDir = confMgr.getTargetDir(mainDescr.modulesPath, entry.key)
 
@@ -367,6 +421,16 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
                             configSpec(this, confMgr, entry.value.targetIncluded, update, entry.key)
                             configExcludesPreserve(this, mainDescr, compToInstall, entry.value, update)
+
+                            if(this is InstallMutableTask) {
+                                propertyMap.forEach {
+                                    eachFile { fc ->
+                                        if (getSpecFrom(it.key).isSatisfiedBy(fc)) {
+                                            fc.filter<PropertiesFilterReader>("action" to it.value.getAction())
+                                        }
+                                    }
+                                }
+                            }
 
                             dependsOn(confMgr.preCompInstallTaskName)
                         }
@@ -408,7 +472,9 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                 if(mainDescr.linkItems.isNotEmpty()) {
                     with(confMgr.getLinkTask()) {
                         mainDescr.linkItems.forEach { link ->
-                            if(confMgr.checkForType(link) && (link.updatable || ! update)) {
+                            if(OSType.checkClassifierForOS(link.classifiers) &&
+                                    confMgr.checkForType(link) && (link.updatable || ! update)) {
+
                                 addLink(confMgr.getTargetDir(link.name).absolutePath,
                                         confMgr.getTargetDir(link.targetPath).absolutePath)
                             }
@@ -425,9 +491,6 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                 }
 
                 confMgr.initCleanupTask(backupDir)
-
-                // configuration is currently not used
-                //println(mainDescr.properties.size)
             }
 
 
