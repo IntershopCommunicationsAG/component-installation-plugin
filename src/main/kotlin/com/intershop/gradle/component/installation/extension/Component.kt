@@ -71,6 +71,14 @@ data class Component @Inject constructor(val group: String,
 
     val fileItems: LocalFileContainer = LocalFileContainer()
 
+    fun fileItems(closure: Closure<Any>) {
+        ConfigureUtil.configure(closure, fileItems)
+    }
+
+    fun fileItems(action: Action<in LocalFileContainer>){
+        action.execute(fileItems)
+    }
+
     /**
      * Exclude patterns will be used to exclude special files
      * from the installation or update. Please note, that excluded

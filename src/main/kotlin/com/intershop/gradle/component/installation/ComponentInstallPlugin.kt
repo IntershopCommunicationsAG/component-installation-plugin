@@ -226,6 +226,11 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                     }
                 }
 
+                if(spec is InstallMutableTask) {
+                    println(" ---> can add filter ....")
+
+                }
+
                 spec.duplicatesStrategy = DuplicatesStrategy.FAIL
             }
 
@@ -415,8 +420,6 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                                 ContentType.valueOf(entry.value.contentType.toString()))
 
                         with(install) {
-                            destinationDir = confMgr.getTargetDir(mainDescr.modulesPath, entry.key)
-
                             confMgr.configureModuleSpec(this, entry.value)
 
                             configSpec(this, confMgr, entry.value.targetIncluded, update, entry.key)
@@ -431,6 +434,8 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                                     }
                                 }
                             }
+
+                            destinationDir = confMgr.getTargetDir(mainDescr.modulesPath, entry.key)
 
                             dependsOn(confMgr.preCompInstallTaskName)
                         }
