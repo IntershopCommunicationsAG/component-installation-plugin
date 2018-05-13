@@ -59,6 +59,7 @@ class LocalFileContainer {
     fun add(file: File, targetPath: String, action: Action<in LocalFileItem>) {
         val item = LocalFileItem(file, targetPath, OSType.detectedOS().toString())
         action.execute(item)
+        localFileItems.add(item)
     }
 
     /**
@@ -74,5 +75,6 @@ class LocalFileContainer {
     fun add(file: File, targetPath: String, closure: Closure<LocalFileItem>) {
         val item = LocalFileItem(file, targetPath, OSType.detectedOS().toString())
         ConfigureUtil.configure(closure, item)
+        localFileItems.add(item)
     }
 }

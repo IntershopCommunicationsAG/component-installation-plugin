@@ -85,7 +85,7 @@ class InstallConfigManager(private val prjext: InstallationExtension,
          */
         @JvmStatic
         fun getTargetDir(dir: File, vararg path: String): File {
-            val extPath = path.filter { ! it.isBlank()}.map { it.replace(" ", "_")}.
+            val extPath = path.filter { ! it.isNullOrBlank()}.map { it.replace(" ", "_")}.
                     filter { it.matches("[a-z_\\-\\/0-9\\.]+".toRegex()) }.
                     joinToString( "/" )
 

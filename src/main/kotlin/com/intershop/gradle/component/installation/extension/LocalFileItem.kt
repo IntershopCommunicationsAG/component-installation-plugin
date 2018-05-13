@@ -35,7 +35,6 @@ data class LocalFileItem @JvmOverloads constructor(val file: File,
                                                    val targetPath: String,
                                                    val classifier: String = "",
                                                    val types: MutableSet<String> = mutableSetOf()) {
-
     /**
      * The content type of this file item. The default value
      * is 'IMMUTABLE'.

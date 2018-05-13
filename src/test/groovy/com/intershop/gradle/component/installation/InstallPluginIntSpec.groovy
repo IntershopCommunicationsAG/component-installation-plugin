@@ -628,7 +628,9 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
 
             add("com.intershop.test:testcomponent:\${project.ext.installv}") {
                 fileItems {
-                    add(file('localtest.properties'), 'share/system/config')
+                    add(file('localtest.properties'), 'share/system/config') {
+                        updatable = true
+                    }
                 }
             }
             installDir = file('installation')
@@ -944,7 +946,7 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
     def makeList(list) {
         List created = new ArrayList()
         list.eachLine { line ->
-            created.add(line)
+            if(! line) created.add(line)
         }
         return created
     }

@@ -92,6 +92,7 @@ all installation related tasks will be executed in the correct order.
 == Project Extension 'installation'
 
 === Properties of 'installation'
+
 [cols="1m,2d" width="100%", options="header"]
 |===
 |Property | Description
@@ -363,6 +364,7 @@ addIvyPattern('[organisation]/[module]/[revision]/[ext]s/[artifact]-[type]-[revi
 |<<dependency, dependency>> | The dependency object of this component. It must be always an external module dependency.
 |<<excludes, excludes>> | With this Ant pattern set it is possible to exclude files from the installation.
 |<<preserve, preserve>> | With this pattern set it is possible to preserve files from deletion during the installation of a component.
+|<<fileItems, fileItems>> | Local file items for the component installation.
 |===
 
 [[commonName]]
@@ -416,6 +418,18 @@ Default:: an instance of PatternSet
 
 ***
 
+[[fileItems]]
+[source,groovy]
+LocalFileContainer fileItems
+
+This is the configuration container for local file items, that will be installed.
+
+:::
+
+Default:: an instance of LocalFileContainer
+
+***
+
 ==== Methods of 'component'
 
 [cols="1m,1d" width="100%", options="header"]
@@ -426,6 +440,8 @@ Default:: an instance of PatternSet
 |<<excludeps, exclude>>(patterns) | Adds a set of exclude Ant pattern to the exclude set.
 |<<preserveaction, preserve>>(action) | Configures the preserve pattern set with an action.
 |<<preserveclosure, preserve>>(closure) | Configures the preserve pattern set with a closure.
+|<<fileItemsaction, fileItems>>(action) | Configures the file items container with a action.
+|<<fileItemsclosure, fileItems>>(closure) | Configures the file items container with a closure.
 |===
 
 [[excludep]]
@@ -457,7 +473,7 @@ Example::
 
 [[preserveaction]]
 [source,groovy]
-preserve(Action<? super PatternFilterable> action)
+void preserve(Action<? super PatternFilterable> action)
 
 [[preserveclosure]]
 [source,groovy]
@@ -478,6 +494,98 @@ add('com.intershop:testcomp:1.0.0', 'testpath') {
 }
 
 ***
+
+[[fileItemsaction]]
+[source,groovy]
+void fileItems(Action<? super LocalFileContainer> action)
+
+[[fileItemsclosure]]
+[source,groovy]
+void fileItems(Closure closure)
+
+Configures the file items container with a closure or action.
+
+:::
+
+Example::
+[source,groovy]
+fileItems {
+    add(file('local.properties'), 'share/system/config') {
+        updatable = false
+    }
+}
+
+***
+
+==== Container 'fileItems'
+
+===== Properties of 'fileItems'
+
+[cols="1m,2d" width="100%", options="header"]
+|===
+|Property | Description
+
+|<<localFileItems, localFileItems>> | This is a set of local file items.
+|===
+
+===== Methods of 'fileItems'
+
+[cols="1m,1d" width="100%", options="header"]
+|===
+
+|Method     | Description
+
+|<<add1, add>>(file, targetPath) | Adds a preconfigured local file item.
+|<<add2, add>>(file, targetPath, action) | Adds a preconfigured local file item and configures the item with an action.
+|<<add3, add>>(file, targetPath, closure) | Adds a preconfigured local file item and configures the item with a closure.
+|===
+
+[[add1]]
+[source,groovy]
+void add(File file, String targetPath)
+
+Adds a preconfigured local file item.
+These are the default values:
+
+|===
+| classifier  | `''`
+| types       | `[]`
+| contentType | `'IMMUTABLE'`
+| updatable   | `true`
+|===
+
+:::
+
+Example::
+[source,groovy]
+fileItems {
+    add(file('local.properties'), 'share/system/config')
+}
+
+***
+
+[[add2]]
+[source,groovy]
+void add(File file, String targetPath, Action<? super LocalFileItem> properties)
+
+[[add3]]
+[source,groovy]
+void add(File file, String targetPath, Closure closure)
+
+Adds a preconfigured local file item and configures the item with an action or closure.
+
+:::
+
+Example::
+[source,groovy]
+fileItems {
+    add(file('local.properties'), 'share/system/config') {
+        updatable = false
+    }
+}
+
+***
+
 
 === Container 'filters'
 

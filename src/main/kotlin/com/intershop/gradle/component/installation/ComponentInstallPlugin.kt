@@ -161,6 +161,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                 // add files form descriptor
                 confMgr.descriptor.fileItems.forEach { file ->
                     val localFile = File(adminDir, "files/${file.name}.${file.extension}")
+
                     val classifier = file.classifier
 
                     if (checkForOS(file) && confMgr.checkForType(file)) {
@@ -203,6 +204,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
             private fun configSpec(spec: InstallTask,
                                    confMgr: InstallConfigManager,
+                                   propertyMap: Map<String, PropertyConfiguration>,
                                    targetIncluded: Boolean,
                                    update: Boolean,
                                    target: String) {
@@ -227,8 +229,13 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                 }
 
                 if(spec is InstallMutableTask) {
-                    println(" ---> can add filter ....")
-
+                    propertyMap.forEach {
+                        spec.eachFile { fc ->
+                            if (getSpecFrom(it.key).isSatisfiedBy(fc)) {
+                                fc.filter<PropertiesFilterReader>("action" to it.value.getAction())
+                            }
+                        }
+                    }
                 }
 
                 spec.duplicatesStrategy = DuplicatesStrategy.FAIL
@@ -387,20 +394,10 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                         with(pkgTask) {
                             from(project.zipTree(pkgFile))
 
-                            configSpec(this, confMgr, pkg.targetIncluded, update, pkg.targetPath)
+                            configSpec(this, confMgr, propertyMap, pkg.targetIncluded, update, pkg.targetPath)
                             configExcludesPreserve(this, mainDescr, compToInstall, pkg, update)
 
                             destinationDir = confMgr.getTargetDir(mainDescr.containerPath, pkg.targetPath)
-
-                            if(this is InstallMutableTask) {
-                                propertyMap.forEach {
-                                    eachFile { fc ->
-                                        if (getSpecFrom(it.key).isSatisfiedBy(fc)) {
-                                            fc.filter<PropertiesFilterReader>("action" to it.value.getAction())
-                                        }
-                                    }
-                                }
-                            }
 
                             dependsOn(confMgr.preCompInstallTaskName)
                         }
@@ -422,18 +419,8 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                         with(install) {
                             confMgr.configureModuleSpec(this, entry.value)
 
-                            configSpec(this, confMgr, entry.value.targetIncluded, update, entry.key)
+                            configSpec(this, confMgr, propertyMap, entry.value.targetIncluded, update, entry.key)
                             configExcludesPreserve(this, mainDescr, compToInstall, entry.value, update)
-
-                            if(this is InstallMutableTask) {
-                                propertyMap.forEach {
-                                    eachFile { fc ->
-                                        if (getSpecFrom(it.key).isSatisfiedBy(fc)) {
-                                            fc.filter<PropertiesFilterReader>("action" to it.value.getAction())
-                                        }
-                                    }
-                                }
-                            }
 
                             destinationDir = confMgr.getTargetDir(mainDescr.modulesPath, entry.key)
 
