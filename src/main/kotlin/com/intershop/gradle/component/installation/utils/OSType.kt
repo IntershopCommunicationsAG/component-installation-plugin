@@ -89,9 +89,9 @@ enum class OSType {
          */
         fun checkClassifierForOS(classifiers: Set<String>): Boolean {
             var returnValue = classifiers.isEmpty()
-            val os = detectedOS()
+            val detectedOS = detectedOS()
             classifiers.forEach {
-                returnValue = returnValue || from(it) == os
+                returnValue = returnValue || from(it) == detectedOS
             }
             return returnValue
         }
