@@ -85,7 +85,7 @@ class InstallConfigManager(private val prjext: InstallationExtension,
          */
         @JvmStatic
         fun getTargetDir(dir: File, vararg path: String): File {
-            val extPath = path.filter { ! it.isNullOrBlank()}.map { it.replace(" ", "_")}.
+            val extPath = path.filter { ! it.isBlank()}.map { it.replace(" ", "_")}.
                     filter { it.matches("[a-z_\\-\\/0-9\\.]+".toRegex()) }.
                     joinToString( "/" )
 
@@ -163,6 +163,18 @@ class InstallConfigManager(private val prjext: InstallationExtension,
         return checkForType(item.types)
     }
 
+    /**
+     * Checks the if the types of items are included in the
+     * types (environments) of the installation configuration.
+     *
+     * If one of the item list is empty the method returns always
+     * true.
+     *
+     * @param itemTypes set of types
+     *
+     * @return If some itemTypes are included in the environment configuration
+     * the return value is true.
+     */
     fun checkForType(itemTypes: Set<String>): Boolean {
         return if (!itemTypes.isEmpty() && ! prjext.environment.isEmpty()) {
             itemTypes.intersect(prjext.environment).isNotEmpty()

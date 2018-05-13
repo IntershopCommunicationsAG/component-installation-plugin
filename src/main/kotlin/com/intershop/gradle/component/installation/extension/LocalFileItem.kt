@@ -18,13 +18,36 @@ package com.intershop.gradle.component.installation.extension
 import com.intershop.gradle.component.installation.utils.ContentType
 import java.io.File
 
-
+/**
+ * Class for the configuration of a file item for
+ * installation from the local file system.
+ * The target path is a relative path for the installed
+ * component.
+ *
+ * @property file  File instance in the local file system.
+ * @property targetPath relative target for the file
+ * @property classifier for the configuration of the target OS. The default value is an empty string.
+ * @property types for the environment configuration. The default value is an empty set.
+ *
+ * @constructor initialize a preconfigured local file item.
+ */
 data class LocalFileItem @JvmOverloads constructor(val file: File,
                                                    val targetPath: String,
                                                    val classifier: String = "",
                                                    val types: MutableSet<String> = mutableSetOf()) {
 
+    /**
+     * The content type of this file item. The default value
+     * is 'IMMUTABLE'.
+     *
+     * @property contentType the string representation of this configuration.
+     */
     var contentType: String = ContentType.IMMUTABLE.toString()
 
+    /**
+     * The update configuration of this file. The default value is true.
+     *
+     * @property updatable this is true if the file can be updated.
+     */
     var updatable: Boolean = true
 }

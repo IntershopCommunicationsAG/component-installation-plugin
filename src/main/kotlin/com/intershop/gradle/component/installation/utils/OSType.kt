@@ -79,6 +79,14 @@ enum class OSType {
             return classifier.isNotBlank() && from(classifier) == detectedOS() || classifier.isBlank()
         }
 
+        /**
+         * Verifies a list of classifiers with available OS.
+         *
+         * @param classifiers set of classifiers
+         *
+         * @return the return value is true, if the local file system
+         * is included in the list of classifiers.
+         */
         fun checkClassifierForOS(classifiers: Set<String>): Boolean {
             var returnValue = classifiers.isEmpty()
             val os = detectedOS()

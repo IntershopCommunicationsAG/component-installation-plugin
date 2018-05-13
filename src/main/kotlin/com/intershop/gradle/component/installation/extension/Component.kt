@@ -69,12 +69,28 @@ data class Component @Inject constructor(val group: String,
             return Dependency(group, module, version)
         }
 
+    /**
+     * The container of local file items, that can be
+     * installed.
+     *
+     * @property fileItems the container self
+     */
     val fileItems: LocalFileContainer = LocalFileContainer()
 
+    /**
+     * Configures the container of local files.
+     *
+     * @param closure container configuration.
+     */
     fun fileItems(closure: Closure<Any>) {
         ConfigureUtil.configure(closure, fileItems)
     }
 
+    /**
+     * Configures the container of local files.
+     *
+     * @param action container configuration.
+     */
     fun fileItems(action: Action<in LocalFileContainer>){
         action.execute(fileItems)
     }

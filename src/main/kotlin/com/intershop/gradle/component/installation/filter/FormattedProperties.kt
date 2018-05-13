@@ -690,7 +690,7 @@ class FormattedProperties(): Properties() {
      * This inner class represents an empty line in a properties file.
      */
     internal open inner class EmptyLine : Line() {
-        override fun equals(other: Any?): Boolean = if(other is EmptyLine) true else false
+        override fun equals(other: Any?): Boolean = other is EmptyLine
         override fun hashCode(): Int = javaClass.hashCode()
     }
 

@@ -21,21 +21,56 @@ import org.gradle.api.Action
 import org.gradle.util.ConfigureUtil
 import java.io.File
 
+/**
+ * This is the configuration container for local files,
+ * that can be installed.
+ */
+class LocalFileContainer {
 
-class LocalFileContainer() {
-
+    /**
+     * The set of local file items. The default configuration
+     * is an empty set.
+     *
+     * @property localFileItems the set of file items.
+     */
     val localFileItems = mutableSetOf<LocalFileItem>()
 
+    /**
+     * Adds a file item with a local file and
+     * a target path.
+     *
+     * @param file the file instance of the local file.
+     * @param targetPath the target path in the installation without file name.
+     */
     fun add(file: File, targetPath: String) {
         val item = LocalFileItem(file, targetPath, OSType.detectedOS().toString())
         localFileItems.add(item)
     }
 
+    /**
+     * Adds a file item with a local file and
+     * a target path. The configuration can be
+     * adapted with an action.
+     *
+     * @param file the file instance of the local file.
+     * @param targetPath the target path in the installation without file name.
+     * @param action for the configuration of the local file item.
+     */
     fun add(file: File, targetPath: String, action: Action<in LocalFileItem>) {
         val item = LocalFileItem(file, targetPath, OSType.detectedOS().toString())
         action.execute(item)
     }
 
+    /**
+     * Adds a file item with a local file and
+     * a target path. The configuration can be
+     * adapted with a closure.
+     *
+     *
+     * @param file the file instance of the local file.
+     * @param targetPath the target path in the installation without file name.
+     * @param closure for the configuration of the local file item.
+     */
     fun add(file: File, targetPath: String, closure: Closure<LocalFileItem>) {
         val item = LocalFileItem(file, targetPath, OSType.detectedOS().toString())
         ConfigureUtil.configure(closure, item)

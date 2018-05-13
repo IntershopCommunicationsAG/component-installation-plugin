@@ -19,12 +19,25 @@ package com.intershop.gradle.component.installation.utils.data
 import com.intershop.gradle.component.installation.filter.FormattedProperties
 import org.gradle.api.Action
 
+/**
+ * Data object for the configuration of property
+ * configurations from descriptor.
+ */
 class PropertyConfiguration {
 
+    /**
+     * Properties map to use for filter configuration.
+     *
+     * @property properties the key value map
+     */
     val properties = mutableMapOf<String,String>()
 
+    /**
+     * Creates an action to configure FormattedProperties
+     * with properties map.
+     */
     fun getAction(): Action<FormattedProperties> {
-        return Action<FormattedProperties> { fp ->
+        return Action { fp ->
             properties.forEach { p ->
                 fp.setProperty(p.key, p.value)
             }
