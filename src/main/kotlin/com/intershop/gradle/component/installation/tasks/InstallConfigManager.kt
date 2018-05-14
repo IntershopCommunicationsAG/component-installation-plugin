@@ -25,6 +25,7 @@ import com.intershop.gradle.component.installation.ComponentInstallPlugin.Compan
 import com.intershop.gradle.component.installation.ComponentInstallPlugin.Companion.PREINSTALLTASKNAME
 import com.intershop.gradle.component.installation.extension.InstallationExtension
 import com.intershop.gradle.component.installation.utils.ContentType
+import com.intershop.gradle.component.installation.utils.OSType
 import com.intershop.gradle.component.installation.utils.OSType.Companion.checkClassifierForOS
 import com.intershop.gradle.component.installation.utils.data.FileItem
 import org.gradle.api.GradleException
@@ -159,8 +160,24 @@ class InstallConfigManager(private val prjext: InstallationExtension,
      * @return true if the configured environment matches to the configuration of the item.
      */
     fun checkForType(item: DeploymentItem): Boolean {
-        return if (!item.types.isEmpty() && ! prjext.environment.isEmpty()) {
-            item.types.intersect(prjext.environment).isNotEmpty()
+        return checkForType(item.types)
+    }
+
+    /**
+     * Checks the if the types of items are included in the
+     * types (environments) of the installation configuration.
+     *
+     * If one of the item list is empty the method returns always
+     * true.
+     *
+     * @param itemTypes set of types
+     *
+     * @return If some itemTypes are included in the environment configuration
+     * the return value is true.
+     */
+    fun checkForType(itemTypes: Set<String>): Boolean {
+        return if (!itemTypes.isEmpty() && ! prjext.environment.isEmpty()) {
+            itemTypes.intersect(prjext.environment).isNotEmpty()
         } else {
             true
         }
@@ -170,7 +187,10 @@ class InstallConfigManager(private val prjext: InstallationExtension,
     init {
         descriptor.modules.forEach { module ->
 
-            if ((module.value.updatable || !update) && checkForType(module.value)) {
+            if ((module.value.updatable || !update) &&
+                    checkForType(module.value) &&
+                    OSType.checkClassifierForOS(module.value.classifiers)) {
+
                 val configSuffix = getSuffixStr("module", module.value.name)
 
                 val depString = module.value.dependency.toString()
@@ -415,7 +435,7 @@ class InstallConfigManager(private val prjext: InstallationExtension,
                 }
             }
         } else {
-            throw GradleException("Configuration '$confName' does not exists!")
+            logger.debug("Configuration '$confName' does not exists!")
         }
     }
 

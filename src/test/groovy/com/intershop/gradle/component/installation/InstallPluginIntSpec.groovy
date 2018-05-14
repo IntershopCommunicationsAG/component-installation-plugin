@@ -82,7 +82,7 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         result1.task(':installTestcomponentModuleTestmodule1').outcome == TaskOutcome.SUCCESS
         result1.task(':installTestcomponentModuleTestmodule2').outcome == TaskOutcome.SUCCESS
         result1.task(':installTestcomponentModuleTestmodule3').outcome == TaskOutcome.SUCCESS
-        result1.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.NO_SOURCE
         result1.task(':installTestcomponentModuleTestmodule5').outcome == TaskOutcome.SUCCESS
         result1.task(':installTestcomponentComponentDescriptor').outcome == TaskOutcome.SUCCESS
         result1.task(':cleanupTestcomponentCleanUp').outcome == TaskOutcome.SUCCESS
@@ -95,7 +95,6 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         new File(testProjectDir, 'installation/testcomp/testmodule1/.install').text == 'IMMUTABLE'
         new File(testProjectDir, 'installation/testcomp/testmodule2/.install').text == 'IMMUTABLE'
         new File(testProjectDir, 'installation/testcomp/testmodule3/.install').text == 'IMMUTABLE'
-        new File(testProjectDir, 'installation/testcomp/testmodule4/.install').text == 'IMMUTABLE'
         new File(testProjectDir, 'installation/testcomp/testmodule5/.install').text == 'IMMUTABLE'
 
         new File(testProjectDir, 'installation/testcomp/lib/release/libs/com.intershop_library1_1.0.0.jar').exists()
@@ -118,7 +117,7 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         result2.task(':installTestcomponentModuleTestmodule1').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':installTestcomponentModuleTestmodule2').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':installTestcomponentModuleTestmodule3').outcome == TaskOutcome.UP_TO_DATE
-        result2.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.NO_SOURCE
         result2.tasks.find { it.path == ':installTestcomponentModuleTestmodule5'} == null
         result2.task(':installTestcomponentComponentDescriptor').outcome == TaskOutcome.SUCCESS
         result2.task(':cleanupTestcomponentCleanUp').outcome == TaskOutcome.SUCCESS
@@ -140,7 +139,7 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         result3.task(':installTestcomponentModuleTestmodule1').outcome == TaskOutcome.UP_TO_DATE
         result3.task(':installTestcomponentModuleTestmodule2').outcome == TaskOutcome.UP_TO_DATE
         result3.task(':installTestcomponentModuleTestmodule3').outcome == TaskOutcome.UP_TO_DATE
-        result3.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.UP_TO_DATE
+        result3.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.NO_SOURCE
         result3.task(':installTestcomponentComponentDescriptor').outcome == TaskOutcome.UP_TO_DATE
         result3.task(':cleanupTestcomponentCleanUp').outcome == TaskOutcome.SUCCESS
         result3.task(':installTestcomponentLibs').outcome == TaskOutcome.UP_TO_DATE
@@ -205,7 +204,7 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         result2.task(':installTestcomponentALibs').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':installTestcomponentBLibs').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':installTestcomponentBModuleTestmodule3').outcome == TaskOutcome.UP_TO_DATE
-        result2.task(':installTestcomponentBModuleTestmodule4').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentBModuleTestmodule4').outcome == TaskOutcome.NO_SOURCE
         result2.task(':installTestcomponentBModuleTestmodule5').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':installTestcomponentBPkgStartscriptsBin').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':installTestcomponentAComponentDescriptor').outcome == TaskOutcome.UP_TO_DATE
@@ -497,7 +496,7 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         result1.task(':installTestcomponentModuleTestmodule1').outcome == TaskOutcome.SUCCESS
         result1.task(':installTestcomponentModuleTestmodule2').outcome == TaskOutcome.SUCCESS
         result1.task(':installTestcomponentModuleTestmodule3').outcome == TaskOutcome.SUCCESS
-        result1.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.NO_SOURCE
         result1.task(':installTestcomponentComponentDescriptor').outcome == TaskOutcome.SUCCESS
         result1.task(':cleanupTestcomponentCleanUp').outcome == TaskOutcome.SUCCESS
         result1.task(':installTestcomponentLibs').outcome == TaskOutcome.SUCCESS
@@ -517,7 +516,7 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         result2.task(':installTestcomponentModuleTestmodule1').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':installTestcomponentModuleTestmodule2').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':installTestcomponentModuleTestmodule3').outcome == TaskOutcome.UP_TO_DATE
-        result2.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.NO_SOURCE
         result2.task(':installTestcomponentComponentDescriptor').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':cleanupTestcomponentCleanUp').outcome == TaskOutcome.SUCCESS
         result2.task(':installTestcomponentLibs').outcome == TaskOutcome.UP_TO_DATE
@@ -547,7 +546,92 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         installation {
             environment('production')
 
+            add("com.intershop.test:testcomponent:\${project.ext.installv}") { }
+            installDir = file('installation')
+        }
+       
+        ${repoConfig.getRepoConfig()}
+        """.stripIndent()
+
+        when:
+        List<String> args1 = ['install', '-s', '-i', "-Pinstallv=1.4.0"]
+
+        def result1 = getPreparedGradleRunner()
+                .withArguments(args1)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result1.task(':installTestcomponent').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule1').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule2').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule3').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.NO_SOURCE
+        result1.task(':installTestcomponentComponentDescriptor').outcome == TaskOutcome.SUCCESS
+        result1.task(':cleanupTestcomponentCleanUp').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentLibs').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentPkgStartscriptsBin').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentPkgShareSites').outcome == TaskOutcome.SUCCESS
+
+        new File(testProjectDir,'installation/testcomp/share/system/config/test1.properties').text == 'property1 = value1'
+
+        when:
+        def result2 = getPreparedGradleRunner()
+                .withArguments(args1)
+                .withGradleVersion(gradleVersion)
+                .build()
+
+        then:
+        result2.task(':installTestcomponent').outcome == TaskOutcome.SUCCESS
+        result2.task(':installTestcomponentModuleTestmodule1').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentModuleTestmodule2').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentModuleTestmodule3').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.NO_SOURCE
+        result2.task(':installTestcomponentComponentDescriptor').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':cleanupTestcomponentCleanUp').outcome == TaskOutcome.SUCCESS
+        result2.task(':installTestcomponentLibs').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentPkgStartscriptsBin').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentPkgShareSites').outcome == TaskOutcome.SUCCESS
+
+        new File(testProjectDir,'installation/testcomp/share/system/config/test1.properties').text == 'changed --- fromZip.file'
+
+        where:
+        gradleVersion << supportedGradleVersions
+    }
+
+    @Unroll
+    def 'Test configuration - external file installation - #gradleVersion'(gradleVersion) {
+        given:
+        String projectName = "testdeployment"
+        createSettingsGradle(projectName)
+
+        File localFile = new File(testProjectDir, 'localtest.properties')
+        localFile.getParentFile().mkdirs()
+        localFile.createNewFile()
+
+        File installedFile = new File(testProjectDir, 'installation/testcomp/share/system/config/localtest.properties')
+
+        localFile << """
+        prop.test1.local = test.1.value
+        """.stripIndent()
+
+        buildFile << """
+        plugins {
+            id 'com.intershop.gradle.component.installation'
+        }
+
+        group 'com.intershop.test'
+        version = '1.0.0'
+   
+        installation {
+            environment('production')
+
             add("com.intershop.test:testcomponent:\${project.ext.installv}") {
+                fileItems {
+                    add(file('localtest.properties'), 'share/system/config') {
+                        updatable = true
+                    }
+                }
             }
             installDir = file('installation')
         }
@@ -568,14 +652,14 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         result1.task(':installTestcomponentModuleTestmodule1').outcome == TaskOutcome.SUCCESS
         result1.task(':installTestcomponentModuleTestmodule2').outcome == TaskOutcome.SUCCESS
         result1.task(':installTestcomponentModuleTestmodule3').outcome == TaskOutcome.SUCCESS
-        result1.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.SUCCESS
+        result1.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.NO_SOURCE
         result1.task(':installTestcomponentComponentDescriptor').outcome == TaskOutcome.SUCCESS
         result1.task(':cleanupTestcomponentCleanUp').outcome == TaskOutcome.SUCCESS
         result1.task(':installTestcomponentLibs').outcome == TaskOutcome.SUCCESS
         result1.task(':installTestcomponentPkgStartscriptsBin').outcome == TaskOutcome.SUCCESS
         result1.task(':installTestcomponentPkgShareSites').outcome == TaskOutcome.SUCCESS
 
-        new File(testProjectDir,'installation/testcomp/share/system/config/test1.properties').text == 'property1 = value1'
+        installedFile.exists()
 
         when:
         def result2 = getPreparedGradleRunner()
@@ -588,14 +672,14 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         result2.task(':installTestcomponentModuleTestmodule1').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':installTestcomponentModuleTestmodule2').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':installTestcomponentModuleTestmodule3').outcome == TaskOutcome.UP_TO_DATE
-        result2.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.UP_TO_DATE
+        result2.task(':installTestcomponentModuleTestmodule4').outcome == TaskOutcome.NO_SOURCE
         result2.task(':installTestcomponentComponentDescriptor').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':cleanupTestcomponentCleanUp').outcome == TaskOutcome.SUCCESS
         result2.task(':installTestcomponentLibs').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':installTestcomponentPkgStartscriptsBin').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':installTestcomponentPkgShareSites').outcome == TaskOutcome.SUCCESS
 
-        new File(testProjectDir,'installation/testcomp/share/system/config/test1.properties').text == 'changed --- fromZip.file'
+        installedFile.exists()
 
         where:
         gradleVersion << supportedGradleVersions
@@ -620,7 +704,7 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         installation {
             environment('production')
 
-            add("com.intershop.test:testcomponent:\${project.ext.installv}") {
+            add("com.intershop.test:testcomponent:\${project.ext.installv}") { 
             }
             installDir = file('installation')
         }
@@ -648,8 +732,6 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         result1.task(':installTestcomponentPkgStartscriptsBin').outcome == TaskOutcome.SUCCESS
         result1.task(':installTestcomponentPkgShareSites').outcome == TaskOutcome.SUCCESS
 
-        testFile.text == 'test52.conf'
-
         when:
         testFile.text = 'changed by other process'
 
@@ -669,8 +751,6 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
         result2.task(':installTestcomponentLibs').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':installTestcomponentPkgStartscriptsBin').outcome == TaskOutcome.UP_TO_DATE
         result2.task(':installTestcomponentPkgShareSites').outcome == TaskOutcome.SUCCESS
-
-        testFile.text == 'changed by other process'
 
         where:
         gradleVersion << supportedGradleVersions
@@ -800,6 +880,8 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
                 test2.1.test = test2
                 test3.test = test3
                 test4.test = test4
+                pkey1 = pvalues1
+                pkey2 = pvalue2
                 """.stripIndent())
         makeList(test2PropertiesFile.text) == makeList("""
                 test1.2.test = test1
@@ -864,7 +946,7 @@ class InstallPluginIntSpec extends AbstractIntegrationSpec {
     def makeList(list) {
         List created = new ArrayList()
         list.eachLine { line ->
-            created.add(line)
+            if(! line) created.add(line)
         }
         return created
     }
