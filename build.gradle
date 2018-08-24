@@ -64,12 +64,6 @@ gradlePlugin {
             implementationClass = 'com.intershop.gradle.component.installation.ComponentInstallPlugin'
         }
     }
-    plugins {
-        componentFilterPlugin {
-            id = 'com.intershop.gradle.component.installation.filter'
-            implementationClass = 'com.intershop.gradle.component.installation.filter.FilterPlugin'
-        }
-    }
 }
 
 sourceCompatibility = 1.8
