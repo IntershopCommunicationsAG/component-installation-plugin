@@ -21,7 +21,7 @@ configuration to specify the scope of the installation. The target operating sys
 == Usage
 To apply the component-installation Gradle plugin to your projects, add the following in your build script:
 
-[source,groovy]
+[source,java]
 [subs=+attributes]
 .build.gradle
 ----
@@ -106,7 +106,7 @@ content of all changable containers and modules.
 |===
 
 [[installDir]]
-[source,groovy]
+[source,java]
 File installDir
 
 This is the main installation of the project. If this directory is availabe the plugin tries to figure out the status
@@ -121,7 +121,7 @@ Default:: null
 ***
 
 [[installConfig]]
-[source,groovy]
+[source,java]
 InstallConfiguration installConfig
 
 With this configuration it is possible to add additional patterns for Ivy repositories. Furthermore it is possible to change
@@ -134,7 +134,7 @@ Default:: an instance of InstallConfiguration
 ***
 
 [[environment]]
-[source,groovy]
+[source,java]
 Set<String> environment
 
 This is a list of environment names or types. The elements of this list will be compared with the configuration in the
@@ -149,7 +149,7 @@ Example:: `['test', 'inttest']` - All items with on these configuration elements
 ***
 
 [[components]]
-[source,groovy]
+[source,java]
 Set<Component> components
 
 The set of components will be handled in this variable.
@@ -161,7 +161,7 @@ Default:: `[]`
 ***
 
 [[filters]]
-[source,groovy]
+[source,java]
 FilterContainer filters
 
 The configuration container for all filter configurations.
@@ -189,7 +189,7 @@ Default:: `[]`
 |===
 
 [[add]]
-[source,groovy]
+[source,java]
 Component add(Object component)
 
 This method adds a component through a simple dependency to the set of components.
@@ -207,7 +207,7 @@ Example::
 ***
 
 [[addpath]]
-[source,groovy]
+[source,java]
 Component add(Object component, String path)
 
 This method adds a component through a simple dependency to the set of components with a special path.
@@ -223,11 +223,11 @@ Example::
 ***
 
 [[addaction]]
-[source,groovy]
+[source,java]
 Component add(Object component, Action<? super Component> action)
 
 [[addclosure]]
-[source,groovy]
+[source,java]
 Component add(Object component, Closure closure)
 
 This method adds a component through a dependency to the set of components and configures the component with an action
@@ -237,7 +237,7 @@ will be thrown.
 :::
 
 Example::
-[source,groovy]
+[source,java]
 add('com.intershop:testcomp:1.0.0') {
     exclude '**/**/*.jpg'
     preserve {
@@ -248,11 +248,11 @@ add('com.intershop:testcomp:1.0.0') {
 ***
 
 [[addpathaction]]
-[source,groovy]
+[source,java]
 Component add(Object component, String path, Action<? super Component> action)
 
 [[addpathclosure]]
-[source,groovy]
+[source,java]
 Component add(Object component, String path, Closure closure)
 
 This method adds a component through a dependency to the set of components with a path and configures the component with an action
@@ -262,7 +262,7 @@ will be thrown.
 :::
 
 Example::
-[source,groovy]
+[source,java]
 add('com.intershop:testcomp:1.0.0', 'testpath') {
     exclude '**/**/*.jpg'
     preserve {
@@ -273,7 +273,7 @@ add('com.intershop:testcomp:1.0.0', 'testpath') {
 ***
 
 [[conffilters]]
-[source,groovy]
+[source,java]
 void filters(Action<? super FilterContainer> action)
 
 This method configures the filter container for all InstallMutableTasks.
@@ -281,7 +281,7 @@ This method configures the filter container for all InstallMutableTasks.
 :::
 
 Example::
-[source,groovy]
+[source,java]
 filters {
     overrideProperties("test1", "**/**/test1file.properties") {
         setProperty("test3.test", "test3")
@@ -304,7 +304,7 @@ filters {
 |===
 
 [[installAdminDir]]
-[source,groovy]
+[source,java]
 File installAdminDir
 
 This is the main administration directory of the project.
@@ -316,7 +316,7 @@ Default:: `project.buildDir`
 ***
 
 [[ivyPatterns]]
-[source,groovy]
+[source,java]
 Set<String> ivyPatterns
 
 All available Ivy patterns. This is used for the download of a configured component.
@@ -340,7 +340,7 @@ Default:: `["[organisation]/[module]/[revision]/[ext]s/[artifact]-[type](-[class
 |===
 
 [[addIvyPattern]]
-[source,groovy]
+[source,java]
 void add(String pattern)
 
 Adds an new Ivy pattern.
@@ -368,7 +368,7 @@ addIvyPattern('[organisation]/[module]/[revision]/[ext]s/[artifact]-[type]-[revi
 |===
 
 [[commonName]]
-[source,groovy]
+[source,java]
 String commonName
 
 The common name of the component is used for tasks and log output.
@@ -382,7 +382,7 @@ Example:: `Testcomponent`, `TestcomponentPath`
 ***
 
 [[dependency]]
-[source,groovy]
+[source,java]
 Dependency dependency
 
 The dependency object of this component. It must be always an external module dependency.
@@ -394,7 +394,7 @@ Value:: Dependency(<group>, <module>, <version>)
 ***
 
 [[excludes]]
-[source,groovy]
+[source,java]
 Set<String> excludes
 
 With this Ant pattern set it is possible to exclude files from the installation. This files will be not copied to the installation.
@@ -407,7 +407,7 @@ Default:: `[]`
 ***
 
 [[preserve]]
-[source,groovy]
+[source,java]
 PatternFilterable preserve
 
 With this pattern set it is possible to preserve files from deletion during the installation of a component.
@@ -419,7 +419,7 @@ Default:: an instance of PatternSet
 ***
 
 [[fileItems]]
-[source,groovy]
+[source,java]
 LocalFileContainer fileItems
 
 This is the configuration container for local file items, that will be installed.
@@ -445,7 +445,7 @@ Default:: an instance of LocalFileContainer
 |===
 
 [[excludep]]
-[source,groovy]
+[source,java]
 void exclude(String pattern)
 
 Adds an exclude Ant pattern to the exclude set.
@@ -458,7 +458,7 @@ Example::
 ***
 
 [[excludeps]]
-[source,groovy]
+[source,java]
 void exclude(Set<String> patterns)
 
 Adds a set of exclude Ant pattern to the exclude set. This files will be not copied to the installation.
@@ -472,11 +472,11 @@ Example::
 ***
 
 [[preserveaction]]
-[source,groovy]
+[source,java]
 void preserve(Action<? super PatternFilterable> action)
 
 [[preserveclosure]]
-[source,groovy]
+[source,java]
 void preserve(Closure closure)
 
 Configures the preserve pattern set with a closure or action. Files and directories that be satisfied by this filter,
@@ -485,7 +485,7 @@ are not deleted from the install task.
 :::
 
 Example::
-[source,groovy]
+[source,java]
 add('com.intershop:testcomp:1.0.0', 'testpath') {
     exclude '**/**/*.jpg'
     preserve {
@@ -496,11 +496,11 @@ add('com.intershop:testcomp:1.0.0', 'testpath') {
 ***
 
 [[fileItemsaction]]
-[source,groovy]
+[source,java]
 void fileItems(Action<? super LocalFileContainer> action)
 
 [[fileItemsclosure]]
-[source,groovy]
+[source,java]
 void fileItems(Closure closure)
 
 Configures the file items container with a closure or action.
@@ -508,7 +508,7 @@ Configures the file items container with a closure or action.
 :::
 
 Example::
-[source,groovy]
+[source,java]
 fileItems {
     add(file('local.properties'), 'share/system/config') {
         updatable = false
@@ -528,6 +528,7 @@ fileItems {
 |<<localFileItems, localFileItems>> | This is a set of local file items.
 |===
 
+[[localFileItems]]
 ===== Methods of 'fileItems'
 
 [cols="1m,1d" width="100%", options="header"]
@@ -541,7 +542,7 @@ fileItems {
 |===
 
 [[add1]]
-[source,groovy]
+[source,java]
 void add(File file, String targetPath)
 
 Adds a preconfigured local file item.
@@ -557,7 +558,7 @@ These are the default values:
 :::
 
 Example::
-[source,groovy]
+[source,java]
 fileItems {
     add(file('local.properties'), 'share/system/config')
 }
@@ -565,11 +566,11 @@ fileItems {
 ***
 
 [[add2]]
-[source,groovy]
+[source,java]
 void add(File file, String targetPath, Action<? super LocalFileItem> properties)
 
 [[add3]]
-[source,groovy]
+[source,java]
 void add(File file, String targetPath, Closure closure)
 
 Adds a preconfigured local file item and configures the item with an action or closure.
@@ -577,7 +578,7 @@ Adds a preconfigured local file item and configures the item with an action or c
 :::
 
 Example::
-[source,groovy]
+[source,java]
 fileItems {
     add(file('local.properties'), 'share/system/config') {
         updatable = false
@@ -614,10 +615,10 @@ fileItems {
 |===
 
 [[overrideProperties1]]
-[source,groovy]
+[source,java]
 void overrideProperties(String name, String include, Action<? super FormattedProperties> properties)
 
-[source,groovy]
+[source,java]
 void overrideProperties(String name, String include, Closure<FormattedProperties> properties)
 
 This method add a filter for an include pattern with a configuration in properties for FormattedProperties.
@@ -625,7 +626,7 @@ This method add a filter for an include pattern with a configuration in properti
 :::
 
 Example::
-[source,groovy]
+[source,java]
 ----
 overrideProperties("propname", "**/webadapter/webadapter.properties") {
     setProperty("errorlog.level", "INFO")
@@ -639,10 +640,10 @@ overrideProperties("propname", "**/webadapter/webadapter.properties") {
 ***
 
 [[overrideProperties2]]
-[source,groovy]
+[source,java]
 void overrideProperties(String name, Set<String> includes, Action<? super FormattedProperties> properties)
 
-[source,groovy]
+[source,java]
 void overrideProperties(String name, Set<String> includes, Closure<FormattedProperties> properties)
 
 This method add a filter for an include pattern set with a configuration in properties for FormattedProperties.
@@ -650,7 +651,7 @@ This method add a filter for an include pattern set with a configuration in prop
 :::
 
 Example::
-[source,groovy]
+[source,java]
 ----
 overrideProperties("propname", ["**/webadapter1/webadapter.properties", "**/webadapter2/webadapter.properties"] ) {
     setProperty("errorlog.level", "INFO")
@@ -664,10 +665,10 @@ overrideProperties("propname", ["**/webadapter1/webadapter.properties", "**/weba
 ***
 
 [[overrideProperties3]]
-[source,groovy]
+[source,java]
 void overrideProperties(String name, PatternSet patternset, Action<? super FormattedProperties> properties)
 
-[source,groovy]
+[source,java]
 void overrideProperties(String name, PatternSet patternset, Closure<FormattedProperties> properties)
 
 This method add a filter for an include pattern set with a configuration in properties for FormattedProperties.
@@ -675,7 +676,7 @@ This method add a filter for an include pattern set with a configuration in prop
 :::
 
 Example::
-[source,groovy]
+[source,java]
 ----
 def patternset = new PatternSet()
 patternset.exclude("**/webadapter1/webadapter.properties")
@@ -693,10 +694,10 @@ overrideProperties("propname", patternset ) {
 ***
 
 [[xmlContent1]]
-[source,groovy]
+[source,java]
 void xmlContent(String name, String include, Action<? super XmlProvider> properties)
 
-[source,groovy]
+[source,java]
 void xmlContent(String name, String include, Closure<XmlProvider> closure)
 
 This method add a filter for an include pattern with a configuration in xml for XmlProvider.
@@ -704,7 +705,7 @@ This method add a filter for an include pattern with a configuration in xml for 
 :::
 
 Example::
-[source,groovy]
+[source,java]
 ----
 xmlContent("xmlname", "**/cluster/configuration.xml") { XmlProvider provider ->
     def sets = provider.asNode().sets.first().children()
@@ -717,10 +718,10 @@ xmlContent("xmlname", "**/cluster/configuration.xml") { XmlProvider provider ->
 ***
 
 [[xmlContent2]]
-[source,groovy]
+[source,java]
 void xmlContent(String name, Set<String> includes, Action<? super XmlProvider> properties)
 
-[source,groovy]
+[source,java]
 void xmlContent(String name, Set<String> includes, Closure<XmlProvider> closure)
 
 This method add a filter for an include pattern set with a configuration in xml for XmlProvider.
@@ -728,7 +729,7 @@ This method add a filter for an include pattern set with a configuration in xml 
 :::
 
 Example::
-[source,groovy]
+[source,java]
 ----
 xmlContent("xmlname", ["**/cluster1/configuration.xml", "**/cluster2/configuration.xml"]) { XmlProvider provider ->
     def sets = provider.asNode().sets.first().children()
@@ -741,10 +742,10 @@ xmlContent("xmlname", ["**/cluster1/configuration.xml", "**/cluster2/configurati
 ***
 
 [[xmlContent3]]
-[source,groovy]
+[source,java]
 void xmlContent(String name, PatternSet patternset, Action<? super XmlProvider> properties)
 
-[source,groovy]
+[source,java]
 void xmlContent(String name, PatternSet patternset, Closure<XmlProvider> closure)
 
 This method add a filter for pattern set with a configuration in xml for XmlProvider.
@@ -752,7 +753,7 @@ This method add a filter for pattern set with a configuration in xml for XmlProv
 :::
 
 Example::
-[source,groovy]
+[source,java]
 ----
 def patternset = new PatternSet()
 patternset.exclude("**/cluster1/configuration.xml")
@@ -769,10 +770,10 @@ xmlContent("xmlname", ["**/cluster1/configuration.xml", "**/cluster2/configurati
 ***
 
 [[fullContent1]]
-[source,groovy]
+[source,java]
 void fullContent(String name, String include, Action<? super StringBuilder> content)
 
-[source,groovy]
+[source,java]
 void fullContent(String name, String include, Closure<StringBuilder> closure)
 
 This method add a filter for an include pattern with a configuration in content for StringBuilder.
@@ -780,7 +781,7 @@ This method add a filter for an include pattern with a configuration in content 
 :::
 
 Example::
-[source,groovy]
+[source,java]
 ----
 fullContent("contentName", "**/httpd/conf/httpd.conf") { StringBuilder content ->
      content.append(System.lineSeparator + '# MyModule configuration' + System.lineSeparator + "Include ${target.localDirectory}/etc/httpd/extra/my-module.conf")
@@ -789,11 +790,11 @@ fullContent("contentName", "**/httpd/conf/httpd.conf") { StringBuilder content -
 
 ***
 
-[[fullContentt2]]
-[source,groovy]
+[[fullContent2]]
+[source,java]
 void fullContent(String name, Set<String> includes, Action<? super StringBuilder> content)
 
-[source,groovy]
+[source,java]
 void fullContent(String name, Set<String> includes, Closure<StringBuilder> closure)
 
 This method add a filter for an include pattern set with a configuration in content for StringBuilder.
@@ -801,7 +802,7 @@ This method add a filter for an include pattern set with a configuration in cont
 :::
 
 Example::
-[source,groovy]
+[source,java]
 ----
 fullContent("contentName", ["**/httpd1/conf/httpd.conf", "**/httpd2/conf/httpd.conf"]) { StringBuilder content ->
      content.append(System.lineSeparator + '# MyModule configuration' + System.lineSeparator + "Include ${target.localDirectory}/etc/httpd/extra/my-module.conf")
@@ -811,10 +812,10 @@ fullContent("contentName", ["**/httpd1/conf/httpd.conf", "**/httpd2/conf/httpd.c
 ***
 
 [[fullContent3]]
-[source,groovy]
+[source,java]
 void fullContent(String name, PatternSet patternset, Action<? super StringBuilder> content)
 
-[source,groovy]
+[source,java]
 void fullContent(String name, PatternSet patternset, Closure<StringBuilder> closure)
 
 This method add a filter for pattern set with a configuration in content for StringBuilder.
@@ -822,7 +823,7 @@ This method add a filter for pattern set with a configuration in content for Str
 :::
 
 Example::
-[source,groovy]
+[source,java]
 ----
 def patternset = new PatternSet()
 patternset.exclude("**/httpd2/configuration.xml")
@@ -836,7 +837,7 @@ fullContent("contentName", patternset) { StringBuilder content ->
 ***
 
 [[replacePlaceholders]]
-[source,groovy]
+[source,java]
 void replacePlaceholders(String name, Closure<PlaceholderReplacementFilter> replacePlaceHolder)
 
 This method add a filter that replaces placeholders per line for files specified in the pattern set.
@@ -844,7 +845,7 @@ This method add a filter that replaces placeholders per line for files specified
 :::
 
 Example::
-[source,groovy]
+[source,java]
 ----
 replacePlaceholders("placeholders") {
     include '**/bin/*.sh'
@@ -858,7 +859,7 @@ replacePlaceholders("placeholders") {
 ***
 
 [[transformer1]]
-[source,groovy]
+[source,java]
 void addTransformer(String name, String include, Transformer<String, String> transformer)
 
 This method add a Transformer for an include pattern to edit files based on lines.
@@ -866,7 +867,7 @@ This method add a Transformer for an include pattern to edit files based on line
 :::
 
 Example::
-[source,groovy]
+[source,java]
 ----
 addTransformer("ownTransformer", "**/**/file.conf", new Transformer<String, String>() {
     @Override
@@ -883,7 +884,7 @@ addTransformer("ownTransformer", "**/**/file.conf", new Transformer<String, Stri
 ***
 
 [[transformer2]]
-[source,groovy]
+[source,java]
 void addTransformer(String name, Set<String> includes, Transformer<String, String> transformer)
 
 This method add a Transformer for an include pattern set to edit files based on lines.
@@ -891,7 +892,7 @@ This method add a Transformer for an include pattern set to edit files based on 
 :::
 
 Example::
-[source,groovy]
+[source,java]
 ----
 addTransformer("ownTransformer", ["**/folder1/file.conf", "**/folder2/file.conf"], new Transformer<String, String>() {
     @Override
@@ -908,7 +909,7 @@ addTransformer("ownTransformer", ["**/folder1/file.conf", "**/folder2/file.conf"
 ***
 
 [[transformer3]]
-[source,groovy]
+[source,java]
 void addTransformer(String name, PatternSet patternset, Transformer<String, String> transformer)
 
 This method add a Transformer for pattern set to edit files based on lines.
@@ -916,7 +917,7 @@ This method add a Transformer for pattern set to edit files based on lines.
 :::
 
 Example::
-[source,groovy]
+[source,java]
 ----
 def patternset = new PatternSet()
 patternset.exclude("**/folder2/file.conf")
@@ -937,7 +938,7 @@ addTransformer("ownTransformer", patternset, new Transformer<String, String>() {
 ***
 
 [[closure1]]
-[source,groovy]
+[source,java]
 void addClosure(String name, String include, Closure closure)
 
 This method add a Closure for an include pattern to edit files based on lines.
@@ -945,7 +946,7 @@ This method add a Closure for an include pattern to edit files based on lines.
 :::
 
 Example::
-[source,groovy]
+[source,java]
 ----
 addClosure("editLine", "**/folder/file.conf") {
     String line -> line =~ /^\\w*ServerAdmin/ ? 'ServerAdmin admin@customer.com' : line
@@ -955,7 +956,7 @@ addClosure("editLine", "**/folder/file.conf") {
 ***
 
 [[closure2]]
-[source,groovy]
+[source,java]
 void addClosure(String name, Set<String> includes, Closure closure)
 
 This method add a Closure for an include pattern set to edit files based on lines.
@@ -963,7 +964,7 @@ This method add a Closure for an include pattern set to edit files based on line
 :::
 
 Example::
-[source,groovy]
+[source,java]
 ----
 addClosure("editLine", ["**/folder1/file.conf", "**/folder2/file.conf"]) {
     String line -> line =~ /^\\w*ServerAdmin/ ? 'ServerAdmin admin@customer.com' : line
@@ -973,7 +974,7 @@ addClosure("editLine", ["**/folder1/file.conf", "**/folder2/file.conf"]) {
 ***
 
 [[closure3]]
-[source,groovy]
+[source,java]
 void addClosure(String name, PatternSet patternset,  Closure closure)
 
 This method add a Closure for pattern set to edit files based on lines.
@@ -981,7 +982,7 @@ This method add a Closure for pattern set to edit files based on lines.
 :::
 
 Example::
-[source,groovy]
+[source,java]
 ----
 def patternset = new PatternSet()
 patternset.exclude("**/folder2/file.conf")
