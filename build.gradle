@@ -17,13 +17,13 @@ plugins {
     // project plugins
     id 'java-gradle-plugin'
     id 'groovy'
-    id 'nebula.kotlin' version '1.2.41'
+    id 'nebula.kotlin' version '1.2.61'
 
     // documentation
-    id "org.jetbrains.dokka" version "0.9.16"
+    id "org.jetbrains.dokka" version "0.9.17"
 
     // code analysis for kotlin
-    id "io.gitlab.arturbosch.detekt" version "1.0.0.RC6-4"
+    id "io.gitlab.arturbosch.detekt" version "1.0.0.RC8"
 
     // test coverage
     id 'jacoco'
@@ -35,16 +35,16 @@ plugins {
     id 'maven-publish'
 
     // intershop version plugin
-    id 'com.intershop.gradle.scmversion' version '3.4.0'
+    id 'com.intershop.gradle.scmversion' version '4.0.0'
 
     // plugin for documentation
-    id 'org.asciidoctor.convert' version '1.5.7'
+    id 'org.asciidoctor.convert' version '1.5.8.1'
 
     // plugin for publishing to Gradle Portal
-    id 'com.gradle.plugin-publish' version '0.9.10'
+    id 'com.gradle.plugin-publish' version '0.10.0'
 
     // plugin for publishing to jcenter
-    id 'com.jfrog.bintray' version '1.8.0'
+    id 'com.jfrog.bintray' version '1.8.4'
 }
 
 scm {
@@ -279,16 +279,16 @@ dependencies {
     compile 'org.jsoup:jsoup:1.11.3'
     compile 'commons-io:commons-io:2.6'
 
-    compileOnly 'org.jetbrains:annotations:15.0'
+    compileOnly 'org.jetbrains:annotations:16.0.2'
 
     // mock webserver
     testCompile 'com.squareup.okhttp3:okhttp:3.10.0'
     testCompile 'com.squareup.okhttp3:mockwebserver:3.10.0'
     
-    testCompile 'com.intershop.gradle.test:test-gradle-plugin:3.0.0'
+    testCompile 'com.intershop.gradle.test:test-gradle-plugin:3.2.0'
     testCompile gradleTestKit()
 
-    codacy 'com.codacy:codacy-coverage-reporter:4.0.0'
+    codacy 'com.codacy:codacy-coverage-reporter:5.0.310'
 }
 
 repositories {
