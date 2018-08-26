@@ -209,6 +209,8 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                                    update: Boolean,
                                    target: String) {
 
+                spec.includeEmptyDirs = false
+
                 if(confMgr.fileItemSet.isNotEmpty()) {
                     confMgr.fileItemSet.forEach { item ->
                         if(item.filePath.startsWith(target) &&
@@ -224,7 +226,7 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
                 if(targetIncluded) {
                     spec.eachFile { details ->
-                        details.path = removeDirFromPath(target, details.path)
+                        details.path = removeFirstDirFromPath(details.path)
                     }
                 }
 
@@ -271,15 +273,10 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
             }
 
-            private fun removeDirFromPath(dirName: String,
-                                          path: String): String {
-                return if(path.startsWith(dirName) && dirName.isNotBlank()) {
-                    val newPath = path.replaceFirst(dirName, "")
-                    if(newPath.startsWith("/")) {
-                        newPath.substring(1)
-                    } else {
-                        newPath
-                    }
+            private fun removeFirstDirFromPath(path: String): String {
+                val pathElements = path.split("/")
+                return if(pathElements.size > 1) {
+                    pathElements.subList(1, pathElements.size).joinToString("/")
                 } else {
                     path
                 }
