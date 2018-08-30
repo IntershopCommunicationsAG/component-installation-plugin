@@ -2,7 +2,7 @@
   "displayName" : "test",
   "componentDescription" : "Test component 1",
   "types" : [ "test", "production", "perfTest" ],
-  "classifiers" : [ "linux", "win", "macos", "" ],
+  "classifiers" : [ "linux", "win", "macos", "darwin.x86_64", "" ],
   "modulesPath" : "",
   "libsPath" : "lib/release/libs",
   "containerPath" : "",
@@ -212,7 +212,15 @@
     "contentType" : "IMMUTABLE",
     "updatable" : true,
     "types" : [ ]
-  } ],
+  }, {
+             "name" : "test2",
+             "extension" : "properties",
+             "targetPath" : "share/system/config",
+             "classifier" : "darwin.x86_64",
+             "contentType" : "IMMUTABLE",
+             "updatable" : true,
+             "types" : [ ]
+           }],
   "linkItems" : [ {
     "name" : "log",
     "targetPath" : "system/log",

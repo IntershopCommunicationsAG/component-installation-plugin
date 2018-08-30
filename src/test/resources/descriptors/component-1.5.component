@@ -212,7 +212,15 @@
     "contentType" : "IMMUTABLE",
     "updatable" : true,
     "types" : [ ]
-  } ],
+  }, {
+          "name" : "test2",
+          "extension" : "properties",
+          "targetPath" : "share/system/config",
+          "classifier" : "macos",
+          "contentType" : "IMMUTABLE",
+          "updatable" : true,
+          "types" : [ ]
+        }],
   "linkItems" : [ {
     "name" : "log",
     "targetPath" : "system/log",

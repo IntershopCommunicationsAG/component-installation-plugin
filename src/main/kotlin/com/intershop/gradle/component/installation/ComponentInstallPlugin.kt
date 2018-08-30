@@ -161,7 +161,6 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
                 // add files form descriptor
                 confMgr.descriptor.fileItems.forEach { file ->
                     val localFile = File(adminDir, "files/${file.name}.${file.extension}")
-
                     val classifier = file.classifier
 
                     if (checkForOS(file) && confMgr.checkForType(file)) {
@@ -213,8 +212,19 @@ class ComponentInstallPlugin @Inject constructor(private val modelRegistry: Mode
 
                 if(confMgr.fileItemSet.isNotEmpty()) {
                     confMgr.fileItemSet.forEach { item ->
+
+                        LOGGER.info("Prepare copy file from {} to {}.", item.filePath, item.targetPath)
+                        LOGGER.debug("Prepare file {} - target: {}", item.filePath, target)
+                        LOGGER.debug("Prepare file {} - update: {}", item.filePath, ((update && item.updatable && item.contentType != ContentType.DATA) || ! update))
+
                         if(item.filePath.startsWith(target) &&
                                 ((update && item.updatable && item.contentType != ContentType.DATA) || ! update)) {
+
+                            LOGGER.debug("Copy file {} - exclude: {}", item.filePath, item.filePath)
+                            LOGGER.debug("Copy file {} - from: {}", item.filePath, item.file.parent)
+                            LOGGER.debug("Copy file {} - include: {}", item.filePath, item.file.name)
+                            LOGGER.debug("Copy file {} - into: {}", item.filePath, item.targetPath)
+
                             spec.exclude(item.filePath)
                             spec.from(item.file.parent) {
                                 it.include(item.file.name)
