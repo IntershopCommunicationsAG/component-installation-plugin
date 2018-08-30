@@ -150,6 +150,7 @@ class CentralTestRepo {
                 ]
                 artifact name: 'test1', type: 'properties', ext: 'properties', content: 'property1 = value1'
                 artifact name: 'test2', type: 'properties', ext: 'properties', classifier: 'linux', content: 'property2 = value2'
+                artifact name: 'test2', type: 'properties', ext: 'properties', classifier: 'macos', content: 'property2 = value3'
             }
             module(org: 'com.intershop.test', name: 'testcomponent', rev: '1.1.0') {
                 artifact name: 'testcomponent', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME,
@@ -175,6 +176,7 @@ class CentralTestRepo {
                 ]
                 artifact name: 'test1', type: 'properties', ext: 'properties', content: 'property1 = value1'
                 artifact name: 'test2', type: 'properties', ext: 'properties', classifier: 'linux', content: 'property2 = value2'
+                artifact name: 'test2', type: 'properties', ext: 'properties', classifier: 'darwin.x86_64', content: 'property2 = value3'
             }
             module(org: 'com.intershop.test', name: 'testcomponent', rev: '1.2.0') {
                 artifact name: 'testcomponent', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME,
@@ -200,6 +202,7 @@ class CentralTestRepo {
                 ]
                 artifact name: 'test1', type: 'properties', ext: 'properties', content: 'property1 = value1'
                 artifact name: 'test2', type: 'properties', ext: 'properties', classifier: 'linux', content: 'property2 = value2'
+                artifact name: 'test2', type: 'properties', ext: 'properties', classifier: 'macos', content: 'property2 = value3'
             }
             module(org: 'com.intershop.test', name: 'testcomponent', rev: '1.3.0') {
                 artifact name: 'testcomponent', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME,
@@ -225,6 +228,7 @@ class CentralTestRepo {
                 ]
                 artifact name: 'test1', type: 'properties', ext: 'properties', content: 'property1 = value1'
                 artifact name: 'test2', type: 'properties', ext: 'properties', classifier: 'linux', content: 'property2 = value2'
+                artifact name: 'test2', type: 'properties', ext: 'properties', classifier: 'macos', content: 'property2 = value3'
             }
             module(org: 'com.intershop.test', name: 'testcomponent', rev: '1.4.0') {
                 artifact name: 'testcomponent', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME,
@@ -250,6 +254,7 @@ class CentralTestRepo {
                 ]
                 artifact name: 'test1', type: 'properties', ext: 'properties', content: 'property1 = value1'
                 artifact name: 'test2', type: 'properties', ext: 'properties', classifier: 'linux', content: 'property2 = value2'
+                artifact name: 'test2', type: 'properties', ext: 'properties', classifier: 'macos', content: 'property2 = value3'
             }
             module(org: 'com.intershop.test', name: 'testcomponent', rev: '1.5.0') {
                 artifact name: 'testcomponent', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME,
@@ -275,6 +280,7 @@ class CentralTestRepo {
                 ]
                 artifact name: 'test1', type: 'properties', ext: 'properties', content: 'property1 = value1'
                 artifact name: 'test2', type: 'properties', ext: 'properties', classifier: 'linux', content: 'property2 = value2'
+                artifact name: 'test2', type: 'properties', ext: 'properties', classifier: 'macos', content: 'property2 = value3'
             }
             module(org: 'com.intershop.test', name: 'testcomponentA', rev: '1.0.0') {
                 artifact name: 'testcomponentA', type: DescriptorManager.DESCRIPTOR_NAME, ext: DescriptorManager.DESCRIPTOR_NAME,
@@ -378,6 +384,7 @@ class CentralTestRepo {
                 ]
                 artifact name: 'test1', type: 'properties', ext: 'properties', content: 'property1 = value1'
                 artifact name: 'test2', type: 'properties', ext: 'properties', classifier: 'linux', content: 'property2 = value2'
+                artifact name: 'test2', type: 'properties', ext: 'properties', classifier: 'macos', content: 'property2 = value3'
             }
 
 
